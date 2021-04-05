@@ -1,2 +1,2 @@
-# uniccon-back
-Back end with Django
+# uniconn-back
+Django rest API
