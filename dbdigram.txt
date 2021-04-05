@@ -1,0 +1,114 @@
+https://dbdiagram.io/d/60654adcecb54e10c33e3abd
+
+
+Table User {
+  id int pk
+  username char
+  password char
+}
+
+Table Student {
+  id int pk
+  user int
+  photo char
+  first_name char
+  last_name char
+  birth_date date
+  university int
+  major int
+  created_at datetime
+  updated_at datetime
+}
+
+Table Mentor {
+  id int pk
+  user int
+  photo char
+  first_name char
+  last_name char
+  birth_date date
+  expertise int
+  created_at datetime
+  updated_at datetime
+}
+
+Table University {
+  id int pk
+  name char
+  cnpj char
+  created_at datetime
+  updated_at datetime
+}
+
+Table Major {
+  id int pk
+  name char
+  field int
+}
+
+Table MajorField {
+  id int pk
+  name char
+}
+
+Table Project {
+  id int pk
+  title char
+  students int
+  mentor int
+  field int
+  created_at datetime
+  updated_at datetime
+}
+
+Table MarketField {
+  id int pk
+  name char
+}
+
+Table ProjectImage {
+  id int pk
+  project int
+  image char
+}
+
+
+Ref {
+  Student.user - User.id
+}
+
+Ref {
+  Student.university > University.id
+}
+
+Ref {
+  Student.major > Major.id
+}
+
+Ref {
+  Mentor.user - User.id
+}
+
+Ref {
+  Mentor.expertise < MarketField.id
+}
+
+Ref {
+  Major.field > MajorField.id
+}
+
+Ref {
+  Project.students < Student.id
+}
+
+Ref {
+  Project.mentor > Mentor.id
+}
+
+Ref {
+  ProjectImage.project > Project.id
+}
+
+Ref {
+  Project.field < MarketField.id
+}
