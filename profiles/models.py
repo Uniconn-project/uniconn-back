@@ -2,7 +2,7 @@ from typing import List
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from universities.models import Major, University
+from universities.models import Major, MajorField, University
 
 
 class User(AbstractUser):
@@ -51,14 +51,22 @@ class Student(models.Model):
      """
 
     class Meta:
-        ordering: List["-created_at"]
+        ordering: ["-profile.created_at"]
 
     def __str__(self):
         return f"{self.profile.user.username} [STUDENT]"
 
 
-# on_delete=models.CASCADE, related_name="profile"
-# Wait for Felipe reviews this shit
 class Mentor(models.Model):
+    """
+    Mentor table
+    """
+
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="mentor")
-    expertise = models.ForeignKey(Major, on_delete=models.SET_NULL, related_name="mentors", blank=True, null=True)
+    expertise = models.ForeignKey(MajorField, on_delete=models.SET_NULL, related_name="mentors", blank=True, null=True)
+
+    class Meta:
+        ordering: ["-profile.created_at"]
+
+    def __str__(self):
+        return f"{self.profile.user.username} [MENTOR]"
