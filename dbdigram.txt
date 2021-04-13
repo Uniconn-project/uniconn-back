@@ -7,6 +7,7 @@ Table User {
   password char
 }
 
+
 Table Student {
   id int pk
   user int
@@ -32,6 +33,7 @@ Table Mentor {
   updated_at datetime
 }
 
+
 Table University {
   id int pk
   name char
@@ -40,11 +42,13 @@ Table University {
   updated_at datetime
 }
 
+
 Table Major {
   id int pk
   name char
-  field int
+  fields int
 }
+
 
 Table MajorField {
   id int pk
@@ -59,11 +63,6 @@ Table Project {
   field int
   created_at datetime
   updated_at datetime
-}
-
-Table MarketField {
-  id int pk
-  name char
 }
 
 Table ProjectImage {
@@ -90,11 +89,12 @@ Ref {
 }
 
 Ref {
-  Mentor.expertise < MarketField.id
+  Mentor.expertise < MajorField.id
 }
 
+
 Ref {
-  Major.field > MajorField.id
+  Major.fields < MajorField.id
 }
 
 Ref {
@@ -110,5 +110,5 @@ Ref {
 }
 
 Ref {
-  Project.field < MarketField.id
+  Project.field < MajorField.id
 }

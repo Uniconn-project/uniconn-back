@@ -14,6 +14,9 @@ class University(models.Model):
     class Meta:
         ordering = ["name"]
 
+    def __str__(self):
+        return self.name
+
 
 class MajorField(models.Model):
     """
@@ -25,6 +28,9 @@ class MajorField(models.Model):
 
     class Meta:
         ordering = ["name"]
+
+    def __str__(self):
+        return self.name
 
 
 class Major(models.Model):
@@ -38,3 +44,6 @@ class Major(models.Model):
 
     class Meta:
         ordering = ["name"]
+
+    def __str__(self):
+        return self.name

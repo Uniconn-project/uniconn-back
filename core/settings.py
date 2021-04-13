@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "profiles",
     "universities",
+    "projects",
 ]
 
 MIDDLEWARE = [
