@@ -7,30 +7,29 @@ Table User {
   password char
 }
 
-
-Table Student {
+Table Profile {
   id int pk
   user int
   photo char
   first_name char
   last_name char
   birth_date date
-  university int
-  major int
   created_at datetime
   updated_at datetime
 }
 
+
+Table Student {
+  id int pk
+  profile int
+  university int
+  major int
+}
+
 Table Mentor {
   id int pk
-  user int
-  photo char
-  first_name char
-  last_name char
-  birth_date date
+  profile int
   expertise int
-  created_at datetime
-  updated_at datetime
 }
 
 
@@ -57,23 +56,23 @@ Table MajorField {
 
 Table Project {
   id int pk
-  title char
+  category char
+  name char
+  description char
   students int
-  mentor int
-  field int
+  mentors int
+  fields int
   created_at datetime
   updated_at datetime
 }
 
-Table ProjectImage {
-  id int pk
-  project int
-  image char
-}
-
 
 Ref {
-  Student.user - User.id
+  Profile.user - User.id
+}
+
+Ref {
+  Student.profile - Profile.id
 }
 
 Ref {
@@ -85,7 +84,7 @@ Ref {
 }
 
 Ref {
-  Mentor.user - User.id
+  Mentor.profile - Profile.id
 }
 
 Ref {
@@ -102,13 +101,10 @@ Ref {
 }
 
 Ref {
-  Project.mentor > Mentor.id
+  Project.mentors < Mentor.id
 }
 
-Ref {
-  ProjectImage.project > Project.id
-}
 
 Ref {
-  Project.field < MajorField.id
+  Project.fields < MajorField.id
 }

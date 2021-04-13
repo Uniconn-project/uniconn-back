@@ -29,6 +29,12 @@ class Profile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering: ["-created_at"]
+
+    def __str__(self):
+        return self.user.username
+
 
 class Student(models.Model):
     """
@@ -48,7 +54,7 @@ class Student(models.Model):
         ordering: List["-created_at"]
 
     def __str__(self):
-        return self.user.username
+        return f"{self.profile.user.username} [STUDENT]"
 
 
 # on_delete=models.CASCADE, related_name="profile"
