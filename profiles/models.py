@@ -1,3 +1,5 @@
+from typing import List
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from universities.models import Major, University
@@ -39,16 +41,18 @@ class Student(models.Model):
     )
     major = models.ForeignKey(Major, on_delete=models.SET_NULL, related_name="students", blank=True, null=True)
 
+    """ If no argument is given, the constructor creates a new empty list. The argument must be an iterable if specified list in the case, review this please.
+     """
+
     class Meta:
-        ordering: ["-created_at"]
+        ordering: List["-created_at"]
 
     def __str__(self):
         return self.user.username
 
 
+# on_delete=models.CASCADE, related_name="profile"
+# Wait for Felipe reviews this shit
 class Mentor(models.Model):
-    """
-    Mentor table
-    """
-
-    pass
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="mentor")
+    expertise = models.ForeignKey(Major, on_delete=models.SET_NULL, related_name="mentors", blank=True, null=True)
