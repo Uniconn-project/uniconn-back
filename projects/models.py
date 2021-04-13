@@ -17,6 +17,7 @@ class Project(models.Model):
 
     category = models.CharField(max_length=50, choices=project_categories_choices)
     name = models.CharField(max_length=50, blank=True, null=True)
+    description = models.CharField(max_length=300, blank=True, null=True)
     students = models.ManyToManyField(Student, related_name="projects")
     # mentors = models.ManyToManyField(Mentor, related_name="projects")
     fields = models.ManyToManyField(MajorField, related_name="projects")
