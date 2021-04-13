@@ -4,6 +4,13 @@ from universities.models import Major, University
 
 
 class User(AbstractUser):
+    """
+    Custom user model - even we don't needing it now, it's bad practice to use the default django model
+    since we wouldn't be able to add custom functionality to it in the future. With that in mind,
+    it's a good aproach to use a custom user model that is a copy of the django default user model, so that's what
+    we're doing [=
+    """
+
     pass
 
 
