@@ -1,6 +1,5 @@
 {
     "editor.formatOnSave": true,
-    "python.pythonPath": "env/bin/python",
     "python.sortImports.args": [
         "--profile=black",
     ],
