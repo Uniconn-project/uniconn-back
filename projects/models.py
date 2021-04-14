@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from profiles.models import Student
+from profiles.models import Mentor, Student
 from universities.models import MajorField
 
 
@@ -19,7 +19,7 @@ class Project(models.Model):
     name = models.CharField(max_length=50, blank=True, null=True)
     description = models.CharField(max_length=300, blank=True, null=True)
     students = models.ManyToManyField(Student, related_name="projects")
-    # mentors = models.ManyToManyField(Mentor, related_name="projects")
+    mentors = models.ManyToManyField(Mentor, related_name="projects")
     fields = models.ManyToManyField(MajorField, related_name="projects")
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)

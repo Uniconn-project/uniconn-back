@@ -47,9 +47,6 @@ class Student(models.Model):
     )
     major = models.ForeignKey(Major, on_delete=models.SET_NULL, related_name="students", blank=True, null=True)
 
-    """ If no argument is given, the constructor creates a new empty list. The argument must be an iterable if specified list in the case, review this please.
-     """
-
     class Meta:
         ordering: ["-profile.created_at"]
 
@@ -62,7 +59,7 @@ class Mentor(models.Model):
     Mentor table
     """
 
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="mentor")
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="mentor", blank=True, null=True)
     expertise = models.ForeignKey(MajorField, on_delete=models.SET_NULL, related_name="mentors", blank=True, null=True)
 
     class Meta:

@@ -24,7 +24,7 @@ class MajorField(models.Model):
     e.g., Engeneering, Science, Politics, Health, etc
     """
 
-    name = models.CharField(max_length=50, blank=True, null=True)
+    name = models.CharField(max_length=50, blank=True, null=True, unique=True)
 
     class Meta:
         ordering = ["name"]
@@ -39,7 +39,7 @@ class Major(models.Model):
     e.g., Computer Engeneering, Economics, Law, etc
     """
 
-    name = models.CharField(max_length=50, blank=True, null=True)
+    name = models.CharField(max_length=50, blank=True, null=True, unique=True)
     fields = models.ManyToManyField(MajorField, related_name="majors")
 
     class Meta:
