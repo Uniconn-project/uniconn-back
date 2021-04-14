@@ -1,5 +1,3 @@
-from typing import List
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from universities.models import Major, MajorField, University
@@ -26,11 +24,12 @@ class Profile(models.Model):
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True, unique=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering: List["-created_at"]
+        ordering: ["-created_at"]
 
     def __str__(self):
         return self.user.username

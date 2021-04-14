@@ -10,7 +10,7 @@ class TestModels(TestCase):
     def setUp(self):
         pass
 
-    # MajorField model
+    # Major model
     def test_create_major(self):
         major = Major.objects.create()
         self.assertIsInstance(major, Major)
