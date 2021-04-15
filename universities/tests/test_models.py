@@ -4,7 +4,8 @@ import pytz
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.test import TestCase
-from universities.models import Major, University
+
+from ..models import Major, University
 
 
 class TestMajor(TestCase):
