@@ -2,158 +2,181 @@ import datetime
 
 import pytz
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.utils import IntegrityError
 from django.test import TestCase
 from profiles.models import Mentor, Profile, Student
-from universities.models import MajorField, University
+from universities.models import Major, University
+
+User = get_user_model()
 
 
-class TestModels(TestCase):
+class TestUser(TestCase):
     def setUp(self):
-        self.User = get_user_model()
+        pass
 
-    # User model
-    def test_create_user(self):
-        username = "joao"
-        user = self.User.objects.create(username=username, password="secret")
-        self.assertIsInstance(user, self.User)
-        self.assertEqual(user.username, username)
+    def test_model(self):
+        # test create
+        user = User.objects.create()
+        self.assertIsInstance(user, User)
+        self.assertEqual(user.pk, 1)
         self.assertTrue(user.is_active)
 
+        # test edit
+        username = "joão"
+        user.username = username
+        user.is_active = False
+        user.set_password("secret")
+        user.save()
+
+        self.assertEqual(user.username, username)
+        self.assertFalse(user.is_active)
+
         # testing username unique constrain
-        self.assertRaises(IntegrityError, self.User.objects.create, username=username)
+        with transaction.atomic():
+            self.assertRaises(IntegrityError, User.objects.create, username=username)
 
-    def test_create_profile_signal(self):
-        user = self.User.objects.create()
+        # test delete
+        user.delete()
+        self.assertFalse(User.objects.filter().exists())
 
-        self.assertEqual(Profile.objects.get(user=user), user.profile)
 
-    def test_delete_user(self):
-        user01 = self.User.objects.create(username="a")
-        user02 = self.User.objects.create(username="b")
-        user03 = self.User.objects.create(username="c")
+class TestProfile(TestCase):
+    def setUp(self):
+        pass
 
-        self.assertEqual(list(self.User.objects.all()), [user01, user02, user03])
-
-        user02.delete()
-
-        self.assertEqual(list(self.User.objects.all()), [user01, user03])
-
-    # Profile model
-    def test_create_profile(self):
+    def test_model(self):
         now_naive = datetime.datetime.now()
         timezone = pytz.timezone("UTC")
         now_aware = timezone.localize(now_naive)
 
-        user = self.User.objects.create()
+        # test create
+        user = User.objects.create()
         profile = user.profile
-
-        first_name = "Elon"
-        last_name = "Musk"
-        birth_date = "1950-01-01"
-        email = "elon@tesla.com"
-
-        profile.first_name = first_name
-        profile.last_name = last_name
-        profile.birth_date = birth_date
-        profile.email = email
-
         self.assertIsInstance(profile, Profile)
-        self.assertEqual(profile.first_name, first_name)
-        self.assertEqual(profile.last_name, last_name)
-        self.assertEqual(profile.birth_date, birth_date)
-        self.assertEqual(profile.email, email)
+        self.assertEqual(profile.pk, 1)
+        self.assertEqual(profile.photo, "profile_avatar.jpg")
         self.assertLessEqual(now_aware, profile.created_at)
         self.assertLessEqual(now_aware, profile.updated_at)
 
+        # test edit
+        first_name = "Elon"
+        last_name = "Musk"
+        birth_date = "1971-06-28"
+        email = "elon@tesla.com"
+        photo = "data:image/png;base64,iVBORw0KGg===="
+
+        profile.first_name = first_name
+        profile.last_name = last_name
+        profile.photo = photo
+        profile.birth_date = birth_date
+        profile.email = email
+
+        self.assertEqual(profile.first_name, first_name)
+        self.assertEqual(profile.last_name, last_name)
+        self.assertEqual(profile.photo, photo)
+        self.assertEqual(profile.birth_date, birth_date)
+        self.assertEqual(profile.email, email)
+
         # testing email unique constrain
-        self.assertRaises(IntegrityError, Profile.objects.create, email=email)
+        with transaction.atomic():
+            self.assertRaises(IntegrityError, Profile.objects.create, email=email)
 
-    def test_delete_profile(self):
-        user01 = self.User.objects.create(username="a")
-        user02 = self.User.objects.create(username="b")
-        user03 = self.User.objects.create(username="c")
+        # test delete
+        profile.delete()
+        self.assertFalse(Profile.objects.filter().exists())
 
-        self.assertEqual(list(Profile.objects.all()), [user01.profile, user02.profile, user03.profile])
+    def test_profile_user_relationship(self):
+        # Asserting the profile-user relationship is one to one
+        user = User.objects.create()
+        with transaction.atomic():
+            self.assertRaises(IntegrityError, Profile.objects.create, user=user)
 
-        user02.profile.delete()
+        self.assertEqual(user.profile.user, user, "Asserting the profile-user related name is 'profile'")
 
-        self.assertEqual(list(Profile.objects.all()), [user01.profile, user03.profile])
+        user.delete()
+        self.assertFalse(
+            Profile.objects.filter().exists(), "Asserting the profile-user relationship cascades on delete"
+        )
 
-        user03.delete()  # testing models.CASCADE
+    def test_str(self):
+        user = User.objects.create()
+        profile = user.profile
+        self.assertEqual(str(profile), profile.user.username)
 
-        self.assertEqual(list(Profile.objects.all()), [user01.profile])
 
-    # Student model
-    def test_create_student(self):
-        user = self.User.objects.create()
-        university = University.objects.create()
+class TestStudent(TestCase):
+    def setUp(self):
+        pass
 
-        student = Student.objects.create(profile=user.profile, university=university)
-
+    def test_model(self):
+        # test create
+        user = User.objects.create()
+        profile = user.profile
+        student = Student.objects.create(profile=profile)
         self.assertIsInstance(student, Student)
-        self.assertEqual(student.profile, user.profile)
+        self.assertEqual(student.pk, 1)
+        self.assertEqual(student.profile, profile)
+
+        # test edit
+        university = University.objects.create()
+        major = Major.objects.create()
+
+        student.university = university
+        student.major = major
+        student.save()
+
         self.assertEqual(student.university, university)
+        self.assertEqual(student.major, major)
 
-        # testing related name
-        self.assertEqual(user.profile.student, student)
+        # test delete
+        student.delete()
+        self.assertFalse(Student.objects.filter().exists())
 
-    def test_delete_student(self):
-        user01 = self.User.objects.create(username="a")
-        user02 = self.User.objects.create(username="b")
-        user03 = self.User.objects.create(username="c")
+    def test_student_profile_relationship(self):
+        # Asserting the student-profile relationship is one to one
+        user = User.objects.create()
+        profile = user.profile
+        student = Student.objects.create(profile=profile)
+        with transaction.atomic():
+            self.assertRaises(IntegrityError, Student.objects.create, profile=profile)
 
-        student01 = Student.objects.create(profile=user01.profile)
-        student02 = Student.objects.create(profile=user02.profile)
-        student03 = Student.objects.create(profile=user03.profile)
+        self.assertEqual(profile.student.profile, profile, "Asserting the student-profile related name is 'student'")
 
-        self.assertEqual(list(Student.objects.all()), [student01, student02, student03])
+        profile.delete()
+        self.assertFalse(
+            Student.objects.filter().exists(), "Asserting the student-profile relationship cascades on delete"
+        )
 
-        student02.delete()
 
-        self.assertEqual(list(Student.objects.all()), [student01, student03])
+class TestMentor(TestCase):
+    def setUp(self):
+        pass
 
-        user03.profile.delete()  # testing models.CASCADE
-
-        self.assertEqual(list(Student.objects.all()), [student01])
-
-        user01.delete()
-
-        self.assertEqual(list(Student.objects.all()), [])
-
-    # Mentor model
-    def test_create_mentor(self):
-        user = self.User.objects.create()
-        expertise = MajorField.objects.create()
-
-        mentor = Mentor.objects.create(profile=user.profile, expertise=expertise)
-
+    def test_model(self):
+        # test create
+        user = User.objects.create()
+        profile = user.profile
+        mentor = Mentor.objects.create(profile=profile)
         self.assertIsInstance(mentor, Mentor)
-        self.assertEqual(mentor.profile, user.profile)
-        self.assertEqual(mentor.expertise, expertise)
+        self.assertEqual(mentor.pk, 1)
+        self.assertEqual(mentor.profile, profile)
 
-        # testing related name
-        self.assertEqual(user.profile.mentor, mentor)
+        # test delete
+        mentor.delete()
+        self.assertFalse(Mentor.objects.filter().exists())
 
-    def test_delete_mentor(self):
-        user01 = self.User.objects.create(username="a")
-        user02 = self.User.objects.create(username="b")
-        user03 = self.User.objects.create(username="c")
+    def test_mentor_profile_relationship(self):
+        # Asserting the mentor-profile relationship is one to one
+        user = User.objects.create()
+        profile = user.profile
+        mentor = Mentor.objects.create(profile=profile)
+        with transaction.atomic():
+            self.assertRaises(IntegrityError, Mentor.objects.create, profile=profile)
 
-        mentor01 = Mentor.objects.create(profile=user01.profile)
-        mentor02 = Mentor.objects.create(profile=user02.profile)
-        mentor03 = Mentor.objects.create(profile=user03.profile)
+        self.assertEqual(profile.mentor.profile, profile, "Asserting the mentor-profile related name is 'mentor'")
 
-        self.assertEqual(list(Mentor.objects.all()), [mentor01, mentor02, mentor03])
-
-        mentor02.delete()
-
-        self.assertEqual(list(Mentor.objects.all()), [mentor01, mentor03])
-
-        mentor03.profile.delete()  # testing models.CASCADE
-
-        self.assertEqual(list(Mentor.objects.all()), [mentor01])
-
-        user01.delete()
-
-        self.assertEqual(list(Mentor.objects.all()), [])
+        profile.delete()
+        self.assertFalse(
+            Mentor.objects.filter().exists(), "Asserting the mentor-profile relationship cascades on delete"
+        )
