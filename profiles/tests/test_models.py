@@ -5,8 +5,9 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.test import TestCase
-from profiles.models import Mentor, Profile, Student
 from universities.models import Major, University
+
+from ..models import Mentor, Profile, Student
 
 User = get_user_model()
 
