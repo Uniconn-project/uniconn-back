@@ -1,5 +1,6 @@
 from django.contrib import admin
 
-from .models import Project
+from .models import Market, Project
 
+admin.site.register(Market)
 admin.site.register(Project)

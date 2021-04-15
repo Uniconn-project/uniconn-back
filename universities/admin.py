@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-from .models import Major, MajorField, University
+from .models import Major, University
 
 admin.site.register(Major)
-admin.site.register(MajorField)
 admin.site.register(University)

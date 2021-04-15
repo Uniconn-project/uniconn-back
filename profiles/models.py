@@ -1,11 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from universities.models import Major, MajorField, University
+from universities.models import Major, University
 
 
 class User(AbstractUser):
     """
-    Custom user model - even we don't needing it now, it's bad practice to use the default django model
+    Custom user model - only used for authentication
+    Even we don't needing a custom user model now, it's bad practice to use the default django model
     since we wouldn't be able to add custom functionality to it in the future. With that in mind,
     it's a good aproach to use a custom user model that is a copy of the django default user model, so that's what
     we're doing [=
@@ -59,7 +60,6 @@ class Mentor(models.Model):
     """
 
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="mentor", blank=True, null=True)
-    expertise = models.ForeignKey(MajorField, on_delete=models.SET_NULL, related_name="mentors", blank=True, null=True)
 
     class Meta:
         ordering: ["-profile.created_at"]

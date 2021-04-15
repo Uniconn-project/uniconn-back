@@ -2,9 +2,10 @@ import datetime
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from projects.models import Market
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from universities.models import Major, MajorField, University
+from universities.models import Major, University
 
 from .models import Mentor, Profile, Student
 
@@ -70,11 +71,12 @@ def signup_view(request, user_type):
         return Response("success")
 
     elif user_type == "mentor":
-        expertise_name = data["expertise"]
+        markets = data["markets"]
+        mentor = Mentor.objects.create(profile=user.profile)
 
-        expertise, created = MajorField.objects.get_or_create(name=expertise_name)
-
-        Mentor.objects.create(profile=user.profile, expertise=expertise)
+        for market_name in markets:
+            market, created = Market.objects.get_or_create(name=market_name.lower())
+            market.mentors.add(mentor)
 
         return Response("success")
 

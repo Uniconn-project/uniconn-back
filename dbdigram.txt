@@ -14,6 +14,7 @@ Table Profile {
   first_name char
   last_name char
   birth_date date
+  email char
   created_at datetime
   updated_at datetime
 }
@@ -29,7 +30,6 @@ Table Student {
 Table Mentor {
   id int pk
   profile int
-  expertise int
 }
 
 
@@ -45,13 +45,13 @@ Table University {
 Table Major {
   id int pk
   name char
-  fields int
 }
 
 
-Table MajorField {
+Table Market {
   id int pk
   name char
+  mentors id
 }
 
 Table Project {
@@ -88,12 +88,7 @@ Ref {
 }
 
 Ref {
-  Mentor.expertise < MajorField.id
-}
-
-
-Ref {
-  Major.fields < MajorField.id
+  Market.mentors < Mentor.id
 }
 
 Ref {
@@ -106,5 +101,5 @@ Ref {
 
 
 Ref {
-  Project.fields < MajorField.id
+  Project.fields < Market.id
 }
