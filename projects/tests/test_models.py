@@ -29,12 +29,20 @@ class TestProjects(TestCase):
 
     # Nome padrão da função/ Convenção
     def test_model(self):
+        # Variáveis de tempo
+        now_naive = datetime.datetime.now()
+        timezone = pytz.timezone("UTC")
+        now_aware = timezone.localize(now_naive)
+
         project = Project.objects.create()
         self.assertIsInstance(project, Project)
         # Já que o id que é primary key é auto incremental e começa com 1, testando se ele existe
         self.assertEqual(project.pk, 1)
+        self.assertLessEqual(now_aware, project.created_at)
+        self.assertLessEqual(now_aware, project.updated_at)
 
         # test edit
+
         category = "Startup"
         description = "Inovatint the world"
         name = "Concticonn"
@@ -102,3 +110,85 @@ class TestProjects(TestCase):
         self.assertEqual(len(markets), 2)
         self.assertIn(market01, markets)
         self.assertIn(market02, markets)
+
+        # A partir daqui de cima, testamos criar e editar
+
+        # test delete
+        project.delete()
+        self.assertFalse(Project.objects.filter().exists())
+
+    def test_related_name(self):
+        # Isso só acontece pra tabelas, RELACIONAL
+        project = Project.objects.create()
+        user01 = User.objects.create(username="RobsonFaixaPreta")
+        student = Student.objects.create(profile=user01.profile)
+        project.students.add(student)
+
+        # Testing related name if project is instance of students
+        # Basically is testing if it's possible to acess student.projects and acess all projects
+        # Se a partir de estudents eu consigo acessar projects por meio students.projects
+        # Que é o related name definido no model.py que é a declaração do model
+        self.assertIn(project, student.projects.all())
+
+        # Test mentors two way
+        user02 = User.objects.create(username="DjaguinhoDoQuero")
+        mentor = Mentor.objects.create(profile=user02.profile)
+        project.mentors.add(mentor)
+        self.assertIn(project, mentor.projects.all())
+
+        # Same for market
+        market = Market.objects.create()
+        project.markets.add(market)
+        self.assertIn(project, market.projects.all())
+
+    def test_str(self):
+        project = Project.objects.create(name="UnicconForLaif")
+        self.assertEqual(str(project), project.name)
+
+
+class TestMarket(TestCase):
+    def test_model(self):
+        # test create
+        market = Market.objects.create()
+        self.assertIsInstance(market, Market)
+        self.assertEqual(market.pk, 1)
+
+        # test edit
+        user01 = User.objects.create(username="RonaldinDasQuebrada")
+        profile01 = user01.profile
+        mentor01 = Mentor.objects.create(profile=profile01)
+
+        user02 = User.objects.create()
+        profile02 = user02.profile
+        mentor02 = Mentor.objects.create(profile=profile02)
+
+        market.mentors.add(mentor01, mentor02)
+
+        name = "DrugMarket"
+        market.name = name
+
+        market.save()
+
+        self.assertEqual(market.name, name.lower())
+        self.assertEqual(len(market.mentors.all()), 2)
+        self.assertIn(mentor01, market.mentors.all())
+        self.assertIn(mentor02, market.mentors.all())
+
+        # test delete
+        self.assertIsInstance(market, Market)
+        market.delete()
+        self.assertFalse(Market.objects.filter().exists())
+
+    def test_related_name(self):
+        # Já que é uma relação um teste. MANY TO MANY
+        user = User.objects.create(username="JuninDaEsquina")
+        mentor = Mentor.objects.create(profile=user.profile)
+        market = Market.objects.create()
+        market.mentors.add(mentor)
+
+        self.assertIn(market, mentor.markets.all())
+
+    # Testando parada da string __str__
+    def test_str(self):
+        market = Market.objects.create(name="UnicconForLaif")
+        self.assertEqual(str(market), market.name)
