@@ -4,6 +4,7 @@ https://dbdiagram.io/d/60654adcecb54e10c33e3abd
 Table User {
   id int pk
   username char
+  email char
   password char
 }
 
@@ -14,7 +15,6 @@ Table Profile {
   first_name char
   last_name char
   birth_date date
-  email char
   created_at datetime
   updated_at datetime
 }
@@ -98,7 +98,6 @@ Ref {
 Ref {
   Project.mentors < Mentor.id
 }
-
 
 Ref {
   Project.fields < Market.id

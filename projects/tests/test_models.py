@@ -34,6 +34,7 @@ class TestProjects(TestCase):
         timezone = pytz.timezone("UTC")
         now_aware = timezone.localize(now_naive)
 
+        # test create
         project = Project.objects.create()
         self.assertIsInstance(project, Project)
         # Já que o id que é primary key é auto incremental e começa com 1, testando se ele existe
@@ -42,10 +43,9 @@ class TestProjects(TestCase):
         self.assertLessEqual(now_aware, project.updated_at)
 
         # test edit
-
         category = "Startup"
-        description = "Inovatint the world"
-        name = "Concticonn"
+        description = "Innovating the world"
+        name = "Connecticonn"
 
         # Sempre que um usuário for criado um profile já é feito, Felipe's magic
         # Os que precisarem de objetos para ser criados, deixar junto
@@ -142,7 +142,7 @@ class TestProjects(TestCase):
         self.assertIn(project, market.projects.all())
 
     def test_str(self):
-        project = Project.objects.create(name="UnicconForLaif")
+        project = Project.objects.create(name="UniconnForLife")
         self.assertEqual(str(project), project.name)
 
 
@@ -190,5 +190,5 @@ class TestMarket(TestCase):
 
     # Testando parada da string __str__
     def test_str(self):
-        market = Market.objects.create(name="UnicconForLaif")
+        market = Market.objects.create(name="UniconnForLife")
         self.assertEqual(str(market), market.name)

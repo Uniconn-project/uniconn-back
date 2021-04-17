@@ -24,13 +24,16 @@ class TestUser(TestCase):
         self.assertTrue(user.is_active)
 
         # test edit
-        username = "joão"
+        username = "john"
+        email = "john@test.com"
         user.username = username
+        user.email = email
         user.is_active = False
         user.set_password("secret")
         user.save()
 
         self.assertEqual(user.username, username)
+        self.assertEqual(user.email, email)
         self.assertFalse(user.is_active)
 
         # testing username unique constrain
@@ -64,24 +67,17 @@ class TestProfile(TestCase):
         first_name = "Elon"
         last_name = "Musk"
         birth_date = "1971-06-28"
-        email = "elon@tesla.com"
         photo = "data:image/png;base64,iVBORw0KGg===="
 
         profile.first_name = first_name
         profile.last_name = last_name
         profile.photo = photo
         profile.birth_date = birth_date
-        profile.email = email
 
         self.assertEqual(profile.first_name, first_name)
         self.assertEqual(profile.last_name, last_name)
         self.assertEqual(profile.photo, photo)
         self.assertEqual(profile.birth_date, birth_date)
-        self.assertEqual(profile.email, email)
-
-        # testing email unique constrain
-        with transaction.atomic():
-            self.assertRaises(IntegrityError, Profile.objects.create, email=email)
 
         # test delete
         profile.delete()
