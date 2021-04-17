@@ -24,7 +24,7 @@ class Major(models.Model):
     e.g., Computer Engeneering, Economics, Law, etc
     """
 
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50, blank=True, null=True, unique=True)
 
     class Meta:
         ordering = ["name"]
@@ -33,5 +33,6 @@ class Major(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        self.name = self.name.lower()
+        if self.name is not None:
+            self.name = self.name.lower()
         super().save(*args, **kwargs)

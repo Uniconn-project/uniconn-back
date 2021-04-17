@@ -8,7 +8,7 @@ class Market(models.Model):
     """
 
     name = models.CharField(max_length=50, blank=True, null=True, unique=True)
-    mentors = models.ManyToManyField(Mentor, related_name="markets")
+    mentors = models.ManyToManyField(Mentor, related_name="markets", blank=True)
 
     class Meta:
         ordering = ["name"]
@@ -37,8 +37,8 @@ class Project(models.Model):
     category = models.CharField(max_length=50, choices=project_categories_choices)
     name = models.CharField(max_length=50, blank=True, null=True)
     description = models.CharField(max_length=300, blank=True, null=True)
-    students = models.ManyToManyField(Student, related_name="projects")
-    mentors = models.ManyToManyField(Mentor, related_name="projects")
+    students = models.ManyToManyField(Student, related_name="projects", blank=True)
+    mentors = models.ManyToManyField(Mentor, related_name="projects", blank=True)
     markets = models.ManyToManyField(Market, related_name="projects")
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
