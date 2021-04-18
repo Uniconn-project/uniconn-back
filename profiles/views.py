@@ -75,7 +75,7 @@ def signup_view(request, user_type):
     try:
         age = datetime.date.today() - datetime.date.fromisoformat(birth_date)
 
-        if age <= datetime.timedelta(days=0) or age >= datetime.timedelta(weeks=10400):
+        if age <= datetime.timedelta(days=0) or age >= datetime.timedelta(weeks=7800):
             return Response(INVALID_BIRTH_DATE_ERR_MSG)
     except:
         return Response(INVALID_BIRTH_DATE_ERR_MSG)
