@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
+    "jwt_auth",
     "profiles",
     "universities",
     "projects",
@@ -65,6 +67,10 @@ SIMPLE_JWT = {
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
 }
+
+JWT_COOKIE_NAME = "refresh_token"
+JWT_COOKIE_SECURE = False
+JWT_COOKIE_SAMESITE = "Lax"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
