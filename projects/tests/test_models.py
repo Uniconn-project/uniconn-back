@@ -9,12 +9,6 @@ from django.test import TestCase
 from profiles.models import Mentor, Profile, Student
 from projects.models import Market, Project
 
-## Students, Markets, impotar esses dois e criar instacias e adiciona istacia do projects
-## Importar o model do arquivo que ele foi criado
-
-# Create user in test
-# user = self.User.objects.create(username=username, password="secret")
-
 # O model é uma classe por isso letra maiscula, recebe o model
 User = get_user_model()
 
