@@ -28,6 +28,9 @@ def signup_view(request, user_type):
     -all markets submited must already be in the database
     """
 
+    if user_type not in ["student", "mentor"]:
+        return Response("Tipo de usuário inválido!")
+
     data = request.data
 
     username = data["username"]
@@ -125,8 +128,3 @@ def signup_view(request, user_type):
         return Response("success")
 
     return Response("Ocorreu um erro, por favor tente novamente.")
-
-
-@api_view(["GET"])
-def get_is_auth(request):
-    return Response({"is_auth": request.user.is_authenticated})

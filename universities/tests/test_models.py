@@ -43,7 +43,7 @@ class TestMajor(TestCase):
         self.assertEqual(list(Major.objects.all()), [major01, major02, major03, major04, major05])
 
     def test_str(self):
-        major = Major.objects.create()
+        major = Major.objects.create(name="Economics")
         self.assertEqual(str(major), major.name)
 
 
