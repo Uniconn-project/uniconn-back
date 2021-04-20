@@ -68,8 +68,8 @@ SIMPLE_JWT = {
 }
 
 JWT_COOKIE_NAME = "refresh_token"
-JWT_COOKIE_SECURE = False
-JWT_COOKIE_SAMESITE = "Lax"
+JWT_COOKIE_SECURE = True
+JWT_COOKIE_SAMESITE = "None"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
