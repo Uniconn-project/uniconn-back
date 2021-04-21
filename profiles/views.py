@@ -3,11 +3,13 @@ import datetime
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from projects.models import Market
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from universities.models import Major, University
 
 from .models import Mentor, Profile, Student
+from .serializer import MentorSerializer01, StudentSerializer01
 
 User = get_user_model()
 
@@ -128,3 +130,15 @@ def signup_view(request, user_type):
         return Response("success")
 
     return Response("Ocorreu um erro, por favor tente novamente.")
+
+
+@api_view(["GET"])
+def get_my_profile(request, user_type):
+    profile = request.user.profile
+
+    if user_type == "student":
+        serializer = StudentSerializer01(profile.student)
+    elif user_type == "mentor":
+        serializer = MentorSerializer01(profile.mentor)
+
+    return Response(serializer.data)
