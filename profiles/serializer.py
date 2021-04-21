@@ -34,7 +34,7 @@ class StudentSerializer01(serializers.ModelSerializer):
 
 class MentorSerializer01(serializers.ModelSerializer):
     profile = ProfileSerializer01()
-    markets = MarketSerializer01()
+    markets = MarketSerializer01(many=True)
 
     class Meta:
         model = Student
