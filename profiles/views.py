@@ -2,6 +2,7 @@ import datetime
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from jwt_auth.decorators import login_required
 from projects.models import Market
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -133,6 +134,7 @@ def signup_view(request, user_type):
 
 
 @api_view(["GET"])
+@login_required
 def get_my_profile(request, user_type):
     profile = request.user.profile
 

@@ -8,8 +8,6 @@ BASE_URL = "/api/universities/"
 
 
 class TestGetUniversitiesNameList(TestCase):
-    # test request 200
-
     url = BASE_URL + "get-universities-name-list"
 
     def test_req(self):
@@ -19,12 +17,10 @@ class TestGetUniversitiesNameList(TestCase):
     def test_res(self):
         university01 = University.objects.create()
         university02 = University.objects.create()
-
         # Asserting that view won't return this university
         University.objects.create(is_active=False)
-        universities = [university01, university02]
 
-        serializer = UniversitySerializer01(universities, many=True)
+        serializer = UniversitySerializer01([university01, university02], many=True)
 
         response = client.get(self.url)
         self.assertEqual(response.data, serializer.data)
