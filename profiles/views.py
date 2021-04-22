@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from universities.models import Major, University
 
 from .models import Mentor, Profile, Student
-from .serializer import MentorSerializer01, StudentSerializer01
+from .serializer import ProfileSerializer01, ProfileSerializer02
 
 User = get_user_model()
 
@@ -139,8 +139,8 @@ def get_my_profile(request, user_type):
     profile = request.user.profile
 
     if user_type == "student":
-        serializer = StudentSerializer01(profile.student)
+        serializer = ProfileSerializer01(profile)
     elif user_type == "mentor":
-        serializer = MentorSerializer01(profile.mentor)
+        serializer = ProfileSerializer02(profile)
 
     return Response(serializer.data)
