@@ -52,5 +52,5 @@ class Logout(APIView):
         token = self.request.COOKIES.get(settings.JWT_COOKIE_NAME)
         refresh = RefreshTokenModel(token)
         refresh.blacklist()
-        resp.delete_cookie(settings.JWT_COOKIE_NAME)
+        resp.delete_cookie(settings.JWT_COOKIE_NAME, samesite=settings.JWT_COOKIE_SAMESITE)
         return resp
