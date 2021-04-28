@@ -1,4 +1,5 @@
 from django.test import Client, TestCase
+from rest_framework import status
 
 from ..models import Major, University
 from ..serializers import MajorSerializer01, UniversitySerializer01
@@ -12,7 +13,7 @@ class TestGetUniversitiesNameList(TestCase):
 
     def test_req(self):
         response = client.get(self.url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_res(self):
         university01 = University.objects.create()
@@ -31,7 +32,7 @@ class TestGetMajorNameList(TestCase):
 
     def test_req(self):
         response = client.get(self.url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_res(self):
         major01 = Major.objects.create()

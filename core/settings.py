@@ -48,8 +48,13 @@ INSTALLED_APPS = [
     "projects",
 ]
 
+# JWTAuthentication => Authentication class that is actually used in the app
+# SessionAuthentication => Default Django authentication class, used in tests
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
 }
 
 SIMPLE_JWT = {

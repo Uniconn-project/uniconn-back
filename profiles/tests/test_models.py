@@ -59,7 +59,7 @@ class TestProfile(TestCase):
         profile = user.profile
         self.assertIsInstance(profile, Profile)
         self.assertEqual(profile.pk, 1)
-        self.assertEqual(profile.photo, "profile_avatar.jpg")
+        self.assertEqual(profile.photo, "profile_avatar.jpeg")
         self.assertLessEqual(now_aware, profile.created_at)
         self.assertLessEqual(now_aware, profile.updated_at)
 

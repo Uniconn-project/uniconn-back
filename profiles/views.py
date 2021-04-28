@@ -4,13 +4,12 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from jwt_auth.decorators import login_required
 from projects.models import Market
-from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from universities.models import Major, University
 
 from .models import Mentor, Profile, Student
-from .serializer import ProfileSerializer01, ProfileSerializer02
+from .serializers import ProfileSerializer01, ProfileSerializer02
 
 User = get_user_model()
 
