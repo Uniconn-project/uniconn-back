@@ -32,6 +32,7 @@ class Project(models.Model):
         ("startup", "startup"),
         ("junior_enterprise", "junior enterprise"),
         ("academic", "academic project"),
+        ("hobby", "hobby"),
     ]
 
     category = models.CharField(max_length=50, choices=project_categories_choices)
@@ -45,3 +46,11 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def students_profile(self):
+        return [student.profile for student in self.students.all()]
+
+    @property
+    def mentors_profile(self):
+        return [mentor.profile for mentor in self.mentors.all()]

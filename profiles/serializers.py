@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from projects.serializers import MarketSerializer01
 from rest_framework import serializers
 from universities.serializers import MajorSerializer01, UniversitySerializer01
 
@@ -24,10 +23,8 @@ class StudentSerializer01(serializers.ModelSerializer):
 
 
 class MentorSerializer01(serializers.ModelSerializer):
-    markets = MarketSerializer01(many=True)
-
     class Meta:
-        model = Student
+        model = Mentor
         fields = ["id", "markets"]
 
 
