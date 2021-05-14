@@ -1,4 +1,3 @@
-from jwt_auth.decorators import login_required
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -15,7 +14,6 @@ def get_markets_name_list(request):
 
 
 @api_view(["GET"])
-@login_required
 def get_project_list(request):
     projects = Project.objects.all()[:30]
     serializer = ProjectSerializer01(projects, many=True)

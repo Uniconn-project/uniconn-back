@@ -30,14 +30,15 @@ class Project(models.Model):
 
     project_categories_choices = [
         ("startup", "startup"),
-        ("junior_enterprise", "junior enterprise"),
-        ("academic", "academic project"),
-        ("hobby", "hobby"),
+        ("junior_enterprise", "empresa júnior"),
+        ("academic", "projeto acadêmico"),
+        ("social_project", "projeto social"),
     ]
 
     category = models.CharField(max_length=50, choices=project_categories_choices)
     name = models.CharField(max_length=50, blank=True, null=True)
-    description = models.CharField(max_length=300, blank=True, null=True)
+    slogan = models.CharField(max_length=100, blank=True, null=True)
+    description = models.CharField(max_length=1000, blank=True, null=True)
     students = models.ManyToManyField(Student, related_name="projects", blank=True)
     mentors = models.ManyToManyField(Mentor, related_name="projects", blank=True)
     markets = models.ManyToManyField(Market, related_name="projects")
