@@ -52,3 +52,15 @@ class ProfileSerializer02(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["mentor", "user", "photo", "first_name", "last_name", "birth_date", "created_at"]
+
+
+class ProfileSerializer03(serializers.ModelSerializer):
+    """
+    Profile serializer (light)
+    """
+
+    user = UserSerializer()
+
+    class Meta:
+        model = Profile
+        fields = ["user", "photo"]
