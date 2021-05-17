@@ -134,12 +134,12 @@ def signup_view(request, user_type):
 
 @api_view(["GET"])
 @login_required
-def get_my_profile(request, user_type):
+def get_my_profile(request):
     profile = request.user.profile
 
-    if user_type == "student":
+    if profile.type == "student":
         serializer = ProfileSerializer01(profile)
-    elif user_type == "mentor":
+    elif profile.type == "mentor":
         serializer = ProfileSerializer02(profile)
 
     return Response(serializer.data)

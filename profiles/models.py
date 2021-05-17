@@ -31,6 +31,13 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+    @property
+    def type(self):
+        if hasattr(self, "student"):
+            return "student"
+        elif hasattr(self, "mentor"):
+            return "mentor"
+
 
 class Student(models.Model):
     """
