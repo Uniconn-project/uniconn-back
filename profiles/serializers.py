@@ -38,7 +38,18 @@ class ProfileSerializer01(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["type", "student", "user", "photo", "first_name", "last_name", "birth_date", "created_at"]
+        fields = [
+            "type",
+            "student",
+            "user",
+            "photo",
+            "first_name",
+            "last_name",
+            "bio",
+            "linkedIn",
+            "birth_date",
+            "created_at",
+        ]
 
 
 class ProfileSerializer02(serializers.ModelSerializer):
@@ -51,7 +62,18 @@ class ProfileSerializer02(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["type", "mentor", "user", "photo", "first_name", "last_name", "birth_date", "created_at"]
+        fields = [
+            "type",
+            "mentor",
+            "user",
+            "photo",
+            "first_name",
+            "last_name",
+            "bio",
+            "linkedIn",
+            "birth_date",
+            "created_at",
+        ]
 
 
 class ProfileSerializer03(serializers.ModelSerializer):

@@ -24,6 +24,8 @@ class Profile(models.Model):
     photo = models.ImageField(default="profile_avatar.jpeg", upload_to="profile_photos")
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
+    bio = models.CharField(max_length=100, default="Sem bio...", blank=True, null=True)
+    linkedIn = models.CharField(max_length=50, blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
