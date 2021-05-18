@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from jwt_auth.decorators import login_required
 from projects.models import Market
+from projects.serializers import ProjectSerializer01
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from universities.models import Major, University
@@ -143,3 +144,35 @@ def get_my_profile(request):
         serializer = ProfileSerializer02(profile)
 
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+def get_profile(request, slug):
+    try:
+        profile = Profile.objects.get(user__username=slug)
+
+        if profile.type == "student":
+            serializer = ProfileSerializer01(profile)
+        elif profile.type == "mentor":
+            serializer = ProfileSerializer02(profile)
+
+        return Response(serializer.data)
+    except ObjectDoesNotExist:
+        return Response("There isn't any user with such username")
+
+
+@api_view(["GET"])
+def get_profile_projects(request, slug):
+    try:
+        profile = Profile.objects.get(user__username=slug)
+
+        if profile.type == "student":
+            projects = profile.student.projects.all()
+        elif profile.type == "mentor":
+            projects = profile.mentor.projects.all()
+
+        serializer = ProjectSerializer01(projects, many=True)
+
+        return Response(serializer.data)
+    except ObjectDoesNotExist:
+        return Response("There isn't any user with such username")

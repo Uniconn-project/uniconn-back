@@ -39,6 +39,7 @@ class ProfileSerializer01(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
+            "id",
             "type",
             "student",
             "user",
@@ -63,6 +64,7 @@ class ProfileSerializer02(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
+            "id",
             "type",
             "mentor",
             "user",
@@ -85,4 +87,4 @@ class ProfileSerializer03(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["user", "photo"]
+        fields = ["id", "user", "photo"]
