@@ -60,23 +60,31 @@ class TestProfile(TestCase):
         self.assertIsInstance(profile, Profile)
         self.assertEqual(profile.pk, 1)
         self.assertEqual(profile.photo, "profile_avatar.jpeg")
+        self.assertEqual(profile.bio, "Sem bio...")
         self.assertLessEqual(now_aware, profile.created_at)
         self.assertLessEqual(now_aware, profile.updated_at)
 
         # test edit
+        photo = "elon_musk.jpg"
         first_name = "Elon"
         last_name = "Musk"
+        bio = "Space-X, Tesla and Neuralink"
+        linkedIn = "elon-musk28061971"
         birth_date = "1971-06-28"
-        photo = "data:image/png;base64,iVBORw0KGg===="
 
+        profile.photo = photo
         profile.first_name = first_name
         profile.last_name = last_name
-        profile.photo = photo
+        profile.bio = bio
+        profile.linkedIn = linkedIn
         profile.birth_date = birth_date
+        profile.save()
 
+        self.assertEqual(profile.photo, photo)
         self.assertEqual(profile.first_name, first_name)
         self.assertEqual(profile.last_name, last_name)
-        self.assertEqual(profile.photo, photo)
+        self.assertEqual(profile.bio, bio)
+        self.assertEqual(profile.linkedIn, linkedIn)
         self.assertEqual(profile.birth_date, birth_date)
 
         # test delete
@@ -100,6 +108,15 @@ class TestProfile(TestCase):
         user = User.objects.create()
         profile = user.profile
         self.assertEqual(str(profile), profile.user.username)
+
+    def test_type_method(self):
+        user01 = User.objects.create()
+        Student.objects.create(profile=user01.profile)
+        self.assertEqual(user01.profile.type, "student")
+
+        user02 = User.objects.create(username="jack")
+        Mentor.objects.create(profile=user02.profile)
+        self.assertEqual(user02.profile.type, "mentor")
 
 
 class TestStudent(TestCase):
@@ -134,7 +151,7 @@ class TestStudent(TestCase):
         # Asserting the student-profile relationship is one to one
         user = User.objects.create()
         profile = user.profile
-        student = Student.objects.create(profile=profile)
+        Student.objects.create(profile=profile)
         with transaction.atomic():
             self.assertRaises(IntegrityError, Student.objects.create, profile=profile)
 
@@ -167,7 +184,7 @@ class TestMentor(TestCase):
         # Asserting the mentor-profile relationship is one to one
         user = User.objects.create()
         profile = user.profile
-        mentor = Mentor.objects.create(profile=profile)
+        Mentor.objects.create(profile=profile)
         with transaction.atomic():
             self.assertRaises(IntegrityError, Mentor.objects.create, profile=profile)
 
