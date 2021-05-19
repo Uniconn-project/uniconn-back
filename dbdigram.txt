@@ -14,6 +14,8 @@ Table Profile {
   photo char
   first_name char
   last_name char
+  bio char
+  linkedIn char
   birth_date date
   created_at datetime
   updated_at datetime
@@ -37,6 +39,7 @@ Table University {
   id int pk
   name char
   cnpj char
+  is_active boolean
   created_at datetime
   updated_at datetime
 }
@@ -58,7 +61,9 @@ Table Project {
   id int pk
   category char
   name char
+  slogan char
   description char
+  image char
   students int
   mentors int
   fields int
