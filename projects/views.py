@@ -14,7 +14,7 @@ def get_markets_name_list(request):
 
 
 @api_view(["GET"])
-def get_project_list(request):
+def get_projects_list(request):
     projects = Project.objects.all()[:30]
     serializer = ProjectSerializer01(projects, many=True)
 
