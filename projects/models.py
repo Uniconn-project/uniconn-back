@@ -23,17 +23,18 @@ class Market(models.Model):
         super().save(*args, **kwargs)
 
 
+project_categories_choices = [
+    ("startup", "startup"),
+    ("junior_enterprise", "empresa júnior"),
+    ("academic", "projeto acadêmico"),
+    ("social_project", "projeto social"),
+]
+
+
 class Project(models.Model):
     """
     Project table
     """
-
-    project_categories_choices = [
-        ("startup", "startup"),
-        ("junior_enterprise", "empresa júnior"),
-        ("academic", "projeto acadêmico"),
-        ("social_project", "projeto social"),
-    ]
 
     category = models.CharField(max_length=50, choices=project_categories_choices)
     name = models.CharField(max_length=50, blank=True, null=True)
@@ -45,6 +46,10 @@ class Project(models.Model):
     markets = models.ManyToManyField(Market, related_name="projects")
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @staticmethod
+    def get_project_categories_choices(index=1):
+        return [project_category[index] for project_category in project_categories_choices]
 
     def __str__(self):
         return self.name

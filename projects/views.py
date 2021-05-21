@@ -19,3 +19,8 @@ def get_projects_list(request):
     serializer = ProjectSerializer01(projects, many=True)
 
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+def get_projects_categories_list(request):
+    return Response(Project.get_project_categories_choices())
