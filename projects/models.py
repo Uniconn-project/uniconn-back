@@ -60,7 +60,7 @@ class Project(models.Model):
         ]
 
     def __str__(self):
-        return self.name
+        return self.name if self.name is not None else ""
 
     @property
     def students_profile(self):

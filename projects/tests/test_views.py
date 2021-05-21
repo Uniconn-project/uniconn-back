@@ -40,3 +40,74 @@ class TestGetProjectsList(TestCase):
 
         response = client.get(self.url)
         self.assertEqual(response.data, serializer.data)
+
+
+class TestGetFilteredProjectsList(TestCase):
+    url = BASE_URL + "get-filtered-projects-list"
+
+    def test_req(self):
+        response = client.get(self.url + "?categories=&markets=")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_res(self):
+        categories_values = Project.get_project_categories_choices(index=0)
+        categories_readable = Project.get_project_categories_choices(index=1)
+        category01_VALUE = categories_values[0]
+        category02_VALUE = categories_values[1]
+        category01_READABLE = categories_readable[0]
+        category02_READABLE = categories_readable[1]
+
+        market01 = Market.objects.create(name="Innovation")
+        market02 = Market.objects.create(name="Finance")
+        market03 = Market.objects.create(name="Beverages")
+
+        project01 = Project.objects.create(category=category01_VALUE)
+        project01.markets.add(market01)
+        project01.save()
+
+        project02 = Project.objects.create(category=category01_VALUE)
+        project02.markets.add(market02)
+        project02.save()
+
+        project03 = Project.objects.create(category=category02_VALUE)
+        project03.markets.add(market03)
+        project03.save()
+
+        project04 = Project.objects.create(category=category02_VALUE)
+        project04.markets.add(market01, market02)
+        project04.save()
+
+        # should return all projects
+        response = client.get(
+            self.url
+            + f"?categories={category01_READABLE};{category02_READABLE}&markets={market01.name};{market02.name};{market03.name}"
+        )
+        self.assertEqual(response.data, ProjectSerializer01(Project.objects.all(), many=True).data)
+
+        # should return only projects 03 and 04
+        response = client.get(
+            self.url + f"?categories={category02_READABLE}&markets={market01.name}; {market02.name};{market03.name}"
+        )
+        self.assertEqual(response.data, ProjectSerializer01([project03, project04], many=True).data)
+
+        # shouldn't return any project
+        response = client.get(self.url + f"?categories={category01_READABLE};{category02_READABLE}&markets=")
+        self.assertEqual(response.data, ProjectSerializer01([], many=True).data)
+
+        # shouldn't return any project
+        response = client.get(self.url + f"?categories=&markets={market01.name};{market02.name};{market03.name}")
+        self.assertEqual(response.data, ProjectSerializer01([], many=True).data)
+
+
+class TestGetProjectsCategories(TestCase):
+    url = BASE_URL + "get-projects-categories-list"
+
+    def test_req(self):
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_res(self):
+        categories = Project.get_project_categories_choices()
+        response = client.get(self.url)
+
+        self.assertEqual(response.data, categories)
