@@ -51,6 +51,14 @@ class Project(models.Model):
     def get_project_categories_choices(index=1):
         return [project_category[index] for project_category in project_categories_choices]
 
+    @staticmethod
+    def get_project_categories_values_from_readable(readable_categories):
+        return [
+            project_category[0]
+            for project_category in project_categories_choices
+            if project_category[1] in readable_categories
+        ]
+
     def __str__(self):
         return self.name
 
