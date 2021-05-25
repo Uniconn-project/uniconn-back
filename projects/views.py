@@ -23,10 +23,8 @@ def get_projects_list(request):
 
 @api_view(["GET"])
 def get_filtered_projects_list(request):
-    readable_categories = request.query_params["categories"].split(";")
+    categories = request.query_params["categories"].split(";")
     markets = request.query_params["markets"].split(";")
-
-    categories = Project.get_project_categories_values_from_readable(readable_categories)
 
     projects = Project.objects.filter(category__in=categories, markets__name__in=markets).distinct()
     projects = sorted(projects, key=lambda project: project.id)
@@ -37,4 +35,7 @@ def get_filtered_projects_list(request):
 
 @api_view(["GET"])
 def get_projects_categories_list(request):
-    return Response(Project.get_project_categories_choices())
+    categories = [
+        {"value": category[0], "readable": category[1]} for category in Project.get_project_categories_choices()
+    ]
+    return Response(categories)

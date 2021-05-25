@@ -48,15 +48,10 @@ class Project(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     @staticmethod
-    def get_project_categories_choices(index=1):
-        return [project_category[index] for project_category in project_categories_choices]
-
-    @staticmethod
-    def get_project_categories_values_from_readable(readable_categories):
+    def get_project_categories_choices(index=-1):
         return [
-            project_category[0]
+            (project_category[index] if index != -1 else project_category)
             for project_category in project_categories_choices
-            if project_category[1] in readable_categories
         ]
 
     def __str__(self):
