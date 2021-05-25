@@ -6,5 +6,6 @@ urlpatterns = [
     path("<str:user_type>/post-signup", signup_view),
     path("get-my-profile", get_my_profile),
     path("get-profile/<str:slug>", get_profile),
-    path("get-profile-projects/<str:slug>", get_profile_projects)
+    path("get-profile-projects/<str:slug>", get_profile_projects),
+    path("get-filtered-profiles/<str:query>", get_filtered_profiles),
 ]

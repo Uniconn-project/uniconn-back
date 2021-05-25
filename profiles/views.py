@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from universities.models import Major, University
 
 from .models import Mentor, Profile, Student
-from .serializers import ProfileSerializer01, ProfileSerializer02
+from .serializers import ProfileSerializer01, ProfileSerializer02, ProfileSerializer04
 
 User = get_user_model()
 
@@ -176,3 +176,11 @@ def get_profile_projects(request, slug):
         return Response(serializer.data)
     except ObjectDoesNotExist:
         return Response("There isn't any user with such username")
+
+
+@api_view(["GET"])
+def get_filtered_profiles(request, query):
+    profiles = Profile.objects.filter(user__username__icontains=query)[:20]
+    serializer = ProfileSerializer04(profiles, many=True)
+
+    return Response(serializer.data)
