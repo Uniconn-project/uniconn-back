@@ -4,8 +4,8 @@ from projects.models import Project
 from projects.serializers import ProjectSerializer01
 from rest_framework import status
 
-from ..models import Mentor, Student
-from ..serializers import ProfileSerializer01, ProfileSerializer02
+from ..models import Mentor, Profile, Student
+from ..serializers import ProfileSerializer01, ProfileSerializer02, ProfileSerializer04
 
 User = get_user_model()
 client = Client()
@@ -123,3 +123,51 @@ class TestGetProfileProjects(TestCase):
 
         response = client.get(self.url + self.user02_MENTOR.username)
         self.assertEqual(response.data, serializer_MENTOR.data)
+
+
+class TestGetFilteredProfiles(TestCase):
+    url = BASE_URL + "get-filtered-profiles/"
+
+    def setUp(self):
+        pass
+
+    def test_req(self):
+        response = client.get(self.url + "")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        response = client.get(self.url + "fel")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_res(self):
+        User.objects.create(username="michael.JJ")
+        User.objects.create(username="veronica")
+        User.objects.create(username="jordan")
+        User.objects.create(username="joanne")
+
+        query = "j"
+        response = client.get(self.url + query)
+        self.assertEqual(len(response.data), 3)
+        self.assertEqual(
+            response.data, ProfileSerializer04(Profile.objects.filter(user__username__icontains=query), many=True).data
+        )
+
+        query = "JO"
+        response = client.get(self.url + query)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(
+            response.data, ProfileSerializer04(Profile.objects.filter(user__username__icontains=query), many=True).data
+        )
+
+        query = "joanne"
+        response = client.get(self.url + query)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(
+            response.data, ProfileSerializer04(Profile.objects.filter(user__username__icontains=query), many=True).data
+        )
+
+        query = "unexistent-username"
+        response = client.get(self.url + query)
+        self.assertEqual(len(response.data), 0)
+        self.assertEqual(
+            response.data, ProfileSerializer04(Profile.objects.filter(user__username__icontains=query), many=True).data
+        )
