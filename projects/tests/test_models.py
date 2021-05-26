@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 from django.test import TestCase
 from profiles.models import Mentor, Student
-from projects.models import Market, Project
+from projects.models import Market, Project, project_categories_choices
 
 User = get_user_model()
 
@@ -143,6 +143,22 @@ class TestProject(TestCase):
     def test_str(self):
         project = Project.objects.create(name="Uniconn")
         self.assertEqual(str(project), project.name)
+
+    def test_get_project_categories_choices_staticmethod(self):
+        self.assertEqual(
+            Project.get_project_categories_choices(),
+            [project_category for project_category in project_categories_choices],
+        )
+
+        self.assertEqual(
+            Project.get_project_categories_choices(index=0),
+            [project_category[0] for project_category in project_categories_choices],
+        )
+
+        self.assertEqual(
+            Project.get_project_categories_choices(index=1),
+            [project_category[1] for project_category in project_categories_choices],
+        )
 
     def test_students_profile_method(self):
         project = Project.objects.create()
