@@ -1,3 +1,4 @@
+from jwt_auth.decorators import login_required
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -39,3 +40,19 @@ def get_projects_categories_list(request):
         {"value": category[0], "readable": category[1]} for category in Project.get_project_categories_choices()
     ]
     return Response(categories)
+
+
+@api_view(["POST"])
+@login_required
+def create_project(request):
+    profile = request.user.profile
+
+    if profile.type != "student":
+        return Response("Only students are allowed to create projects")
+
+    category = request.data["category"]
+    name = request.data["name"]
+    slogan = request.data["slogan"]
+    markets = request.data["markets"]
+    students = request.data["students"]
+    mentors = request.data["mentors"]
