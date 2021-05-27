@@ -1,4 +1,5 @@
 from jwt_auth.decorators import login_required
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -46,13 +47,34 @@ def get_projects_categories_list(request):
 @login_required
 def create_project(request):
     profile = request.user.profile
+    print(request.data)
 
     if profile.type != "student":
-        return Response("Only students are allowed to create projects")
+        return Response("Somente universitários podem criar projetos!", status=status.HTTP_401_UNAUTHORIZED)
 
-    category = request.data["category"]
-    name = request.data["name"]
-    slogan = request.data["slogan"]
-    markets = request.data["markets"]
-    students = request.data["students"]
-    mentors = request.data["mentors"]
+    try:
+        category = request.data["category"]
+        name = request.data["name"].strip()
+        slogan = request.data["slogan"].strip()
+        markets = request.data["markets"]
+    except:
+        return Response("Os dados enviados são inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if name == "":
+        return Response("O nome do projeto não pode estar em branco!", status=status.HTTP_400_BAD_REQUEST)
+
+    if slogan == "":
+        return Response("O slogan do projeto não pode estar em branco!", status=status.HTTP_400_BAD_REQUEST)
+
+    if len(markets) == 0:
+        return Response("Selecione pelo menos um mercado!", status=status.HTTP_400_BAD_REQUEST)
+
+    if category not in Project.get_project_categories_choices(index=0):
+        return Response("Categoria do projeto inválida!", status=status.HTTP_400_BAD_REQUEST)
+
+    project = Project.objects.create(category=category, name=name, slogan=slogan)
+    project.markets.set(Market.objects.filter(name__in=markets))
+    project.students.add(profile.student)
+    project.save()
+
+    return Response("Project created with success")
