@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from jwt_auth.decorators import login_required
 from projects.models import Market
 from projects.serializers import ProjectSerializer01
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from universities.models import Major, University
@@ -158,7 +159,7 @@ def get_profile(request, slug):
 
         return Response(serializer.data)
     except ObjectDoesNotExist:
-        return Response("There isn't any user with such username")
+        return Response("There isn't any user with such username", status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(["GET"])

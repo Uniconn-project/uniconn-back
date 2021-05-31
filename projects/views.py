@@ -77,3 +77,15 @@ def create_project(request):
     project.save()
 
     return Response("Project created with success")
+
+
+@api_view(["GET"])
+def get_project(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Project not found", status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ProjectSerializer01(project)
+
+    return Response(serializer.data)

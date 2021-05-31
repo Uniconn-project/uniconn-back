@@ -8,4 +8,5 @@ urlpatterns = [
     path("get-filtered-projects-list", get_filtered_projects_list),
     path("get-projects-categories-list", get_projects_categories_list),
     path("create-project", create_project),
+    path("get-project/<int:project_id>", get_project),
 ]
