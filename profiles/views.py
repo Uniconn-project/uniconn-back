@@ -184,3 +184,11 @@ def get_filtered_profiles(request, query):
     serializer = ProfileSerializer04(profiles, many=True)
 
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+def get_profile_list(request):
+    profiles = Profile.objects.all()[:10]
+    serializer = ProfileSerializer04(profiles, many=True)
+
+    return Response(serializer.data)

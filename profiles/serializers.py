@@ -99,4 +99,4 @@ class ProfileSerializer04(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["id", "type", "first_name", "last_name", "user", "photo"]
+        fields = ["id", "type", "first_name", "last_name", "user", "photo", "bio"]

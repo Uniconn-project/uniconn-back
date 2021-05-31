@@ -47,7 +47,6 @@ def get_projects_categories_list(request):
 @login_required
 def create_project(request):
     profile = request.user.profile
-    print(request.data)
 
     if profile.type != "student":
         return Response("Somente universitários podem criar projetos!", status=status.HTTP_401_UNAUTHORIZED)
