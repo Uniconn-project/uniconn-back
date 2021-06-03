@@ -30,7 +30,13 @@ project_categories_choices = [
     ("social_project", "projeto social"),
 ]
 
-
+class Link(models.Model):
+   name = models.CharField(max_length=50, blank=True, null=True)
+   href = models.CharField(max_length=300, blank=True, null=True)
+   
+   def __str__(self):
+    return self.name
+   
 class Project(models.Model):
     """
     Project table
@@ -46,6 +52,7 @@ class Project(models.Model):
     markets = models.ManyToManyField(Market, related_name="projects")
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
+    links = models.ManyToManyField(Link, related_name="project")
 
     @staticmethod
     def get_project_categories_choices(index=-1):
@@ -64,3 +71,6 @@ class Project(models.Model):
     @property
     def mentors_profile(self):
         return [mentor.profile for mentor in self.mentors.all()]
+
+
+
