@@ -1,4 +1,4 @@
-from profiles.serializers import ProfileSerializer03
+from profiles.serializers import ProfileSerializer03, ProfileSerializer03
 from rest_framework import serializers
 
 from .models import Market, Project

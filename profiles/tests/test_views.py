@@ -5,7 +5,7 @@ from projects.serializers import ProjectSerializer01
 from rest_framework import status
 
 from ..models import Mentor, Profile, Student
-from ..serializers import ProfileSerializer01, ProfileSerializer02, ProfileSerializer04
+from ..serializers import ProfileSerializer01, ProfileSerializer02, ProfileSerializer03
 
 User = get_user_model()
 client = Client()
@@ -148,26 +148,26 @@ class TestGetFilteredProfiles(TestCase):
         response = client.get(self.url + query)
         self.assertEqual(len(response.data), 3)
         self.assertEqual(
-            response.data, ProfileSerializer04(Profile.objects.filter(user__username__icontains=query), many=True).data
+            response.data, ProfileSerializer03(Profile.objects.filter(user__username__icontains=query), many=True).data
         )
 
         query = "JO"
         response = client.get(self.url + query)
         self.assertEqual(len(response.data), 2)
         self.assertEqual(
-            response.data, ProfileSerializer04(Profile.objects.filter(user__username__icontains=query), many=True).data
+            response.data, ProfileSerializer03(Profile.objects.filter(user__username__icontains=query), many=True).data
         )
 
         query = "joanne"
         response = client.get(self.url + query)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(
-            response.data, ProfileSerializer04(Profile.objects.filter(user__username__icontains=query), many=True).data
+            response.data, ProfileSerializer03(Profile.objects.filter(user__username__icontains=query), many=True).data
         )
 
         query = "unexistent-username"
         response = client.get(self.url + query)
         self.assertEqual(len(response.data), 0)
         self.assertEqual(
-            response.data, ProfileSerializer04(Profile.objects.filter(user__username__icontains=query), many=True).data
+            response.data, ProfileSerializer03(Profile.objects.filter(user__username__icontains=query), many=True).data
         )

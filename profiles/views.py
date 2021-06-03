@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from universities.models import Major, University
 
 from .models import Mentor, Profile, Student
-from .serializers import ProfileSerializer01, ProfileSerializer02, ProfileSerializer04
+from .serializers import ProfileSerializer01, ProfileSerializer02, ProfileSerializer03
 
 User = get_user_model()
 
@@ -182,7 +182,7 @@ def get_profile_projects(request, slug):
 @api_view(["GET"])
 def get_filtered_profiles(request, query):
     profiles = Profile.objects.filter(user__username__icontains=query)[:20]
-    serializer = ProfileSerializer04(profiles, many=True)
+    serializer = ProfileSerializer03(profiles, many=True)
 
     return Response(serializer.data)
 
@@ -190,6 +190,6 @@ def get_filtered_profiles(request, query):
 @api_view(["GET"])
 def get_profile_list(request):
     profiles = Profile.objects.all()[:10]
-    serializer = ProfileSerializer04(profiles, many=True)
+    serializer = ProfileSerializer03(profiles, many=True)
 
     return Response(serializer.data)
