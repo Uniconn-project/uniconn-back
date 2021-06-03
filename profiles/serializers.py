@@ -80,18 +80,6 @@ class ProfileSerializer02(serializers.ModelSerializer):
 
 class ProfileSerializer03(serializers.ModelSerializer):
     """
-    Profile serializer (light)
-    """
-
-    user = UserSerializer()
-
-    class Meta:
-        model = Profile
-        fields = ["id", "user", "photo"]
-
-
-class ProfileSerializer04(serializers.ModelSerializer):
-    """
     Profile serializer
     """
 
