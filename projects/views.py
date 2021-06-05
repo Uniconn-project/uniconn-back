@@ -1,3 +1,6 @@
+import base64
+
+from django.core.files.base import ContentFile
 from jwt_auth.decorators import login_required
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -89,3 +92,43 @@ def get_project(request, project_id):
     serializer = ProjectSerializer01(project)
 
     return Response(serializer.data)
+
+
+@api_view(["PUT"])
+@login_required
+def edit_project(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Project not found", status=status.HTTP_404_NOT_FOUND)
+
+    if request.user.profile.type != "student":
+        return Response("Only students are allowed to edit the project!", status=status.HTTP_401_UNAUTHORIZED)
+
+    if not request.user.profile.student in project.students.all():
+        return Response("Only project members can edit it!", status=status.HTTP_401_UNAUTHORIZED)
+
+    image = request.data["image"]
+    name = request.data["name"]
+    category = request.data["category"]
+    slogan = request.data["slogan"]
+    markets = request.data["markets"]
+    students = request.data["students"]
+    mentors = request.data["mentors"]
+
+    if image is not None:
+        format, imgstr = image.split(";base64,")
+        img_format = format.split("/")[-1]
+        project_image = ContentFile(base64.b64decode(imgstr), name=request.user.username + img_format)
+        project.image = project_image
+
+    project.name = name
+    project.category = category
+    project.slogan = slogan
+
+    if sorted(map(lambda market: market.name, project.markets.all())) != markets:
+        project.markets.set(Market.objects.filter(name__in=markets))
+
+    project.save()
+
+    return Response("Project edited with success")

@@ -9,4 +9,5 @@ urlpatterns = [
     path("get-projects-categories-list", get_projects_categories_list),
     path("create-project", create_project),
     path("get-project/<int:project_id>", get_project),
+    path("edit-project/<int:project_id>", edit_project),
 ]
