@@ -64,7 +64,7 @@ class TestGetProfile(TestCase):
 
     def test_req(self):
         response = client.get(self.url + "unexistent-username")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data, "There isn't any user with such username")
 
         response = client.get(self.url + self.user01_STUDENT.username)
