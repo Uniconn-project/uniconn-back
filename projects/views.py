@@ -108,26 +108,25 @@ def edit_project(request, project_id):
     if not request.user.profile.student in project.students.all():
         return Response("Only project members can edit it!", status=status.HTTP_401_UNAUTHORIZED)
 
-    image = request.data["image"]
-    name = request.data["name"]
-    category = request.data["category"]
-    slogan = request.data["slogan"]
-    markets = request.data["markets"]
-    students = request.data["students"]
-    mentors = request.data["mentors"]
+    try:
+        image = request.data["image"]
+        name = request.data["name"]
+        category = request.data["category"]
+        slogan = request.data["slogan"]
+        markets = request.data["markets"]
+    except:
+        return Response("Invalid data!", status=status.HTTP_400_BAD_REQUEST)
 
     if image is not None:
         format, imgstr = image.split(";base64,")
         img_format = format.split("/")[-1]
-        project_image = ContentFile(base64.b64decode(imgstr), name=request.user.username + img_format)
+        project_image = ContentFile(base64.b64decode(imgstr), name=project.name + img_format)
         project.image = project_image
 
     project.name = name
     project.category = category
     project.slogan = slogan
-
-    if sorted(map(lambda market: market.name, project.markets.all())) != markets:
-        project.markets.set(Market.objects.filter(name__in=markets))
+    project.markets.set(Market.objects.filter(name__in=markets))
 
     project.save()
 
