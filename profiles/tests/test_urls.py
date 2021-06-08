@@ -21,3 +21,6 @@ class TestUrls(TestCase):
 
     def test_get_filtered_profiles_url(self):
         self.assertEqual(resolve(BASE_URL + "get-filtered-profiles/ali").func, get_filtered_profiles)
+
+    def test_get_profile_list(self):
+        self.assertEqual(resolve(BASE_URL + "get-profile-list").func, get_profile_list)
