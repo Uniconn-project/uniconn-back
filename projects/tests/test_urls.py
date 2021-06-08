@@ -18,3 +18,12 @@ class TestUrls(TestCase):
 
     def test_get_projects_categories_list_url(self):
         self.assertEqual(resolve(BASE_URL + "get-projects-categories-list").func, get_projects_categories_list)
+
+    def test_create_project(self):
+        self.assertEqual(resolve(BASE_URL + "create-project").func, create_project)
+
+    def test_get_project(self):
+        self.assertEqual(resolve(BASE_URL + "get-project/2").func, get_project)
+
+    def test_edit_project(self):
+        self.assertEqual(resolve(BASE_URL + "edit-project/4").func, edit_project)
