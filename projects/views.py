@@ -2,12 +2,13 @@ import base64
 
 from django.core.files.base import ContentFile
 from jwt_auth.decorators import login_required
+from profiles.models import Mentor, Student
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import Market, Project
-from .serializers import MarketSerializer01, ProjectSerializer01
+from .serializers import MarketSerializer01, ProjectSerializer01, ProjectSerializer02
 
 
 @api_view(["GET"])
@@ -89,7 +90,7 @@ def get_project(request, project_id):
     except:
         return Response("Project not found", status=status.HTTP_404_NOT_FOUND)
 
-    serializer = ProjectSerializer01(project)
+    serializer = ProjectSerializer02(project)
 
     return Response(serializer.data)
 
@@ -131,3 +132,38 @@ def edit_project(request, project_id):
     project.save()
 
     return Response("Project edited with success")
+
+
+@api_view(["PUT"])
+@login_required
+def invite_students_to_project(request, type, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Project not found", status=status.HTTP_404_NOT_FOUND)
+
+    if request.user.profile.type != "student":
+        return Response(
+            "Only students are allowed to invite users to the project!", status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    if not request.user.profile.student in project.students.all():
+        return Response("Only project members can invite users to it!", status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        usernames = request.data[type]
+    except:
+        return Response("Invalid data!", status=status.HTTP_400_BAD_REQUEST)
+
+    if type == "students":
+        students = Student.objects.filter(profile__user__username__in=usernames)
+        project.pending_invited_students.add(*students)
+    elif type == "mentors":
+        mentors = Mentor.objects.filter(profile__user__username__in=usernames)
+        project.pending_invited_mentors.add(*mentors)
+    else:
+        return Response("Invalid data!", status=status.HTTP_400_BAD_REQUEST)
+
+    project.save()
+
+    return Response("Users invited to project with success!")

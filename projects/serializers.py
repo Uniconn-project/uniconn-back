@@ -21,9 +21,37 @@ class LinksSerializer01(serializers.ModelSerializer):
 
 
 class ProjectSerializer01(serializers.ModelSerializer):
+    """
+    Light project serializer - useful for projects list items
+    """
+
+    category = serializers.DictField(source="get_category_value_and_readable")
+    students = ProfileSerializer03(source="students_profile", many=True)
+    markets = MarketSerializer01(many=True)
+
+    class Meta:
+        model = Project
+        fields = [
+            "id",
+            "category",
+            "name",
+            "slogan",
+            "image",
+            "students",
+            "markets",
+        ]
+
+
+class ProjectSerializer02(serializers.ModelSerializer):
+    """
+    Heavy project serializer - useful for project page
+    """
+
     category = serializers.DictField(source="get_category_value_and_readable")
     students = ProfileSerializer03(source="students_profile", many=True)
     mentors = ProfileSerializer03(source="mentors_profile", many=True)
+    pending_invited_students = ProfileSerializer03(source="pending_invited_students_profile", many=True)
+    pending_invited_mentors = ProfileSerializer03(source="pending_invited_mentors_profile", many=True)
     markets = MarketSerializer01(many=True)
     links = LinksSerializer01(many=True)
 
@@ -38,6 +66,8 @@ class ProjectSerializer01(serializers.ModelSerializer):
             "description",
             "students",
             "mentors",
+            "pending_invited_students",
+            "pending_invited_mentors",
             "markets",
             "links",
         ]

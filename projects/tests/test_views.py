@@ -95,7 +95,7 @@ class TestGetFilteredProjectsList(TestCase):
         self.assertEqual(response.data, ProjectSerializer01([], many=True).data)
 
 
-class TestGetProjectsCategories(TestCase):
+class TestGetProjectsCategoriesList(TestCase):
     url = BASE_URL + "get-projects-categories-list"
 
     def test_req(self):

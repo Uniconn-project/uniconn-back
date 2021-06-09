@@ -51,10 +51,12 @@ class Project(models.Model):
     image = models.ImageField(default="default_project.jpg", upload_to="projects_photos")
     students = models.ManyToManyField(Student, related_name="projects", blank=True)
     mentors = models.ManyToManyField(Mentor, related_name="projects", blank=True)
+    pending_invited_students = models.ManyToManyField(Student, related_name="pending_projects_invitations", blank=True)
+    pending_invited_mentors = models.ManyToManyField(Mentor, related_name="pending_projects_invitations", blank=True)
     markets = models.ManyToManyField(Market, related_name="projects")
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
-    links = models.ManyToManyField(Link, related_name="projects")
+    links = models.ManyToManyField(Link, related_name="projects", blank=True)
 
     @staticmethod
     def get_project_categories_choices(index=-1):
@@ -77,3 +79,11 @@ class Project(models.Model):
     @property
     def mentors_profile(self):
         return [mentor.profile for mentor in self.mentors.all()]
+
+    @property
+    def pending_invited_students_profile(self):
+        return [student.profile for student in self.pending_invited_students.all()]
+
+    @property
+    def pending_invited_mentors_profile(self):
+        return [mentor.profile for mentor in self.pending_invited_mentors.all()]
