@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from jwt_auth.decorators import login_required
 from projects.models import Market
-from projects.serializers import ProjectSerializer01
+from projects.serializers import ProjectSerializer01, ProjectSerializer03
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -193,3 +193,18 @@ def get_profile_list(request):
     serializer = ProfileSerializer03(profiles, many=True)
 
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+@login_required
+def get_notifications(request):
+    profile = request.user.profile
+
+    if profile.type == "student":
+        project_invitations = profile.student.pending_projects_invitations
+    elif profile.type == "mentor":
+        project_invitations = profile.mentor.pending_projects_invitations
+
+    serializer = ProjectSerializer03(project_invitations, many=True)
+
+    return Response({"projects": serializer.data})

@@ -71,3 +71,13 @@ class ProjectSerializer02(serializers.ModelSerializer):
             "markets",
             "links",
         ]
+
+
+class ProjectSerializer03(serializers.ModelSerializer):
+    """
+    Lightest project serializer - only id, name and image
+    """
+
+    class Meta:
+        model = Project
+        fields = ["id", "name", "image"]
