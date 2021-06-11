@@ -3,7 +3,7 @@ import datetime
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from jwt_auth.decorators import login_required
-from projects.models import Market
+from projects.models import Market, Project
 from projects.serializers import ProjectSerializer01, ProjectSerializer03
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -221,3 +221,41 @@ def get_notifications_number(request):
         project_invitations = profile.mentor.pending_projects_invitations.all()
 
     return Response(len(project_invitations))
+
+
+@api_view(["PUT"])
+@login_required
+def reply_project_invitation(request):
+    profile = request.user.profile
+
+    try:
+        reply = request.data["reply"]
+        project_id = request.data["project_id"]
+
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Invalid data!", status=status.HTTP_400_BAD_REQUEST)
+
+    if profile.type == "student":
+
+        if not profile.student in project.pending_invited_students.all():
+            return Response("The project didn't invite you!", status=status.HTTP_400_BAD_REQUEST)
+
+        project.pending_invited_students.remove(profile.student)
+
+        if reply == "accept":
+            project.students.add(profile.student)
+
+    elif profile.type == "mentor":
+
+        if not profile.mentor in project.pending_invited_mentors.all():
+            return Response("The project didn't invite you!", status=status.HTTP_400_BAD_REQUEST)
+
+        project.pending_invited_mentors.remove(profile.mentor)
+
+        if reply == "accept":
+            project.mentors.add(profile.mentor)
+
+    project.save()
+
+    return Response("Replied to project with success")
