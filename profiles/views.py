@@ -4,7 +4,11 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from jwt_auth.decorators import login_required
 from projects.models import Market, Project
-from projects.serializers import ProjectSerializer01, ProjectSerializer03
+from projects.serializers import (
+    MarketSerializer01,
+    ProjectSerializer01,
+    ProjectSerializer03,
+)
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -176,7 +180,22 @@ def get_profile_projects(request, slug):
 
         return Response(serializer.data)
     except ObjectDoesNotExist:
-        return Response("There isn't any user with such username")
+        return Response("There isn't any user with such username", status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["GET"])
+def get_mentor_markets(request, slug):
+    try:
+        profile = Profile.objects.get(user__username=slug)
+    except ObjectDoesNotExist:
+        return Response("There isn't any user with such username", status=status.HTTP_404_NOT_FOUND)
+
+    if profile.type != "mentor":
+        return Response("Only mentors have markets", status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = MarketSerializer01(profile.mentor.markets, many=True)
+
+    return Response(serializer.data)
 
 
 @api_view(["GET"])
