@@ -208,3 +208,16 @@ def get_notifications(request):
     serializer = ProjectSerializer03(project_invitations, many=True)
 
     return Response({"projects": serializer.data})
+
+
+@api_view(["GET"])
+@login_required
+def get_notifications_number(request):
+    profile = request.user.profile
+
+    if profile.type == "student":
+        project_invitations = profile.student.pending_projects_invitations.all()
+    elif profile.type == "mentor":
+        project_invitations = profile.mentor.pending_projects_invitations.all()
+
+    return Response(len(project_invitations))
