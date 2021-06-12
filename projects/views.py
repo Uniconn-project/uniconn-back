@@ -136,7 +136,7 @@ def edit_project(request, project_id):
 
 @api_view(["PUT"])
 @login_required
-def invite_students_to_project(request, type, project_id):
+def invite_users_to_project(request, type, project_id):
     try:
         project = Project.objects.get(pk=project_id)
     except:

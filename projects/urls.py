@@ -10,5 +10,5 @@ urlpatterns = [
     path("create-project", create_project),
     path("get-project/<int:project_id>", get_project),
     path("edit-project/<int:project_id>", edit_project),
-    path("invite-<str:type>-to-project/<int:project_id>", invite_students_to_project),
+    path("invite-<str:type>-to-project/<int:project_id>", invite_users_to_project),
 ]

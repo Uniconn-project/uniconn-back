@@ -95,10 +95,6 @@ class TestGetProfileProjects(TestCase):
         Mentor.objects.create(profile=self.user02_MENTOR.profile)
 
     def test_req(self):
-        response = client.get(self.url + "unexistent-username")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, "There isn't any user with such username")
-
         response = client.get(self.url + self.user01_STUDENT.username)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -106,6 +102,10 @@ class TestGetProfileProjects(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_res(self):
+        response = client.get(self.url + "unexistent-username")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "There isn't any user with such username")
+
         project01 = Project.objects.create()
         project02 = Project.objects.create()
         project01.students.add(self.user01_STUDENT.profile.student)
