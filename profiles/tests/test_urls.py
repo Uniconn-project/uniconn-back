@@ -14,13 +14,25 @@ class TestUrls(TestCase):
         self.assertEqual(resolve(BASE_URL + "get-my-profile").func, get_my_profile)
 
     def test_get_profile_url(self):
-        self.assertEqual(resolve(BASE_URL + "get-profile/elon").func, get_profile)
+        self.assertEqual(resolve(BASE_URL + "get-profile/alicia").func, get_profile)
 
     def test_get_profile_projects_url(self):
         self.assertEqual(resolve(BASE_URL + "get-profile-projects/alicia").func, get_profile_projects)
 
+    def test_get_mentor_markets_url(self):
+        self.assertEqual(resolve(BASE_URL + "get-mentor-markets/alicia").func, get_mentor_markets)
+
     def test_get_filtered_profiles_url(self):
         self.assertEqual(resolve(BASE_URL + "get-filtered-profiles/ali").func, get_filtered_profiles)
 
-    def test_get_profile_list(self):
+    def test_get_profile_list_url(self):
         self.assertEqual(resolve(BASE_URL + "get-profile-list").func, get_profile_list)
+
+    def test_get_notifications_url(self):
+        self.assertEqual(resolve(BASE_URL + "get-notifications").func, get_notifications)
+
+    def test_get_notifications_number_url(self):
+        self.assertEqual(resolve(BASE_URL + "get-notifications-number").func, get_notifications_number)
+
+    def test_reply_project_invitation_url(self):
+        self.assertEqual(resolve(BASE_URL + "reply-project-invitation").func, reply_project_invitation)
