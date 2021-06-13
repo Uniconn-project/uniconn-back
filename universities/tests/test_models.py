@@ -9,7 +9,7 @@ from ..models import Major, University
 
 
 class TestUniversity(TestCase):
-    def test_model(self):
+    def test_create_delete(self):
         now_naive = datetime.datetime.now()
         timezone = pytz.timezone("UTC")
         now_aware = timezone.localize(now_naive)
@@ -22,7 +22,13 @@ class TestUniversity(TestCase):
         self.assertLessEqual(now_aware, university.created_at)
         self.assertLessEqual(now_aware, university.updated_at)
 
-        # test edit
+        # test delete
+        university.delete()
+        self.assertFalse(University.objects.filter().exists())
+
+    def test_fields(self):
+        university = University.objects.create()
+
         name = "Test University"
         cnpj = "XX.XXX.XXX/0001-XX"
         university.name = name
@@ -37,10 +43,6 @@ class TestUniversity(TestCase):
         # testing cpnj unique constrain
         with transaction.atomic():
             self.assertRaises(IntegrityError, University.objects.create, cnpj=cnpj)
-
-        # test delete
-        university.delete()
-        self.assertFalse(University.objects.filter().exists())
 
     def test_ordering(self):
         university01 = University.objects.create(name="aTest University")
@@ -59,13 +61,19 @@ class TestUniversity(TestCase):
 
 
 class TestMajor(TestCase):
-    def test_model(self):
+    def test_create_delete(self):
         # test create
         major = Major.objects.create()
         self.assertIsInstance(major, Major)
         self.assertEqual(major.pk, 1)
 
-        # test edit
+        # test delete
+        major.delete()
+        self.assertFalse(Major.objects.filter().exists())
+
+    def test_fields(self):
+        major = Major.objects.create()
+
         name = "Computer Engeneering"
         major.name = name
         major.save()
@@ -75,10 +83,6 @@ class TestMajor(TestCase):
         # testing name unique constrain
         with transaction.atomic():
             self.assertRaises(IntegrityError, Major.objects.create, name=name)
-
-        # test delete
-        major.delete()
-        self.assertFalse(Major.objects.filter().exists())
 
     def test_ordering(self):
         major01 = Major.objects.create(name="major a")

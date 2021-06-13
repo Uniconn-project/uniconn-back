@@ -10,7 +10,7 @@ User = get_user_model()
 
 
 class TestMarket(TestCase):
-    def test_model(self):
+    def test_create_delete(self):
         # test create
         market = Market.objects.create()
         self.assertIsInstance(market, Market)
@@ -55,7 +55,7 @@ class TestMarket(TestCase):
 
 
 class TestLink(TestCase):
-    def test_model(self):
+    def test_create_delete(self):
         # test create
         link = Link.objects.create()
         self.assertIsInstance(link, Link)
@@ -85,7 +85,7 @@ class TestLink(TestCase):
 
 
 class TestProject(TestCase):
-    def test_model(self):
+    def test_create_delete(self):
         now_naive = datetime.datetime.now()
         timezone = pytz.timezone("UTC")
         now_aware = timezone.localize(now_naive)

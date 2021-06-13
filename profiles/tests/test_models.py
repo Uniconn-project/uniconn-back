@@ -13,17 +13,20 @@ User = get_user_model()
 
 
 class TestUser(TestCase):
-    def setUp(self):
-        pass
-
-    def test_model(self):
+    def test_create_delete(self):
         # test create
         user = User.objects.create()
         self.assertIsInstance(user, User)
         self.assertEqual(user.pk, 1)
         self.assertTrue(user.is_active)
 
-        # test edit
+        # test delete
+        user.delete()
+        self.assertFalse(User.objects.filter().exists())
+
+    def test_fields(self):
+        user = User.objects.create()
+
         username = "john"
         email = "john@test.com"
         user.username = username
@@ -40,16 +43,9 @@ class TestUser(TestCase):
         with transaction.atomic():
             self.assertRaises(IntegrityError, User.objects.create, username=username)
 
-        # test delete
-        user.delete()
-        self.assertFalse(User.objects.filter().exists())
-
 
 class TestProfile(TestCase):
-    def setUp(self):
-        pass
-
-    def test_model(self):
+    def test_create_delete(self):
         now_naive = datetime.datetime.now()
         timezone = pytz.timezone("UTC")
         now_aware = timezone.localize(now_naive)
@@ -64,7 +60,14 @@ class TestProfile(TestCase):
         self.assertLessEqual(now_aware, profile.created_at)
         self.assertLessEqual(now_aware, profile.updated_at)
 
-        # test edit
+        # test delete
+        profile.delete()
+        self.assertFalse(Profile.objects.filter().exists())
+
+    def test_fields(self):
+        user = User.objects.create()
+        profile = user.profile
+
         photo = "elon_musk.jpg"
         first_name = "Elon"
         last_name = "Musk"
@@ -86,10 +89,6 @@ class TestProfile(TestCase):
         self.assertEqual(profile.bio, bio)
         self.assertEqual(profile.linkedIn, linkedIn)
         self.assertEqual(profile.birth_date, birth_date)
-
-        # test delete
-        profile.delete()
-        self.assertFalse(Profile.objects.filter().exists())
 
     def test_profile_user_relationship(self):
         # Asserting the profile-user relationship is one to one
@@ -120,19 +119,22 @@ class TestProfile(TestCase):
 
 
 class TestStudent(TestCase):
-    def setUp(self):
-        pass
-
-    def test_model(self):
+    def test_create_delete(self):
         # test create
         user = User.objects.create()
-        profile = user.profile
-        student = Student.objects.create(profile=profile)
+        student = Student.objects.create(profile=user.profile)
         self.assertIsInstance(student, Student)
         self.assertEqual(student.pk, 1)
-        self.assertEqual(student.profile, profile)
+        self.assertEqual(student.profile, user.profile)
 
-        # test edit
+        # test delete
+        student.delete()
+        self.assertFalse(Student.objects.filter().exists())
+
+    def test_fields(self):
+        user = User.objects.create()
+        student = Student.objects.create(profile=user.profile)
+
         university = University.objects.create()
         major = Major.objects.create()
 
@@ -142,10 +144,6 @@ class TestStudent(TestCase):
 
         self.assertEqual(student.university, university)
         self.assertEqual(student.major, major)
-
-        # test delete
-        student.delete()
-        self.assertFalse(Student.objects.filter().exists())
 
     def test_student_profile_relationship(self):
         # Asserting the student-profile relationship is one to one
@@ -164,10 +162,7 @@ class TestStudent(TestCase):
 
 
 class TestMentor(TestCase):
-    def setUp(self):
-        pass
-
-    def test_model(self):
+    def test_create_delete(self):
         # test create
         user = User.objects.create()
         profile = user.profile
