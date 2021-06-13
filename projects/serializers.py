@@ -25,7 +25,7 @@ class ProjectSerializer01(serializers.ModelSerializer):
     Light project serializer - useful for projects list items
     """
 
-    category = serializers.DictField(source="get_category_value_and_readable")
+    category = serializers.DictField(source="category_value_and_readable")
     students = ProfileSerializer03(source="students_profile", many=True)
     markets = MarketSerializer01(many=True)
 
@@ -47,7 +47,7 @@ class ProjectSerializer02(serializers.ModelSerializer):
     Heavy project serializer - useful for project page
     """
 
-    category = serializers.DictField(source="get_category_value_and_readable")
+    category = serializers.DictField(source="category_value_and_readable")
     students = ProfileSerializer03(source="students_profile", many=True)
     mentors = ProfileSerializer03(source="mentors_profile", many=True)
     pending_invited_students = ProfileSerializer03(source="pending_invited_students_profile", many=True)

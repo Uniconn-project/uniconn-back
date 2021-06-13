@@ -9,9 +9,6 @@ from ..models import Major, University
 
 
 class TestUniversity(TestCase):
-    def setUp(self):
-        pass
-
     def test_model(self):
         now_naive = datetime.datetime.now()
         timezone = pytz.timezone("UTC")
@@ -62,9 +59,6 @@ class TestUniversity(TestCase):
 
 
 class TestMajor(TestCase):
-    def setUp(self):
-        pass
-
     def test_model(self):
         # test create
         major = Major.objects.create()

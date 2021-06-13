@@ -4,7 +4,7 @@ from profiles.models import Mentor, Student
 
 class Market(models.Model):
     """
-    Market table - used to connect mentors to projects related to their markets
+    Market table - relates with mentors and projects
     """
 
     name = models.CharField(max_length=50, blank=True, null=True, unique=True)
@@ -32,6 +32,10 @@ project_categories_choices = [
 
 
 class Link(models.Model):
+    """
+    Link table
+    """
+
     name = models.CharField(max_length=50, blank=True, null=True)
     href = models.CharField(max_length=300, blank=True, null=True)
 
@@ -54,9 +58,9 @@ class Project(models.Model):
     pending_invited_students = models.ManyToManyField(Student, related_name="pending_projects_invitations", blank=True)
     pending_invited_mentors = models.ManyToManyField(Mentor, related_name="pending_projects_invitations", blank=True)
     markets = models.ManyToManyField(Market, related_name="projects")
+    links = models.ManyToManyField(Link, related_name="projects", blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
-    links = models.ManyToManyField(Link, related_name="projects", blank=True)
 
     @staticmethod
     def get_project_categories_choices(index=-1):
@@ -69,7 +73,7 @@ class Project(models.Model):
         return self.name if self.name is not None else ""
 
     @property
-    def get_category_value_and_readable(self):
+    def category_value_and_readable(self):
         return {"value": self.category, "readable": self.get_category_display()}
 
     @property
