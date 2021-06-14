@@ -53,7 +53,7 @@ class Student(models.Model):
     major = models.ForeignKey(Major, on_delete=models.SET_NULL, related_name="students", blank=True, null=True)
 
     class Meta:
-        ordering: ["-profile.created_at"]
+        ordering = ["-profile__created_at"]
 
     def __str__(self):
         return f"{self.profile.user.username} [STUDENT]"
@@ -67,7 +67,7 @@ class Mentor(models.Model):
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="mentor", blank=True, null=True)
 
     class Meta:
-        ordering: ["-profile.created_at"]
+        ordering = ["-profile__created_at"]
 
     def __str__(self):
         return f"{self.profile.user.username} [MENTOR]"

@@ -160,6 +160,20 @@ class TestStudent(TestCase):
             Student.objects.filter().exists(), "Asserting the student-profile relationship cascades on delete"
         )
 
+    def test_str(self):
+        user = User.objects.create(username="caroline")
+        student = Student.objects.create(profile=user.profile)
+        self.assertEqual(str(student), f"{user.username} [STUDENT]")
+
+    def test_ordering(self):
+        user01 = User.objects.create(username="lincoln")
+        student01 = Student.objects.create(profile=user01.profile)
+
+        user02 = User.objects.create(username="alex")
+        student02 = Student.objects.create(profile=user02.profile)
+
+        self.assertEqual(list(Student.objects.all()), [student02, student01])
+
 
 class TestMentor(TestCase):
     def test_create_delete(self):
@@ -189,3 +203,17 @@ class TestMentor(TestCase):
         self.assertFalse(
             Mentor.objects.filter().exists(), "Asserting the mentor-profile relationship cascades on delete"
         )
+
+    def test_str(self):
+        user = User.objects.create(username="michael")
+        mentor = Mentor.objects.create(profile=user.profile)
+        self.assertEqual(str(mentor), f"{user.username} [MENTOR]")
+
+    def test_ordering(self):
+        user01 = User.objects.create(username="dianne")
+        mentor01 = Mentor.objects.create(profile=user01.profile)
+
+        user02 = User.objects.create(username="kevin")
+        mentor02 = Mentor.objects.create(profile=user02.profile)
+
+        self.assertEqual(list(Mentor.objects.all()), [mentor02, mentor01])
