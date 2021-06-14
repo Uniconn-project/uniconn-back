@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from projects.models import Project
-from projects.serializers import ProjectSerializer01
+from projects.serializers import MarketSerializer01, ProjectSerializer01
 from rest_framework import status
 
 from ..models import Mentor, Profile, Student
@@ -125,11 +125,40 @@ class TestGetProfileProjects(TestCase):
         self.assertEqual(response.data, serializer_MENTOR.data)
 
 
+class TestGetMentorMarkets(TestCase):
+    url = BASE_URL + "get-mentor-markets/"
+
+    def test_req(self):
+        response = client.get(self.url + "phil")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        user = User.objects.create(username="phil")
+
+        response = client.get(self.url + "phil")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        Mentor.objects.create(profile=user.profile)
+
+        response = client.get(self.url + "phil")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_res(self):
+        response = client.get(self.url + "phil")
+        self.assertEqual(response.data, "There isn't any user with such username")
+
+        user = User.objects.create(username="phil")
+
+        response = client.get(self.url + "phil")
+        self.assertEqual(response.data, "Only mentors have markets")
+
+        mentor = Mentor.objects.create(profile=user.profile)
+
+        response = client.get(self.url + "phil")
+        self.assertEqual(response.data, MarketSerializer01(mentor.markets.all(), many=True).data)
+
+
 class TestGetFilteredProfiles(TestCase):
     url = BASE_URL + "get-filtered-profiles/"
-
-    def setUp(self):
-        pass
 
     def test_req(self):
         response = client.get(self.url + "")
@@ -171,3 +200,33 @@ class TestGetFilteredProfiles(TestCase):
         self.assertEqual(
             response.data, ProfileSerializer03(Profile.objects.filter(user__username__icontains=query), many=True).data
         )
+
+
+class TestGetProfileList(TestCase):
+    url = BASE_URL + "get-profile-list"
+
+    def test_req(self):
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_res(self):
+        profiles = []
+
+        for i in range(15):
+            user = User.objects.create(username=f"user0{i}")
+            profiles.append(user.profile)
+
+        response = client.get(self.url)
+        self.assertEqual(response.data, ProfileSerializer03(profiles[:10], many=True).data)
+
+
+class TestGetNotifications(TestCase):
+    pass
+
+
+class TestGetNotificationsNumber(TestCase):
+    pass
+
+
+class TestReplyProjectInvitation(TestCase):
+    pass
