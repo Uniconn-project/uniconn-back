@@ -2,7 +2,7 @@ from django.test import Client, TestCase
 from rest_framework import status
 
 from ..models import Market, Project
-from ..serializers import MarketSerializer01, ProjectSerializer01
+from ..serializers import MarketSerializer01, ProjectSerializer01, ProjectSerializer02
 
 client = Client()
 BASE_URL = "/api/projects/"
@@ -109,3 +109,37 @@ class TestGetProjectsCategoriesList(TestCase):
         response = client.get(self.url)
 
         self.assertEqual(response.data, categories)
+
+
+class TestCreateProject(TestCase):
+    pass
+
+
+class TestGetProject(TestCase):
+    url = BASE_URL + "get-project/"
+
+    def test_req(self):
+        response = client.get(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        Project.objects.create()
+
+        response = client.get(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_res(self):
+        response = client.get(f"{self.url}1")
+        self.assertEqual(response.data, "Project not found")
+
+        project = Project.objects.create()
+
+        response = client.get(f"{self.url}1")
+        self.assertEqual(response.data, ProjectSerializer02(project).data)
+
+
+class TestEditProject(TestCase):
+    pass
+
+
+class TestInviteUsersToProject(TestCase):
+    pass
