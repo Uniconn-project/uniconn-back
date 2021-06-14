@@ -51,7 +51,7 @@ class Project(models.Model):
     category = models.CharField(max_length=50, choices=project_categories_choices)
     name = models.CharField(max_length=50, blank=True, null=True)
     slogan = models.CharField(help_text="Very quick description", max_length=100, blank=True, null=True)
-    description = models.CharField(help_text="Detailed description", max_length=1000, blank=True, null=True)
+    description = models.CharField(help_text="Detailed description", default="Sem descrição...", max_length=1000)
     image = models.ImageField(default="default_project.jpg", upload_to="projects_photos")
     students = models.ManyToManyField(Student, related_name="projects", blank=True)
     mentors = models.ManyToManyField(Mentor, related_name="projects", blank=True)
