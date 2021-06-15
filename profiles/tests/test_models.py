@@ -1,4 +1,5 @@
 import datetime
+from time import sleep
 
 import pytz
 from django.contrib.auth import get_user_model
@@ -169,6 +170,8 @@ class TestStudent(TestCase):
         user01 = User.objects.create(username="lincoln")
         student01 = Student.objects.create(profile=user01.profile)
 
+        sleep(0.001)
+
         user02 = User.objects.create(username="alex")
         student02 = Student.objects.create(profile=user02.profile)
 
@@ -212,6 +215,8 @@ class TestMentor(TestCase):
     def test_ordering(self):
         user01 = User.objects.create(username="dianne")
         mentor01 = Mentor.objects.create(profile=user01.profile)
+
+        sleep(0.001)
 
         user02 = User.objects.create(username="kevin")
         mentor02 = Mentor.objects.create(profile=user02.profile)
