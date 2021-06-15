@@ -167,3 +167,30 @@ def invite_users_to_project(request, type, project_id):
     project.save()
 
     return Response("Users invited to project with success!")
+
+
+@api_view(["PUT"])
+@login_required
+def edit_project_description(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Project not found", status=status.HTTP_404_NOT_FOUND)
+
+    if request.user.profile.type != "student":
+        return Response(
+            "Only students are allowed to invite users to the project!", status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    if not request.user.profile.student in project.students.all():
+        return Response("Only project members can invite users to it!", status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        description = request.data["description"]
+    except:
+        return Response("Invalid data!", status=status.HTTP_400_BAD_REQUEST)
+
+    project.description = description
+    project.save()
+
+    return Response("Project description edited with success!")

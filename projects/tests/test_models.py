@@ -94,7 +94,10 @@ class TestProject(TestCase):
         project = Project.objects.create()
         self.assertIsInstance(project, Project)
         self.assertEqual(project.pk, 1)
-        self.assertEqual(project.description, "Sem descrição...")
+        self.assertEqual(
+            project.description,
+            '{"blocks": [{"key": "5v3ub", "text": "Sem descrição...", "type": "unstyled", "depth": 0, "inlineStyleRanges": [], "entityRanges": [], "data": {}}], "entityMap": {}}',
+        )
         self.assertEqual(project.image, "default_project.jpg")
         self.assertLessEqual(now_aware, project.created_at)
         self.assertLessEqual(now_aware, project.updated_at)
