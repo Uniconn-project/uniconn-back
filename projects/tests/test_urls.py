@@ -31,3 +31,6 @@ class TestUrls(TestCase):
     def test_invite_to_project_url(self):
         self.assertEqual(resolve(BASE_URL + "invite-students-to-project/1").func, invite_users_to_project)
         self.assertEqual(resolve(BASE_URL + "invite-mentors-to-project/1").func, invite_users_to_project)
+
+    def test_edit_project_description(self):
+        self.assertEqual(resolve(BASE_URL + "edit-project-description/918").func, edit_project_description)

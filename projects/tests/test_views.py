@@ -143,3 +143,7 @@ class TestEditProject(TestCase):
 
 class TestInviteUsersToProject(TestCase):
     pass
+
+
+class TestEditProjectDescription(TestCase):
+    pass
