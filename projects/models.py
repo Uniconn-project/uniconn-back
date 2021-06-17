@@ -55,7 +55,7 @@ class Project(models.Model):
     description = models.CharField(
         help_text="Detailed description",
         default='{"blocks": [{"key": "5v3ub", "text": "Sem descrição...", "type": "unstyled", "depth": 0, "inlineStyleRanges": [], "entityRanges": [], "data": {}}], "entityMap": {}}',
-        max_length=1000,
+        max_length=20000,
     )
     image = models.ImageField(default="default_project.jpg", upload_to="projects_photos")
     students = models.ManyToManyField(Student, related_name="projects", blank=True)
@@ -82,17 +82,17 @@ class Project(models.Model):
         return {"value": self.category, "readable": self.get_category_display()}
 
     @property
-    def students_profile(self):
+    def students_profiles(self):
         return [student.profile for student in self.students.all()]
 
     @property
-    def mentors_profile(self):
+    def mentors_profiles(self):
         return [mentor.profile for mentor in self.mentors.all()]
 
     @property
-    def pending_invited_students_profile(self):
+    def pending_invited_students_profiles(self):
         return [student.profile for student in self.pending_invited_students.all()]
 
     @property
-    def pending_invited_mentors_profile(self):
+    def pending_invited_mentors_profiles(self):
         return [mentor.profile for mentor in self.pending_invited_mentors.all()]

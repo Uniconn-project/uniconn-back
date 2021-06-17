@@ -221,7 +221,7 @@ class TestProject(TestCase):
             {"value": project_categories_choices[0][0], "readable": project_categories_choices[0][1]},
         )
 
-    def test_students_profile_method(self):
+    def test_students_profiles_method(self):
         project = Project.objects.create()
 
         user01 = User.objects.create(username="taylor")
@@ -233,13 +233,13 @@ class TestProject(TestCase):
         project.students.add(student01, student02)
         project.save()
 
-        students_profile = project.students_profile
+        students_profiles = project.students_profiles
 
-        self.assertEqual(len(students_profile), 2)
-        self.assertIn(user01.profile, students_profile)
-        self.assertIn(user02.profile, students_profile)
+        self.assertEqual(len(students_profiles), 2)
+        self.assertIn(user01.profile, students_profiles)
+        self.assertIn(user02.profile, students_profiles)
 
-    def test_mentors_profile_method(self):
+    def test_mentors_profiles_method(self):
         project = Project.objects.create()
 
         user01 = User.objects.create(username="maicon")
@@ -251,13 +251,13 @@ class TestProject(TestCase):
         project.mentors.add(mentor01, mentor02)
         project.save()
 
-        mentors_profile = project.mentors_profile
+        mentors_profiles = project.mentors_profiles
 
-        self.assertEqual(len(mentors_profile), 2)
-        self.assertIn(user01.profile, mentors_profile)
-        self.assertIn(user02.profile, mentors_profile)
+        self.assertEqual(len(mentors_profiles), 2)
+        self.assertIn(user01.profile, mentors_profiles)
+        self.assertIn(user02.profile, mentors_profiles)
 
-    def test_pending_invited_students_profile_method(self):
+    def test_pending_invited_students_profiles_method(self):
         project = Project.objects.create()
 
         user01 = User.objects.create(username="taylor")
@@ -269,13 +269,13 @@ class TestProject(TestCase):
         project.pending_invited_students.add(student01, student02)
         project.save()
 
-        pending_invited_students_profile = project.pending_invited_students_profile
+        pending_invited_students_profiles = project.pending_invited_students_profiles
 
-        self.assertEqual(len(pending_invited_students_profile), 2)
-        self.assertIn(user01.profile, pending_invited_students_profile)
-        self.assertIn(user02.profile, pending_invited_students_profile)
+        self.assertEqual(len(pending_invited_students_profiles), 2)
+        self.assertIn(user01.profile, pending_invited_students_profiles)
+        self.assertIn(user02.profile, pending_invited_students_profiles)
 
-    def test_pending_invited_mentors_profile_method(self):
+    def test_pending_invited_mentors_profiles_method(self):
         project = Project.objects.create()
 
         user01 = User.objects.create(username="maicon")
@@ -287,8 +287,8 @@ class TestProject(TestCase):
         project.pending_invited_mentors.add(mentor01, mentor02)
         project.save()
 
-        pending_invited_mentors_profile = project.pending_invited_mentors_profile
+        pending_invited_mentors_profiles = project.pending_invited_mentors_profiles
 
-        self.assertEqual(len(pending_invited_mentors_profile), 2)
-        self.assertIn(user01.profile, pending_invited_mentors_profile)
-        self.assertIn(user02.profile, pending_invited_mentors_profile)
+        self.assertEqual(len(pending_invited_mentors_profiles), 2)
+        self.assertIn(user01.profile, pending_invited_mentors_profiles)
+        self.assertIn(user02.profile, pending_invited_mentors_profiles)

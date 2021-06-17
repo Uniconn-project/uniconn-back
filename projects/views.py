@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Market, Project
+from .models import Link, Market, Project
 from .serializers import MarketSerializer01, ProjectSerializer01, ProjectSerializer02
 
 
@@ -179,7 +179,7 @@ def edit_project_description(request, project_id):
 
     if request.user.profile.type != "student":
         return Response(
-            "Only students are allowed to invite users to the project!", status=status.HTTP_401_UNAUTHORIZED
+            "Only students are allowed to edit the project's description!", status=status.HTTP_401_UNAUTHORIZED
         )
 
     if not request.user.profile.student in project.students.all():
@@ -194,3 +194,29 @@ def edit_project_description(request, project_id):
     project.save()
 
     return Response("Project description edited with success!")
+
+
+@api_view(["POST"])
+@login_required
+def create_link(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Project not found", status=status.HTTP_404_NOT_FOUND)
+
+    if not request.user.profile in project.students_profiles + project.mentors_profiles:
+        return Response("Only project members can add links to it!", status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        name = request.data["name"]
+        href = request.data["href"]
+        is_public = request.data["is_public"]
+    except:
+        return Response("Invalid data!", status=status.HTTP_400_BAD_REQUEST)
+
+    link = Link.objects.create(name=name, href=href, is_public=is_public)
+
+    project.links.add(link)
+    project.save()
+
+    return Response("Link created with success!")

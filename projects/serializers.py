@@ -17,7 +17,7 @@ class MarketSerializer01(serializers.ModelSerializer):
 class LinksSerializer01(serializers.ModelSerializer):
     class Meta:
         model = Link
-        fields = ["id", "name", "href"]
+        fields = ["id", "name", "href", "is_public"]
 
 
 class ProjectSerializer01(serializers.ModelSerializer):
@@ -26,7 +26,7 @@ class ProjectSerializer01(serializers.ModelSerializer):
     """
 
     category = serializers.DictField(source="category_value_and_readable")
-    students = ProfileSerializer03(source="students_profile", many=True)
+    students = ProfileSerializer03(source="students_profiles", many=True)
     markets = MarketSerializer01(many=True)
 
     class Meta:
@@ -48,10 +48,10 @@ class ProjectSerializer02(serializers.ModelSerializer):
     """
 
     category = serializers.DictField(source="category_value_and_readable")
-    students = ProfileSerializer03(source="students_profile", many=True)
-    mentors = ProfileSerializer03(source="mentors_profile", many=True)
-    pending_invited_students = ProfileSerializer03(source="pending_invited_students_profile", many=True)
-    pending_invited_mentors = ProfileSerializer03(source="pending_invited_mentors_profile", many=True)
+    students = ProfileSerializer03(source="students_profiles", many=True)
+    mentors = ProfileSerializer03(source="mentors_profiles", many=True)
+    pending_invited_students = ProfileSerializer03(source="pending_invited_students_profiles", many=True)
+    pending_invited_mentors = ProfileSerializer03(source="pending_invited_mentors_profiles", many=True)
     markets = MarketSerializer01(many=True)
     links = LinksSerializer01(many=True)
 
