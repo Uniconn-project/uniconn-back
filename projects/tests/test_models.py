@@ -60,6 +60,7 @@ class TestLink(TestCase):
         link = Link.objects.create()
         self.assertIsInstance(link, Link)
         self.assertEqual(link.pk, 1)
+        self.assertFalse(link.is_public)
 
         # test delete
         link.delete()
@@ -73,11 +74,13 @@ class TestLink(TestCase):
 
         link.name = name
         link.href = href
+        link.is_public = True
 
         link.save()
 
         self.assertEqual(link.name, name)
         self.assertEqual(link.href, href)
+        self.assertTrue(link.is_public)
 
     def test_str(self):
         link = Link.objects.create(name="Figma Mockup")
