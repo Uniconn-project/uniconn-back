@@ -151,3 +151,7 @@ class TestEditProjectDescription(TestCase):
 
 class TestCreateLink(TestCase):
     pass
+
+
+class TestDeleteLink(TestCase):
+    pass

@@ -220,3 +220,31 @@ def create_link(request, project_id):
     project.save()
 
     return Response("Link created with success!")
+
+
+@api_view(["DELETE"])
+@login_required
+def delete_link(request):
+    try:
+        link_id = request.data["link_id"]
+        project_id = request.data["project_id"]
+    except:
+        return Response("Invalid data!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Project not found", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        link = Link.objects.get(pk=link_id)
+        assert link in project.links.all()
+    except:
+        return Response("Link not found", status=status.HTTP_404_NOT_FOUND)        
+
+    if not request.user.profile in project.students_profiles + project.mentors_profiles:
+        return Response("Only project members can delete its links!", status=status.HTTP_401_UNAUTHORIZED)
+
+    link.delete()
+
+    return Response("Link deleted with success!")
