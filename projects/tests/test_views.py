@@ -145,7 +145,7 @@ class TestInviteUsersToProject(TestCase):
     pass
 
 
-class TestUninviteUsersFromProject(TestCase):
+class TestUninviteUserFromProject(TestCase):
     pass
 
 
