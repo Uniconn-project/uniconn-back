@@ -29,7 +29,7 @@ class TestGetMyProfile(TestCase):
     def test_req(self):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data, "Login required view")
+        self.assertEqual(response.data, "Você precisa logar para acessar essa rota")
 
         client.force_login(self.user01_STUDENT)
         response = client.get(self.url)

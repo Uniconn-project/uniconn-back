@@ -8,6 +8,6 @@ def login_required(func):
         if user.is_authenticated:
             return func(*args, **kwargs)
         else:
-            return Response("Login required view", status=status.HTTP_401_UNAUTHORIZED)
+            return Response("Você precisa logar para acessar essa rota", status=status.HTTP_401_UNAUTHORIZED)
 
     return wrap

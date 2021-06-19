@@ -129,7 +129,7 @@ class TestGetProject(TestCase):
 
     def test_res(self):
         response = client.get(f"{self.url}1")
-        self.assertEqual(response.data, "Project not found")
+        self.assertEqual(response.data, "Projeto não encontrado")
 
         project = Project.objects.create()
 
