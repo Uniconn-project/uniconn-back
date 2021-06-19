@@ -4,7 +4,13 @@ import pytz
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from profiles.models import Mentor, Student
-from projects.models import Link, Market, Project, project_categories_choices
+from projects.models import (
+    Link,
+    Market,
+    Project,
+    ProjectEnteringRequest,
+    project_categories_choices,
+)
 
 User = get_user_model()
 
@@ -292,3 +298,60 @@ class TestProject(TestCase):
         self.assertEqual(len(pending_invited_mentors_profiles), 2)
         self.assertIn(user01.profile, pending_invited_mentors_profiles)
         self.assertIn(user02.profile, pending_invited_mentors_profiles)
+
+
+class TestProjectEnteringRequest(TestCase):
+    def test_create_delete(self):
+        # test create
+        project_entering_request = ProjectEnteringRequest.objects.create()
+        self.assertIsInstance(project_entering_request, ProjectEnteringRequest)
+        self.assertEqual(project_entering_request.pk, 1)
+
+        # test delete
+        project_entering_request.delete()
+        self.assertFalse(ProjectEnteringRequest.objects.filter().exists())
+
+    def test_fields(self):
+        project_entering_request = ProjectEnteringRequest.objects.create()
+
+        message = "I would love to contribute to this project as a software developer."
+        project = Project.objects.create()
+        user = User.objects.create()
+
+        project_entering_request.message = message
+        project_entering_request.project = project
+        project_entering_request.profile = user.profile
+
+        project_entering_request.save()
+
+        self.assertEqual(project_entering_request.message, message)
+        self.assertEqual(project_entering_request.project, project)
+        self.assertEqual(project_entering_request.profile, user.profile)
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        project_entering_request = ProjectEnteringRequest.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(project_entering_request, project.entering_requests.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(ProjectEnteringRequest.objects.filter().exists())
+
+    def test_profile_relation(self):
+        profile = User.objects.create().profile
+        project_entering_request = ProjectEnteringRequest.objects.create(profile=profile)
+
+        # testing related name
+        self.assertIn(project_entering_request, profile.projects_entering_requests.all())
+
+        # testing cascade
+        profile.delete()
+        self.assertFalse(ProjectEnteringRequest.objects.filter().exists())
+
+    def test_str(self):
+        project = Project.objects.create(name="Simutomic")
+        user = User.objects.create(username="john_p")
+        project_entering_request = ProjectEnteringRequest.objects.create(project=project, profile=user.profile)
+        self.assertEqual(str(project_entering_request), f"{user.username} to {project.name}")

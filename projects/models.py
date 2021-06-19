@@ -1,5 +1,5 @@
 from django.db import models
-from profiles.models import Mentor, Student
+from profiles.models import Mentor, Profile, Student
 
 
 class Market(models.Model):
@@ -96,3 +96,16 @@ class Project(models.Model):
     @property
     def pending_invited_mentors_profiles(self):
         return [mentor.profile for mentor in self.pending_invited_mentors.all()]
+
+
+class ProjectEnteringRequest(models.Model):
+    message = models.CharField(max_length=500, blank=True, null=True)
+    project = models.ForeignKey(
+        Project, related_name="entering_requests", on_delete=models.CASCADE, blank=True, null=True
+    )
+    profile = models.ForeignKey(
+        Profile, related_name="projects_entering_requests", on_delete=models.CASCADE, blank=True, null=True
+    )
+
+    def __str__(self):
+        return f"{self.profile.user.username} to {self.project.name}"
