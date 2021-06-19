@@ -36,6 +36,10 @@ class TestUrls(TestCase):
         self.assertEqual(resolve(BASE_URL + "uninvite-student-from-project/8").func, uninvite_user_from_project)
         self.assertEqual(resolve(BASE_URL + "uninvite-mentor-from-project/40").func, uninvite_user_from_project)
 
+    def test_remove_from_project_url(self):
+        self.assertEqual(resolve(BASE_URL + "remove-student-from-project/1001").func, remove_user_from_project)
+        self.assertEqual(resolve(BASE_URL + "remove-mentor-from-project/10000").func, remove_user_from_project)
+
     def test_edit_project_description_url(self):
         self.assertEqual(resolve(BASE_URL + "edit-project-description/918").func, edit_project_description)
 
