@@ -145,6 +145,10 @@ class TestInviteUsersToProject(TestCase):
     pass
 
 
+class TestUninviteUsersFromProject(TestCase):
+    pass
+
+
 class TestEditProjectDescription(TestCase):
     pass
 

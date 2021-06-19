@@ -2,7 +2,7 @@ import base64
 
 from django.core.files.base import ContentFile
 from jwt_auth.decorators import login_required
-from profiles.models import Mentor, Student
+from profiles.models import Mentor, Profile, Student
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -171,6 +171,41 @@ def invite_users_to_project(request, type, project_id):
 
 @api_view(["PUT"])
 @login_required
+def uninvite_user_from_project(request, type, project_id):
+    try:
+        username = request.data["username"]
+    except:
+        return Response("Invalid data!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Project not found", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        profile = Profile.objects.get(user__username=username)
+        profile_student_or_mentor =  getattr(profile, type)
+        invited_students_or_mentors = getattr(project, f"pending_invited_{type}s")
+        assert profile_student_or_mentor in invited_students_or_mentors.all()
+    except:
+        return Response("User not found", status=status.HTTP_404_NOT_FOUND)
+
+    if request.user.profile.type != "student":
+        return Response(
+            "Only students are allowed to uninvite users from project!", status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    if not request.user.profile.student in project.students.all():
+        return Response("Only project members can uninvite users from it!", status=status.HTTP_401_UNAUTHORIZED)
+
+    invited_students_or_mentors.remove(profile_student_or_mentor)
+    project.save()
+
+    return Response("Uninvited user from project with success!")
+
+
+@api_view(["PUT"])
+@login_required
 def edit_project_description(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
@@ -240,7 +275,7 @@ def delete_link(request):
         link = Link.objects.get(pk=link_id)
         assert link in project.links.all()
     except:
-        return Response("Link not found", status=status.HTTP_404_NOT_FOUND)        
+        return Response("Link not found", status=status.HTTP_404_NOT_FOUND)
 
     if not request.user.profile in project.students_profiles + project.mentors_profiles:
         return Response("Only project members can delete its links!", status=status.HTTP_401_UNAUTHORIZED)
