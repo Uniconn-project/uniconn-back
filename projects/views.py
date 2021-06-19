@@ -184,7 +184,7 @@ def uninvite_user_from_project(request, type, project_id):
 
     try:
         profile = Profile.objects.get(user__username=username)
-        profile_student_or_mentor =  getattr(profile, type)
+        profile_student_or_mentor = getattr(profile, type)
         invited_students_or_mentors = getattr(project, f"pending_invited_{type}s")
         assert profile_student_or_mentor in invited_students_or_mentors.all()
     except:
@@ -202,6 +202,41 @@ def uninvite_user_from_project(request, type, project_id):
     project.save()
 
     return Response("Uninvited user from project with success!")
+
+
+@api_view(["PUT"])
+@login_required
+def remove_user_from_project(request, type, project_id):
+    try:
+        username = request.data["username"]
+    except:
+        return Response("Invalid data!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Project not found", status=status.HTTP_404_NOT_FOUND)
+
+    if request.user.profile.type != "student":
+        return Response(
+            "Only students are allowed to remove users from the project!", status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    if not request.user.profile.student in project.students.all():
+        return Response("Only project members can remove users from it!", status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        profile = Profile.objects.get(user__username=username)
+        profile_student_or_mentor = getattr(profile, type)
+        project_students_or_mentors = getattr(project, f"{type}s")
+        assert profile_student_or_mentor in project_students_or_mentors.all()
+    except:
+        return Response("User not found", status=status.HTTP_404_NOT_FOUND)
+
+    project_students_or_mentors.remove(profile_student_or_mentor)
+    project.save()
+
+    return Response("Removed user from project with success!")
 
 
 @api_view(["PUT"])
