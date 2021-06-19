@@ -149,6 +149,10 @@ class TestUninviteUserFromProject(TestCase):
     pass
 
 
+class TestAskToJoinProject(TestCase):
+    pass
+
+
 class TestRemoveUserFromProject(TestCase):
     pass
 
