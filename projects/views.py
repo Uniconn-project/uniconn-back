@@ -265,7 +265,7 @@ def remove_user_from_project(request, type, project_id):
     project_students_or_mentors.remove(profile_student_or_mentor)
     project.save()
 
-    return Response("Removed user from project with success!")
+    return Response("success")
 
 
 @api_view(["PUT"])
