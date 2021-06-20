@@ -248,11 +248,11 @@ def remove_user_from_project(request, type, project_id):
 
     if request.user.profile.type != "student":
         return Response(
-            "Only students are allowed to remove users from the project!", status=status.HTTP_401_UNAUTHORIZED
+            "Somente universitários podem remover usuários do projeto!", status=status.HTTP_401_UNAUTHORIZED
         )
 
     if not request.user.profile.student in project.students.all():
-        return Response("Only project members can remove users from it!", status=status.HTTP_401_UNAUTHORIZED)
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     try:
         profile = Profile.objects.get(user__username=username)
@@ -278,11 +278,11 @@ def edit_project_description(request, project_id):
 
     if request.user.profile.type != "student":
         return Response(
-            "Only students are allowed to edit the project's description!", status=status.HTTP_401_UNAUTHORIZED
+            "Somente universitários podem editar a descrição do projeto!", status=status.HTTP_401_UNAUTHORIZED
         )
 
     if not request.user.profile.student in project.students.all():
-        return Response("Only project members can invite users to it!", status=status.HTTP_401_UNAUTHORIZED)
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     try:
         description = request.data["description"]
@@ -304,7 +304,7 @@ def create_link(request, project_id):
         return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
 
     if not request.user.profile in project.students_profiles + project.mentors_profiles:
-        return Response("Only project members can add links to it!", status=status.HTTP_401_UNAUTHORIZED)
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     try:
         name = request.data["name"]
@@ -339,10 +339,10 @@ def delete_link(request):
         link = Link.objects.get(pk=link_id)
         assert link in project.links.all()
     except:
-        return Response("Link not found", status=status.HTTP_404_NOT_FOUND)
+        return Response("Link não encontrado", status=status.HTTP_404_NOT_FOUND)
 
     if not request.user.profile in project.students_profiles + project.mentors_profiles:
-        return Response("Only project members can delete its links!", status=status.HTTP_401_UNAUTHORIZED)
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     link.delete()
 
