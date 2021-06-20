@@ -80,7 +80,7 @@ def create_project(request):
     project.students.add(profile.student)
     project.save()
 
-    return Response("Project created with success")
+    return Response("success")
 
 
 @api_view(["GET"])
@@ -104,7 +104,7 @@ def edit_project(request, project_id):
         return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
 
     if request.user.profile.type != "student":
-        return Response("Only students are allowed to edit the project!", status=status.HTTP_401_UNAUTHORIZED)
+        return Response("Somente universitários podem editar o projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     if not request.user.profile.student in project.students.all():
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
@@ -131,7 +131,7 @@ def edit_project(request, project_id):
 
     project.save()
 
-    return Response("Project edited with success")
+    return Response("success")
 
 
 @api_view(["PUT"])
@@ -149,7 +149,7 @@ def invite_users_to_project(request, type, project_id):
 
     if request.user.profile.type != "student":
         return Response(
-            "Only students are allowed to invite users to the project!", status=status.HTTP_401_UNAUTHORIZED
+            "Somente universitários podem convidar usuários para o projeto!", status=status.HTTP_401_UNAUTHORIZED
         )
 
     if not request.user.profile.student in project.students.all():
@@ -166,7 +166,7 @@ def invite_users_to_project(request, type, project_id):
 
     project.save()
 
-    return Response("Users invited to project with success!")
+    return Response("success")
 
 
 @api_view(["PUT"])
@@ -201,7 +201,7 @@ def uninvite_user_from_project(request, type, project_id):
     invited_students_or_mentors.remove(profile_student_or_mentor)
     project.save()
 
-    return Response("Uninvited user from project with success!")
+    return Response("success")
 
 
 @api_view(["POST"])
