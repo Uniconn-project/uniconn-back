@@ -264,12 +264,12 @@ def reply_project_invitation(request):
 
         project = Project.objects.get(pk=project_id)
     except:
-        return Response("Invalid data!", status=status.HTTP_400_BAD_REQUEST)
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     if profile.type == "student":
 
         if not profile.student in project.pending_invited_students.all():
-            return Response("The project didn't invite you!", status=status.HTTP_400_BAD_REQUEST)
+            return Response("O projeto não te convidou!", status=status.HTTP_400_BAD_REQUEST)
 
         project.pending_invited_students.remove(profile.student)
 
@@ -279,7 +279,7 @@ def reply_project_invitation(request):
     elif profile.type == "mentor":
 
         if not profile.mentor in project.pending_invited_mentors.all():
-            return Response("The project didn't invite you!", status=status.HTTP_400_BAD_REQUEST)
+            return Response("O projeto não te convidou!", status=status.HTTP_400_BAD_REQUEST)
 
         project.pending_invited_mentors.remove(profile.mentor)
 
@@ -288,4 +288,38 @@ def reply_project_invitation(request):
 
     project.save()
 
-    return Response("Replied to project with success")
+    return Response("success")
+
+
+@api_view(["PUT"])
+@login_required
+def reply_project_entering_request(request):
+    try:
+        reply = request.data["reply"]
+        project_entering_request_id = request.data["project_entering_request_id"]
+
+        project_entering_request = ProjectEnteringRequest.objects.get(pk=project_entering_request_id)
+        project = project_entering_request.project
+        profile = project_entering_request.profile
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if request.user.profile.type != "student":
+        return Response(
+            "Somente universitários podem aceitar usuários no projeto!", status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    if not request.user.profile.student in project.students.all():
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    project_entering_request.delete()
+
+    if reply == "accept":
+        if profile.type == "student":
+            project.students.add(profile.student)
+            project.save()
+        elif profile.type == "mentor":
+            project.mentors.add(profile.mentor)
+            project.save()
+
+    return Response("success")
