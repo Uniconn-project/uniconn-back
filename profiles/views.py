@@ -3,9 +3,10 @@ import datetime
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from jwt_auth.decorators import login_required
-from projects.models import Market, Project
+from projects.models import Market, Project, ProjectEnteringRequest
 from projects.serializers import (
     MarketSerializer01,
+    ProjectEnteringRequestSerializer01,
     ProjectSerializer01,
     ProjectSerializer03,
 )
@@ -220,13 +221,21 @@ def get_notifications(request):
     profile = request.user.profile
 
     if profile.type == "student":
-        project_invitations = profile.student.pending_projects_invitations
+        projects_invitations = profile.student.pending_projects_invitations
+        projects_entering_requests = ProjectEnteringRequest.objects.filter(project__students=profile.student)
     elif profile.type == "mentor":
-        project_invitations = profile.mentor.pending_projects_invitations
+        projects_invitations = profile.mentor.pending_projects_invitations
+        projects_entering_requests = []
 
-    serializer = ProjectSerializer03(project_invitations, many=True)
+    projects_invitations_serializer = ProjectSerializer03(projects_invitations, many=True)
+    projects_entering_requests_serializer = ProjectEnteringRequestSerializer01(projects_entering_requests, many=True)
 
-    return Response({"projects": serializer.data})
+    return Response(
+        {
+            "projects_invitations": projects_invitations_serializer.data,
+            "projects_entering_requests": projects_entering_requests_serializer.data,
+        }
+    )
 
 
 @api_view(["GET"])

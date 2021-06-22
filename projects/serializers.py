@@ -1,7 +1,7 @@
 from profiles.serializers import ProfileSerializer03
 from rest_framework import serializers
 
-from .models import Link, Market, Project
+from .models import Link, Market, Project, ProjectEnteringRequest
 
 
 class MarketSerializer01(serializers.ModelSerializer):
@@ -81,3 +81,12 @@ class ProjectSerializer03(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ["id", "name", "image"]
+
+
+class ProjectEnteringRequestSerializer01(serializers.ModelSerializer):
+    project = ProjectSerializer03()
+    profile = ProfileSerializer03()
+
+    class Meta:
+        model = ProjectEnteringRequest
+        fields = ["id", "message", "project", "profile"]
