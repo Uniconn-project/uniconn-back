@@ -157,6 +157,14 @@ class TestRemoveUserFromProject(TestCase):
     pass
 
 
+class TestReplyProjectInvitation(TestCase):
+    pass
+
+
+class TestReplyProjectEnteringRequest(TestCase):
+    pass
+
+
 class TestEditProjectDescription(TestCase):
     pass
 

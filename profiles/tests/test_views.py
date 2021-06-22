@@ -226,7 +226,3 @@ class TestGetNotifications(TestCase):
 
 class TestGetNotificationsNumber(TestCase):
     pass
-
-
-class TestReplyProjectInvitation(TestCase):
-    pass

@@ -33,6 +33,3 @@ class TestUrls(TestCase):
 
     def test_get_notifications_number_url(self):
         self.assertEqual(resolve(BASE_URL + "get-notifications-number").func, get_notifications_number)
-
-    def test_reply_project_invitation_url(self):
-        self.assertEqual(resolve(BASE_URL + "reply-project-invitation").func, reply_project_invitation)
