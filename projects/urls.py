@@ -14,6 +14,8 @@ urlpatterns = [
     path("uninvite-<str:type>-from-project/<int:project_id>", uninvite_user_from_project),
     path("ask-to-join-project/<int:project_id>", ask_to_join_project),
     path("remove-<str:type>-from-project/<int:project_id>", remove_user_from_project),
+    path("reply-project-invitation", reply_project_invitation),
+    path("reply-project-entering-request", reply_project_entering_request),
     path("edit-project-description/<int:project_id>", edit_project_description),
     path("create-link/<int:project_id>", create_link),
     path("delete-link", delete_link),
