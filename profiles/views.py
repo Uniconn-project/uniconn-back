@@ -245,10 +245,12 @@ def get_notifications_number(request):
 
     if profile.type == "student":
         project_invitations = profile.student.pending_projects_invitations.all()
+        projects_entering_requests = ProjectEnteringRequest.objects.filter(project__students=profile.student).all()
     elif profile.type == "mentor":
         project_invitations = profile.mentor.pending_projects_invitations.all()
+        projects_entering_requests = []
 
-    return Response(len(project_invitations))
+    return Response(len(project_invitations) + len(projects_entering_requests))
 
 
 @api_view(["PUT"])
