@@ -174,5 +174,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media_root")
 # Auth User Model
 AUTH_USER_MODEL = "profiles.User"
 
+ADMINS = [("Felipe", "felipebarrettocarvalho@gmail.com")]
+
 
 django_heroku.settings(locals())
