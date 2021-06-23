@@ -1,6 +1,6 @@
-production = True
+state = "prod"
 
-if production:
-    import settings_prod
-else:
-    import settings_prod
+if state == "prod":
+    from settings_prod import *
+elif state == "dev":
+    from settings_dev import *
