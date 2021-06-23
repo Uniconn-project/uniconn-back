@@ -1,4 +1,4 @@
-state = "prod"
+state = "dev"
 
 if state == "prod":
     from settings_prod import *
