@@ -181,6 +181,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "uniconn.br21@gmail.com"
 EMAIL_HOST_PASSWORD = "Unic0nn2021"
+SERVER_EMAIL = "root@django"
 
 
 django_heroku.settings(locals())
