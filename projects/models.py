@@ -67,6 +67,9 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ["-created_at"]
+
     @staticmethod
     def get_project_categories_choices(index=-1):
         return [
