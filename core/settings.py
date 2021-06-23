@@ -1,4 +1,4 @@
-production = False
+production = True
 
 if production:
     import settings_prod
