@@ -1,6 +1,6 @@
 state = "dev"
 
 if state == "prod":
-    from settings_prod import *
+    from .settings_prod import *
 elif state == "dev":
-    from settings_dev import *
+    from .settings_dev import *
