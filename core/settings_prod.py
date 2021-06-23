@@ -176,5 +176,11 @@ AUTH_USER_MODEL = "profiles.User"
 
 ADMINS = [("Felipe", "felipebarrettocarvalho@gmail.com")]
 
+EMAIL_HOST = "smtp.umbler.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "uniconn.br21@gmail.com"
+EMAIL_HOST_PASSWORD = "Unic0nn2021"
+
 
 django_heroku.settings(locals())
