@@ -110,13 +110,13 @@ class TestGetProfileProjects(TestCase):
         project02 = Project.objects.create()
         project01.students.add(self.user01_STUDENT.profile.student)
         project02.students.add(self.user01_STUDENT.profile.student)
-        serializer_STUDENT = ProjectSerializer01([project01, project02], many=True)
+        serializer_STUDENT = ProjectSerializer01([project02, project01], many=True)
 
         project03 = Project.objects.create()
         project04 = Project.objects.create()
         project03.mentors.add(self.user02_MENTOR.profile.mentor)
         project04.mentors.add(self.user02_MENTOR.profile.mentor)
-        serializer_MENTOR = ProjectSerializer01([project03, project04], many=True)
+        serializer_MENTOR = ProjectSerializer01([project04, project03], many=True)
 
         response = client.get(self.url + self.user01_STUDENT.username)
         self.assertEqual(response.data, serializer_STUDENT.data)

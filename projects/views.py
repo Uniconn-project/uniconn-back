@@ -33,7 +33,6 @@ def get_filtered_projects_list(request):
     markets = request.query_params["markets"].split(";")
 
     projects = Project.objects.filter(category__in=categories, markets__name__in=markets).distinct()
-    projects = sorted(projects, key=lambda project: project.id)
     serializer = ProjectSerializer01(projects, many=True)
 
     return Response(serializer.data)
