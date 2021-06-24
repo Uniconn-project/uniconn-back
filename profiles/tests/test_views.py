@@ -16,6 +16,10 @@ class TestSignupView(TestCase):
     pass
 
 
+class TestEditMyProfileView(TestCase):
+    pass
+
+
 class TestGetMyProfile(TestCase):
     url = BASE_URL + "get-my-profile"
 

@@ -60,7 +60,7 @@ def create_project(request):
         slogan = request.data["slogan"].strip()
         markets = request.data["markets"]
     except:
-        return Response("Os dados enviados são inválidos!", status=status.HTTP_400_BAD_REQUEST)
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     if name == "":
         return Response("O nome do projeto não pode estar em branco!", status=status.HTTP_400_BAD_REQUEST)

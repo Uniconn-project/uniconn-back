@@ -9,6 +9,10 @@ BASE_URL = "/api/profiles/"
 class TestUrls(TestCase):
     def test_post_signup_url(self):
         self.assertEqual(resolve(BASE_URL + "student/post-signup").func, signup_view)
+        self.assertEqual(resolve(BASE_URL + "mentor/post-signup").func, signup_view)
+
+    def test_edit_my_profile_url(self):
+        self.assertEqual(resolve(BASE_URL + "edit-my-profile").func, edit_my_profile)
 
     def test_get_my_profile_url(self):
         self.assertEqual(resolve(BASE_URL + "get-my-profile").func, get_my_profile)
