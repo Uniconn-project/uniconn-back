@@ -154,7 +154,7 @@ def edit_my_profile(request):
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    if User.objects.filter(username=username).exists():
+    if User.objects.exclude(pk=request.user.pk).filter(username=username).exists():
         return Response("Nome de usuário já utilizado!", status=status.HTTP_400_BAD_REQUEST)
 
     profile = request.user.profile
