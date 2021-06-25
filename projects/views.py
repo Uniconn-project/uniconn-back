@@ -8,7 +8,12 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import Link, Market, Project, ProjectEnteringRequest
-from .serializers import MarketSerializer01, ProjectSerializer01, ProjectSerializer02
+from .serializers import (
+    MarketSerializer01,
+    ProjectCommentSerializer01,
+    ProjectSerializer01,
+    ProjectSerializer02,
+)
 
 
 @api_view(["GET"])
@@ -418,3 +423,15 @@ def delete_link(request):
     link.delete()
 
     return Response("Link deleted with success!")
+
+
+@api_view(["GET"])
+def get_project_comments(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ProjectCommentSerializer01(project.comments, many=True)
+
+    return Response(serializer.data)
