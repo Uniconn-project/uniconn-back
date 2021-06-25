@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.aggregates import Max
 from profiles.models import Mentor, Profile, Student
 
 
@@ -112,3 +113,21 @@ class ProjectEnteringRequest(models.Model):
 
     def __str__(self):
         return f"{self.profile.user.username} to {self.project.name}"
+
+
+comment_categories_choices = [
+    ("doubt", "dúvida"),
+    ("suggestion", "sugestão"),
+    ("feedback", "feedback"),
+]
+
+
+class ProjectComment(models.Model):
+    title = models.CharField(max_length=300)
+    body = models.CharField(max_length=1000)
+    category = models.CharField(max_length=15, choices=comment_categories_choices)
+    profile = models.ForeignKey(Profile, related_name="comments", on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name="comments", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.profile.user.username} - {self.title}"
