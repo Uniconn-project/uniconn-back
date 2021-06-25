@@ -94,9 +94,8 @@ class ProjectEnteringRequestSerializer01(serializers.ModelSerializer):
 
 class ProjectCommentSerializer01(serializers.ModelSerializer):
     profile = ProfileSerializer03()
+    category = serializers.DictField(source="category_value_and_readable")
 
     class Meta:
         model = ProjectComment
-        fields = ['id', 'title', 'body', 'category', 'profile']
-
-
+        fields = ["id", "title", "body", "category", "profile", "created_at"]

@@ -128,6 +128,12 @@ class ProjectComment(models.Model):
     category = models.CharField(max_length=15, choices=comment_categories_choices)
     profile = models.ForeignKey(Profile, related_name="comments", on_delete=models.CASCADE)
     project = models.ForeignKey(Project, related_name="comments", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.profile.user.username} - {self.title}"
+
+    @property
+    def category_value_and_readable(self):
+        return {"value": self.category, "readable": self.get_category_display()}
