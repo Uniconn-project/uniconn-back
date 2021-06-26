@@ -463,3 +463,27 @@ def create_project_comment(request, project_id):
     )
 
     return Response("success")
+
+
+@api_view(["DELETE"])
+@login_required
+def delete_project_comment(request):
+    try:
+        comment_id = request.data["comment_id"]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        comment = ProjectComment.objects.get(pk=comment_id)
+        project = comment.project
+    except:
+        return Response("Discussão não encontrada", status=status.HTTP_404_NOT_FOUND)
+
+    is_project_member = request.user.profile in project.students_profiles + project.mentors_profiles
+
+    if request.user.profile != comment.profile and not is_project_member:
+        return Response("Você não pode deletar essa discussão!", status=status.HTTP_400_BAD_REQUEST)
+
+    comment.delete()
+
+    return Response("success")

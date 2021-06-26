@@ -21,4 +21,5 @@ urlpatterns = [
     path("delete-link", delete_link),
     path("get-project-comments/<int:project_id>", get_project_comments),
     path("create-project-comment/<int:project_id>", create_project_comment),
+    path("delete-project-comment", delete_project_comment),
 ]
