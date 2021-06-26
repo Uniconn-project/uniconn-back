@@ -1,7 +1,9 @@
+import base64
 import datetime
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.base import ContentFile
 from jwt_auth.decorators import login_required
 from projects.models import Market, Project, ProjectEnteringRequest
 from projects.serializers import (
@@ -137,6 +139,42 @@ def signup_view(request, user_type):
         return Response("success")
 
     return Response("Ocorreu um erro, por favor tente novamente.")
+
+
+@api_view(["PUT"])
+@login_required
+def edit_my_profile(request):
+    try:
+        username = request.data["username"]
+        photo = request.data["photo"]
+        first_name = request.data["first_name"]
+        last_name = request.data["last_name"]
+        bio = request.data["bio"]
+        linkedIn = request.data["linkedIn"]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if User.objects.exclude(pk=request.user.pk).filter(username=username).exists():
+        return Response("Nome de usuário já utilizado!", status=status.HTTP_400_BAD_REQUEST)
+
+    profile = request.user.profile
+
+    if photo is not None:
+        format, photostr = photo.split(";base64,")
+        photo_format = format.split("/")[-1]
+        profile_photo = ContentFile(base64.b64decode(photostr), name=profile.user.username + photo_format)
+        profile.photo = profile_photo
+
+    profile.user.username = username
+    profile.first_name = first_name
+    profile.last_name = last_name
+    profile.bio = bio
+    profile.linkedIn = linkedIn
+
+    profile.user.save()
+    profile.save()
+
+    return Response("success")
 
 
 @api_view(["GET"])

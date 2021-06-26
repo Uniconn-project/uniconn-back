@@ -36,7 +36,7 @@ class TestGetProjectsList(TestCase):
         project01 = Project.objects.create()
         project02 = Project.objects.create()
 
-        serializer = ProjectSerializer01([project01, project02], many=True)
+        serializer = ProjectSerializer01([project02, project01], many=True)
 
         response = client.get(self.url)
         self.assertEqual(response.data, serializer.data)
@@ -84,7 +84,7 @@ class TestGetFilteredProjectsList(TestCase):
         response = client.get(
             self.url + f"?categories={category02}&markets={market01.name}; {market02.name};{market03.name}"
         )
-        self.assertEqual(response.data, ProjectSerializer01([project03, project04], many=True).data)
+        self.assertEqual(response.data, ProjectSerializer01([project04, project03], many=True).data)
 
         # shouldn't return any project
         response = client.get(self.url + f"?categories={category01};{category02}&markets=")

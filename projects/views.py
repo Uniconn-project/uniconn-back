@@ -8,7 +8,12 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import Link, Market, Project, ProjectEnteringRequest
-from .serializers import MarketSerializer01, ProjectSerializer01, ProjectSerializer02
+from .serializers import (
+    MarketSerializer01,
+    ProjectCommentSerializer01,
+    ProjectSerializer01,
+    ProjectSerializer02,
+)
 
 
 @api_view(["GET"])
@@ -33,7 +38,6 @@ def get_filtered_projects_list(request):
     markets = request.query_params["markets"].split(";")
 
     projects = Project.objects.filter(category__in=categories, markets__name__in=markets).distinct()
-    projects = sorted(projects, key=lambda project: project.id)
     serializer = ProjectSerializer01(projects, many=True)
 
     return Response(serializer.data)
@@ -61,7 +65,7 @@ def create_project(request):
         slogan = request.data["slogan"].strip()
         markets = request.data["markets"]
     except:
-        return Response("Os dados enviados são inválidos!", status=status.HTTP_400_BAD_REQUEST)
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     if name == "":
         return Response("O nome do projeto não pode estar em branco!", status=status.HTTP_400_BAD_REQUEST)
@@ -419,3 +423,15 @@ def delete_link(request):
     link.delete()
 
     return Response("Link deleted with success!")
+
+
+@api_view(["GET"])
+def get_project_comments(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ProjectCommentSerializer01(project.comments, many=True)
+
+    return Response(serializer.data)
