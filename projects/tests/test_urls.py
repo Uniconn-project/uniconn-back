@@ -57,3 +57,9 @@ class TestUrls(TestCase):
 
     def test_delete_link_url(self):
         self.assertEqual(resolve(BASE_URL + "delete-link").func, delete_link)
+
+    def test_get_project_comments_url(self):
+        self.assertEqual(resolve(BASE_URL + "get-project-comments/3").func, get_project_comments)
+
+    def test_create_project_comment_url(self):
+        self.assertEqual(resolve(BASE_URL + "create-project-comment/3").func, create_project_comment)
