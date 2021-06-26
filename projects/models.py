@@ -131,6 +131,13 @@ class ProjectComment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @staticmethod
+    def get_comment_categories_choices(index=-1):
+        return [
+            (comment_category[index] if index != -1 else comment_category)
+            for comment_category in comment_categories_choices
+        ]
+
     def __str__(self):
         return f"{self.profile.user.username} - {self.title}"
 

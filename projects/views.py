@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Link, Market, Project, ProjectEnteringRequest
+from .models import Link, Market, Project, ProjectComment, ProjectEnteringRequest
 from .serializers import (
     MarketSerializer01,
     ProjectCommentSerializer01,
@@ -422,7 +422,7 @@ def delete_link(request):
 
     link.delete()
 
-    return Response("Link deleted with success!")
+    return Response("success")
 
 
 @api_view(["GET"])
@@ -435,3 +435,55 @@ def get_project_comments(request, project_id):
     serializer = ProjectCommentSerializer01(project.comments, many=True)
 
     return Response(serializer.data)
+
+
+@api_view(["POST"])
+@login_required
+def create_project_comment(request, project_id):
+    try:
+        title = request.data["title"]
+        body = request.data["body"]
+        category = request.data["category"]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
+
+    if category not in ProjectComment.get_comment_categories_choices(0):
+        return Response("Categoria inválida!", status=status.HTTP_400_BAD_REQUEST)
+
+    if title.strip() == "" or body.strip() == "":
+        return Response("Todos os campos devem ser preenchidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    ProjectComment.objects.create(
+        title=title, body=body, category=category, project=project, profile=request.user.profile
+    )
+
+    return Response("success")
+
+
+@api_view(["DELETE"])
+@login_required
+def delete_project_comment(request):
+    try:
+        comment_id = request.data["comment_id"]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        comment = ProjectComment.objects.get(pk=comment_id)
+        project = comment.project
+    except:
+        return Response("Discussão não encontrada", status=status.HTTP_404_NOT_FOUND)
+
+    is_project_member = request.user.profile in project.students_profiles + project.mentors_profiles
+
+    if request.user.profile != comment.profile and not is_project_member:
+        return Response("Você não pode deletar essa discussão!", status=status.HTTP_400_BAD_REQUEST)
+
+    comment.delete()
+
+    return Response("success")
