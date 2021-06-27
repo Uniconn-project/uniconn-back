@@ -1,0 +1,40 @@
+TEST MODELS
+
+class Test[Model](Testcase):
+    def test_create_delete(self):
+        # create
+         (...)
+
+        # delete
+         (...)
+    
+    def test_fields(self):
+        (...)
+
+    def test_related_name(self):
+        # [m2m field 01]
+         (...)
+
+        # [m2m field 02]
+         (...)
+
+        # [m2m field 03]
+         (...)
+
+    def test_[field]_relation(self):
+        # testing related name
+         (...)
+        
+        # testing cascade
+         (...)
+
+    def test_[staticmethod]_staticmethod(self):
+        (...)
+
+    def test_[method]_method(self):
+        (...)
+
+    def test_str(self):
+        (...)
+
+--------------------------------------------------------
