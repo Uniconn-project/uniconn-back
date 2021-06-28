@@ -31,10 +31,11 @@ class Test[Model](Testcase):
     def test_[staticmethod]_staticmethod(self):
         (...)
 
+    def test_str(self):
+        (...)
+
     def test_[method]_method(self):
         (...)
 
-    def test_str(self):
-        (...)
 
 --------------------------------------------------------

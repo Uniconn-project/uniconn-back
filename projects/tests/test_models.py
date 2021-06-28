@@ -404,3 +404,55 @@ class TestDiscussion(TestCase):
         self.assertEqual(discussion.category, category)
         self.assertEqual(discussion.profile, user.profile)
         self.assertEqual(discussion.project, project)
+
+    def test_profile_relation(self):
+        profile = User.objects.create().profile
+        discussion = Discussion.objects.create(profile=profile)
+
+        # testing related name
+        self.assertIn(discussion, profile.discussions.all())
+
+        # testing cascade
+        profile.delete()
+        self.assertFalse(Discussion.objects.filter().exists())
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        discussion = Discussion.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(discussion, project.discussions.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(Discussion.objects.filter().exists())
+
+    def test_get_discussion_categories_choices_staticmethod(self):
+        self.assertEqual(
+            Discussion.get_discussion_categories_choices(),
+            discussion_categories_choices,
+        )
+
+        self.assertEqual(
+            Discussion.get_discussion_categories_choices(index=0),
+            [discussion_category[0] for discussion_category in discussion_categories_choices],
+        )
+
+        self.assertEqual(
+            Discussion.get_discussion_categories_choices(index=1),
+            [discussion_category[1] for discussion_category in discussion_categories_choices],
+        )
+
+    def test_str(self):
+        profile = User.objects.create(username="mark").profile
+        discussion = Discussion.objects.create(
+            title="I don't really understood why u guys r different...", profile=profile
+        )
+        self.assertEqual(str(discussion), f"{discussion.profile.user.username} - {discussion.title}")
+
+    def test_category_value_and_readable_method(self):
+        discussion = Discussion.objects.create(category=discussion_categories_choices[0][0])
+        self.assertEqual(
+            discussion.category_value_and_readable,
+            {"value": discussion_categories_choices[0][0], "readable": discussion_categories_choices[0][1]},
+        )
