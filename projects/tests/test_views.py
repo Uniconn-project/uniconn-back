@@ -1,4 +1,6 @@
 from django.test import Client, TestCase
+from profiles.models import Mentor, Student
+from profiles.tests.test_views import User
 from rest_framework import status
 
 from ..models import Market, Project
@@ -14,6 +16,10 @@ class TestGetMarketsNameList(TestCase):
     def test_req(self):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         market01 = Market.objects.create()
@@ -32,6 +38,10 @@ class TestGetProjectsList(TestCase):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def test_res(self):
         project01 = Project.objects.create()
         project02 = Project.objects.create()
@@ -48,6 +58,10 @@ class TestGetFilteredProjectsList(TestCase):
     def test_req(self):
         response = client.get(self.url + "?categories=&markets=")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         categories = Project.get_project_categories_choices(index=0)
@@ -102,6 +116,10 @@ class TestGetProjectsCategoriesList(TestCase):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def test_res(self):
         categories = [
             {"value": category[0], "readable": category[1]} for category in Project.get_project_categories_choices()
@@ -112,7 +130,73 @@ class TestGetProjectsCategoriesList(TestCase):
 
 
 class TestCreateProject(TestCase):
-    pass
+    url = BASE_URL + "create-project"
+
+    def test_req(self):
+        response = client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "delete", "put", "patch"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        profile = User.objects.create().profile
+        mentor = Mentor.objects.create(profile=profile)
+        client.force_login(profile.user)
+
+        response = client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data, "Somente universitários podem criar projetos!")
+
+        mentor.delete()
+        Student.objects.create(profile=profile)
+
+        response = client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Dados inválidos!")
+
+        market01 = Market.objects.create(name="energy")
+        market02 = Market.objects.create(name="tech")
+
+        request_data = {
+            "category": "startup",
+            "name": "4Share",
+            "slogan": "Providing energy for the future",
+            "markets": ["tech", "energy"],
+        }
+
+        response = client.post(self.url, {**request_data, "name": ""}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "O nome do projeto não pode estar em branco!")
+
+        response = client.post(self.url, {**request_data, "slogan": ""}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "O slogan do projeto não pode estar em branco!")
+
+        response = client.post(
+            self.url, {**request_data, "markets": ["unexistent market"]}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Selecione pelo menos um mercado válido!")
+
+        response = client.post(
+            self.url, {**request_data, "category": "state company"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Categoria do projeto inválida!")
+
+        response = client.post(self.url, request_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        project = Project.objects.first()
+
+        self.assertEqual(len(Project.objects.all()), 1)
+        self.assertEqual(project.category, request_data["category"])
+        self.assertEqual(project.name, request_data["name"])
+        self.assertEqual(project.slogan, request_data["slogan"])
+        self.assertEqual(list(project.markets.all()), [market01, market02])
 
 
 class TestGetProject(TestCase):
@@ -126,6 +210,10 @@ class TestGetProject(TestCase):
 
         response = client.get(f"{self.url}1")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         response = client.get(f"{self.url}1")

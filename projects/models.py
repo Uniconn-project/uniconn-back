@@ -115,27 +115,27 @@ class ProjectEnteringRequest(models.Model):
         return f"{self.profile.user.username} to {self.project.name}"
 
 
-comment_categories_choices = [
+discussion_categories_choices = [
     ("doubt", "dúvida"),
     ("suggestion", "sugestão"),
     ("feedback", "feedback"),
 ]
 
 
-class ProjectComment(models.Model):
-    title = models.CharField(max_length=300)
-    body = models.CharField(max_length=1000)
-    category = models.CharField(max_length=15, choices=comment_categories_choices)
-    profile = models.ForeignKey(Profile, related_name="comments", on_delete=models.CASCADE)
-    project = models.ForeignKey(Project, related_name="comments", on_delete=models.CASCADE)
+class Discussion(models.Model):
+    title = models.CharField(max_length=300, blank=True, null=True)
+    body = models.CharField(max_length=1000, blank=True, null=True)
+    category = models.CharField(max_length=15, choices=discussion_categories_choices, blank=True, null=True)
+    profile = models.ForeignKey(Profile, related_name="discussions", on_delete=models.CASCADE, blank=True, null=True)
+    project = models.ForeignKey(Project, related_name="discussions", on_delete=models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     @staticmethod
-    def get_comment_categories_choices(index=-1):
+    def get_discussion_categories_choices(index=-1):
         return [
-            (comment_category[index] if index != -1 else comment_category)
-            for comment_category in comment_categories_choices
+            (discussion_category[index] if index != -1 else discussion_category)
+            for discussion_category in discussion_categories_choices
         ]
 
     def __str__(self):

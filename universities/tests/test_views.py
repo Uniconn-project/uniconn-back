@@ -15,6 +15,10 @@ class TestGetUniversitiesNameList(TestCase):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def test_res(self):
         university01 = University.objects.create()
         university02 = University.objects.create()
@@ -33,6 +37,10 @@ class TestGetMajorNameList(TestCase):
     def test_req(self):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         major01 = Major.objects.create()

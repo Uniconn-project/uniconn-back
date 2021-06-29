@@ -1,7 +1,7 @@
 from profiles.serializers import ProfileSerializer03
 from rest_framework import serializers
 
-from .models import Link, Market, Project, ProjectComment, ProjectEnteringRequest
+from .models import Link, Market, Project, Discussion, ProjectEnteringRequest
 
 
 class MarketSerializer01(serializers.ModelSerializer):
@@ -92,10 +92,10 @@ class ProjectEnteringRequestSerializer01(serializers.ModelSerializer):
         fields = ["id", "message", "project", "profile"]
 
 
-class ProjectCommentSerializer01(serializers.ModelSerializer):
+class DiscussionSerializer01(serializers.ModelSerializer):
     profile = ProfileSerializer03()
     category = serializers.DictField(source="category_value_and_readable")
 
     class Meta:
-        model = ProjectComment
+        model = Discussion
         fields = ["id", "title", "body", "category", "profile", "created_at"]

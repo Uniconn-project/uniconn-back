@@ -5,10 +5,12 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from profiles.models import Mentor, Student
 from projects.models import (
+    Discussion,
     Link,
     Market,
     Project,
     ProjectEnteringRequest,
+    discussion_categories_choices,
     project_categories_choices,
 )
 
@@ -176,26 +178,32 @@ class TestProject(TestCase):
         user03 = User.objects.create(username="marie")
         user04 = User.objects.create(username="peter")
 
+        # students
         student01 = Student.objects.create(profile=user01.profile)
         project.students.add(student01)
         self.assertIn(project, student01.projects.all())
 
+        # pending_invited_students
         student02 = Student.objects.create(profile=user02.profile)
         project.pending_invited_students.add(student02)
         self.assertIn(project, student02.pending_projects_invitations.all())
 
+        # mentors
         mentor01 = Mentor.objects.create(profile=user03.profile)
         project.mentors.add(mentor01)
         self.assertIn(project, mentor01.projects.all())
 
+        # pending_invited_mentors
         mentor02 = Mentor.objects.create(profile=user04.profile)
         project.pending_invited_mentors.add(mentor02)
         self.assertIn(project, mentor02.pending_projects_invitations.all())
 
+        # markets
         market = Market.objects.create()
         project.markets.add(market)
         self.assertIn(project, market.projects.all())
 
+        # links
         link = Link.objects.create()
         project.links.add(link)
         self.assertIn(project, link.projects.all())
@@ -355,3 +363,96 @@ class TestProjectEnteringRequest(TestCase):
         user = User.objects.create(username="john_p")
         project_entering_request = ProjectEnteringRequest.objects.create(project=project, profile=user.profile)
         self.assertEqual(str(project_entering_request), f"{user.username} to {project.name}")
+
+
+class TestDiscussion(TestCase):
+    def test_create_delete(self):
+        now_naive = datetime.datetime.now()
+        timezone = pytz.timezone("UTC")
+        now_aware = timezone.localize(now_naive)
+
+        # test create
+        discussion = Discussion.objects.create()
+        self.assertIsInstance(discussion, Discussion)
+        self.assertEqual(discussion.pk, 1)
+        self.assertLessEqual(now_aware, discussion.created_at)
+        self.assertLessEqual(now_aware, discussion.updated_at)
+
+        # test delete
+        discussion.delete()
+        self.assertFalse(Discussion.objects.filter().exists())
+
+    def test_fields(self):
+        discussion = Discussion.objects.create()
+
+        title = "Projeto interessante, mas não entendi muito bem a parte da monetização."
+        body = "Descrição detalhada..."
+        category = "doubt"
+        user = User.objects.create()
+        project = Project.objects.create()
+
+        discussion.title = title
+        discussion.body = body
+        discussion.category = category
+        discussion.profile = user.profile
+        discussion.project = project
+
+        discussion.save()
+
+        self.assertEqual(discussion.title, title)
+        self.assertEqual(discussion.body, body)
+        self.assertEqual(discussion.category, category)
+        self.assertEqual(discussion.profile, user.profile)
+        self.assertEqual(discussion.project, project)
+
+    def test_profile_relation(self):
+        profile = User.objects.create().profile
+        discussion = Discussion.objects.create(profile=profile)
+
+        # testing related name
+        self.assertIn(discussion, profile.discussions.all())
+
+        # testing cascade
+        profile.delete()
+        self.assertFalse(Discussion.objects.filter().exists())
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        discussion = Discussion.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(discussion, project.discussions.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(Discussion.objects.filter().exists())
+
+    def test_get_discussion_categories_choices_staticmethod(self):
+        self.assertEqual(
+            Discussion.get_discussion_categories_choices(),
+            discussion_categories_choices,
+        )
+
+        self.assertEqual(
+            Discussion.get_discussion_categories_choices(index=0),
+            [discussion_category[0] for discussion_category in discussion_categories_choices],
+        )
+
+        self.assertEqual(
+            Discussion.get_discussion_categories_choices(index=1),
+            [discussion_category[1] for discussion_category in discussion_categories_choices],
+        )
+
+    def test_str(self):
+        profile = User.objects.create(username="mark").profile
+        discussion = Discussion.objects.create(
+            title="I don't really understood why u guys r different...", profile=profile
+        )
+        self.assertEqual(str(discussion), f"{discussion.profile.user.username} - {discussion.title}")
+
+    def test_category_value_and_readable_method(self):
+        discussion = Discussion.objects.create(category=discussion_categories_choices[0][0])
+        self.assertEqual(
+            discussion.category_value_and_readable,
+            {"value": discussion_categories_choices[0][0], "readable": discussion_categories_choices[0][1]},
+        )

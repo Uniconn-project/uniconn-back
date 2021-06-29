@@ -43,6 +43,10 @@ class TestGetMyProfile(TestCase):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def test_res(self):
         student_serializer = ProfileSerializer01(self.user01_STUDENT.profile)
         mentor_serializer = ProfileSerializer02(self.user02_MENTOR.profile)
@@ -77,6 +81,10 @@ class TestGetProfile(TestCase):
         response = client.get(self.url + self.user02_MENTOR.username)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url + self.user01_STUDENT.username)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def test_res(self):
         student_serializer = ProfileSerializer01(self.user01_STUDENT.profile)
         mentor_serializer = ProfileSerializer02(self.user02_MENTOR.profile)
@@ -104,6 +112,10 @@ class TestGetProfileProjects(TestCase):
 
         response = client.get(self.url + self.user02_MENTOR.username)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url + self.user02_MENTOR.username)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         response = client.get(self.url + "unexistent-username")
@@ -146,6 +158,10 @@ class TestGetMentorMarkets(TestCase):
         response = client.get(self.url + "phil")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url + "phil")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def test_res(self):
         response = client.get(self.url + "phil")
         self.assertEqual(response.data, "There isn't any user with such username")
@@ -170,6 +186,10 @@ class TestGetFilteredProfiles(TestCase):
 
         response = client.get(self.url + "fel")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url + "feli")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         User.objects.create(username="michael.JJ")
@@ -212,6 +232,10 @@ class TestGetProfileList(TestCase):
     def test_req(self):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         profiles = []
