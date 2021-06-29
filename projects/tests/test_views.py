@@ -1,4 +1,5 @@
 from django.test import Client, TestCase
+from profiles.models import Mentor, Student
 from profiles.tests.test_views import User
 from rest_framework import status
 
@@ -140,7 +141,62 @@ class TestCreateProject(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        pass
+        profile = User.objects.create().profile
+        mentor = Mentor.objects.create(profile=profile)
+        client.force_login(profile.user)
+
+        response = client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data, "Somente universitários podem criar projetos!")
+
+        mentor.delete()
+        Student.objects.create(profile=profile)
+
+        response = client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Dados inválidos!")
+
+        market01 = Market.objects.create(name="energy")
+        market02 = Market.objects.create(name="tech")
+
+        request_data = {
+            "category": "startup",
+            "name": "4Share",
+            "slogan": "Providing energy for the future",
+            "markets": ["tech", "energy"],
+        }
+
+        response = client.post(self.url, {**request_data, "name": ""}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "O nome do projeto não pode estar em branco!")
+
+        response = client.post(self.url, {**request_data, "slogan": ""}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "O slogan do projeto não pode estar em branco!")
+
+        response = client.post(
+            self.url, {**request_data, "markets": ["unexistent market"]}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Selecione pelo menos um mercado válido!")
+
+        response = client.post(
+            self.url, {**request_data, "category": "state company"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Categoria do projeto inválida!")
+
+        response = client.post(self.url, request_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        project = Project.objects.first()
+
+        self.assertEqual(len(Project.objects.all()), 1)
+        self.assertEqual(project.category, request_data["category"])
+        self.assertEqual(project.name, request_data["name"])
+        self.assertEqual(project.slogan, request_data["slogan"])
+        self.assertEqual(list(project.markets.all()), [market01, market02])
 
 
 class TestGetProject(TestCase):

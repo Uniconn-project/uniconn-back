@@ -73,8 +73,8 @@ def create_project(request):
     if slogan == "":
         return Response("O slogan do projeto não pode estar em branco!", status=status.HTTP_400_BAD_REQUEST)
 
-    if len(markets) == 0:
-        return Response("Selecione pelo menos um mercado!", status=status.HTTP_400_BAD_REQUEST)
+    if len(Market.objects.filter(name__in=markets)) == 0:
+        return Response("Selecione pelo menos um mercado válido!", status=status.HTTP_400_BAD_REQUEST)
 
     if category not in Project.get_project_categories_choices(index=0):
         return Response("Categoria do projeto inválida!", status=status.HTTP_400_BAD_REQUEST)
