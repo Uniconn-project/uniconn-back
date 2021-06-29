@@ -1,4 +1,5 @@
 from django.test import Client, TestCase
+from profiles.tests.test_views import User
 from rest_framework import status
 
 from ..models import Market, Project
@@ -14,6 +15,10 @@ class TestGetMarketsNameList(TestCase):
     def test_req(self):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         market01 = Market.objects.create()
@@ -32,6 +37,10 @@ class TestGetProjectsList(TestCase):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def test_res(self):
         project01 = Project.objects.create()
         project02 = Project.objects.create()
@@ -48,6 +57,10 @@ class TestGetFilteredProjectsList(TestCase):
     def test_req(self):
         response = client.get(self.url + "?categories=&markets=")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         categories = Project.get_project_categories_choices(index=0)
@@ -102,6 +115,10 @@ class TestGetProjectsCategoriesList(TestCase):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def test_res(self):
         categories = [
             {"value": category[0], "readable": category[1]} for category in Project.get_project_categories_choices()
@@ -112,7 +129,18 @@ class TestGetProjectsCategoriesList(TestCase):
 
 
 class TestCreateProject(TestCase):
-    pass
+    url = BASE_URL + "create-project"
+
+    def test_req(self):
+        response = client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "delete", "put", "patch"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        pass
 
 
 class TestGetProject(TestCase):
@@ -126,6 +154,10 @@ class TestGetProject(TestCase):
 
         response = client.get(f"{self.url}1")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         response = client.get(f"{self.url}1")
