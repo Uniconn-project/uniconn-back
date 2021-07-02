@@ -1,3 +1,4 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from profiles.models import Mentor, Student
 from profiles.tests.test_views import User
@@ -226,7 +227,76 @@ class TestGetProject(TestCase):
 
 
 class TestEditProject(TestCase):
-    pass
+    url = BASE_URL + "edit-project/"
+
+    def test_req(self):
+        response = client.put(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "delete", "post", "patch"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        profile = User.objects.create().profile
+        mentor = Mentor.objects.create(profile=profile)
+        client.force_login(profile.user)
+
+        response = client.put(f"{self.url}1")
+        self.assertEqual(response.data, "Projeto não encontrado")
+
+        project = Project.objects.create()
+        project.mentors.add(mentor)
+        project.save()
+
+        response = client.put(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data, "Somente universitários podem editar o projeto!")
+
+        mentor.delete()
+        student = Student.objects.create(profile=profile)
+
+        response = client.put(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data, "Você não faz parte do projeto!")
+
+        project.students.add(student)
+        project.save()
+
+        response = client.put(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Dados inválidos!")
+
+        market01 = Market.objects.create(name="energy")
+        market02 = Market.objects.create(name="tech")
+
+        request_data = {
+            "image": None,
+            "name": "4Share",
+            "category": "startup",
+            "slogan": "Providing energy for the future",
+            "markets": ["tech", "energy"],
+        }
+
+        response = client.put(
+            f"{self.url}1", {**request_data, "category": "state company"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Categoria do projeto inválida!")
+
+        response = client.put(f"{self.url}1", request_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        project.refresh_from_db()
+
+        self.assertEqual(project.image, "default_project.jpg")
+        self.assertEqual(project.name, request_data["name"])
+        self.assertEqual(project.category, request_data["category"])
+        self.assertEqual(project.slogan, request_data["slogan"])
+        self.assertEqual(list(project.markets.all()), [market01, market02])
+
+        # TODO project image upload test
 
 
 class TestInviteUsersToProject(TestCase):
