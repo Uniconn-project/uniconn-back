@@ -452,8 +452,8 @@ def get_project_discussions(request, project_id):
 @login_required
 def create_project_discussion(request, project_id):
     try:
-        title = request.data["title"]
-        body = request.data["body"]
+        title = request.data["title"].strip()
+        body = request.data["body"].strip()
         category = request.data["category"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
@@ -463,10 +463,13 @@ def create_project_discussion(request, project_id):
     except:
         return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
 
+    if len(title) > 125 or len(body) > 1000:
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
+
     if category not in Discussion.get_discussion_categories_choices(0):
         return Response("Categoria inválida!", status=status.HTTP_400_BAD_REQUEST)
 
-    if title.strip() == "" or body.strip() == "":
+    if title == "" or body == "":
         return Response("Todos os campos devem ser preenchidos!", status=status.HTTP_400_BAD_REQUEST)
 
     Discussion.objects.create(title=title, body=body, category=category, project=project, profile=request.user.profile)
