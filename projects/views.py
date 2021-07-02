@@ -122,11 +122,16 @@ def edit_project(request, project_id):
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
+    if category.strip() != "" and category not in Project.get_project_categories_choices(index=0):
+        return Response("Categoria do projeto inválida!", status=status.HTTP_400_BAD_REQUEST)
+
     if image is not None:
         format, imgstr = image.split(";base64,")
         img_format = format.split("/")[-1]
         project_image = ContentFile(base64.b64decode(imgstr), name=project.name + img_format)
         project.image = project_image
+
+        print(project_image, image)
 
     project.name = name
     project.category = category
