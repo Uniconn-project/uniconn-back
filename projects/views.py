@@ -397,12 +397,15 @@ def create_link(request, project_id):
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
+    if len(name) > 100:
+        return Response("não pode bro")
+
     link = Link.objects.create(name=name, href=href, is_public=is_public)
 
     project.links.add(link)
     project.save()
 
-    return Response("Link created with success!")
+    return Response("success")
 
 
 @api_view(["DELETE"])
