@@ -52,7 +52,7 @@ class Project(models.Model):
 
     category = models.CharField(max_length=50, choices=project_categories_choices)
     name = models.CharField(max_length=50, blank=True, null=True)
-    slogan = models.CharField(help_text="Very quick description", max_length=100, blank=True, null=True)
+    slogan = models.CharField(help_text="Very quick description", max_length=125, blank=True, null=True)
     description = models.CharField(
         help_text="Detailed description",
         default='{"blocks": [{"key": "5v3ub", "text": "Sem descrição...", "type": "unstyled", "depth": 0, "inlineStyleRanges": [], "entityRanges": [], "data": {}}], "entityMap": {}}',

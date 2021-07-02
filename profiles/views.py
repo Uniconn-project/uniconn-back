@@ -30,12 +30,12 @@ def signup_view(request, user_type):
         return Response("Tipo de usuário inválido!", status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        username = request.data["username"].lower().replace(" ", "")
-        email = request.data["email"]
-        password = request.data["password"]
-        passwordc = request.data["passwordc"]
-        first_name = request.data["first_name"]
-        last_name = request.data["last_name"]
+        username = request.data["username"].strip().lower().replace(" ", "")
+        email = request.data["email"].strip()
+        password = request.data["password"].strip()
+        passwordc = request.data["passwordc"].strip()
+        first_name = request.data["first_name"].strip()
+        last_name = request.data["last_name"].strip()
         birth_date = request.data["birth_date"]
 
         if user_type == "student":
