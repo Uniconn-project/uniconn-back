@@ -169,11 +169,19 @@ class TestCreateProject(TestCase):
 
         response = client.post(self.url, {**request_data, "name": ""}, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data, "O nome do projeto não pode estar em branco!")
+        self.assertEqual(response.data, "Todos os campos devem ser preenchidos!")
 
         response = client.post(self.url, {**request_data, "slogan": ""}, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data, "O slogan do projeto não pode estar em branco!")
+        self.assertEqual(response.data, "Todos os campos devem ser preenchidos!")
+
+        response = client.post(self.url, {**request_data, "name": "a" * 51}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Respeite os limites de caracteres de cada campo!")
+
+        response = client.post(self.url, {**request_data, "slogan": "a" * 126}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Respeite os limites de caracteres de cada campo!")
 
         response = client.post(
             self.url, {**request_data, "markets": ["unexistent market"]}, content_type="application/json"
@@ -277,6 +285,14 @@ class TestEditProject(TestCase):
             "slogan": "Providing energy for the future",
             "markets": ["tech", "energy"],
         }
+
+        response = client.put(f"{self.url}1", {**request_data, "name": "a" * 51}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Respeite os limites de caracteres de cada campo!")
+
+        response = client.put(f"{self.url}1", {**request_data, "slogan": "a" * 126}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Respeite os limites de caracteres de cada campo!")
 
         response = client.put(
             f"{self.url}1", {**request_data, "category": "state company"}, content_type="application/json"
