@@ -1,5 +1,6 @@
 import base64
 import datetime
+from os import name
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
@@ -144,6 +145,8 @@ def signup_view(request, user_type):
 @api_view(["PUT"])
 @login_required
 def edit_my_profile(request):
+    profile = request.user.profile
+
     try:
         username = request.data["username"]
         photo = request.data["photo"]
@@ -151,13 +154,19 @@ def edit_my_profile(request):
         last_name = request.data["last_name"]
         bio = request.data["bio"]
         linkedIn = request.data["linkedIn"]
+
+        if profile.type == "student":
+            university = request.data["university"]
+            major = request.data["major"]
+            assert University.objects.filter(name=university).exists()
+            assert Major.objects.filter(name=major).exists()
+        elif profile.type == "mentor":
+            markets = request.data["markets"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     if User.objects.exclude(pk=request.user.pk).filter(username=username).exists():
         return Response("Nome de usuário já utilizado!", status=status.HTTP_400_BAD_REQUEST)
-
-    profile = request.user.profile
 
     if photo is not None:
         format, photostr = photo.split(";base64,")
@@ -170,6 +179,14 @@ def edit_my_profile(request):
     profile.last_name = last_name
     profile.bio = bio
     profile.linkedIn = linkedIn
+
+    if profile.type == "student":
+        profile.student.university = University.objects.get(name=university)
+        profile.student.major = Major.objects.get(name=major)
+        profile.student.save()
+    elif profile.type == "mentor":
+        profile.mentor.markets.set(Market.objects.filter(name__in=markets))
+        profile.mentor.save()
 
     profile.user.save()
     profile.save()
