@@ -26,39 +26,28 @@ User = get_user_model()
 
 @api_view(["POST"])
 def signup_view(request, user_type):
-    """
-    All user types constrains:
-    -no empty field
-    -password length must be at least 5
-    -age can't be less than 0 or more than 150
-    -username and email can't already be in use
-
-    Student user type constrains:
-    -university and major must already be in the database
-
-    Mentor user type constrains:
-    -all markets submited must already be in the database
-    """
-
     if user_type not in ["student", "mentor"]:
-        return Response("Tipo de usuário inválido!")
+        return Response("Tipo de usuário inválido!", status=status.HTTP_400_BAD_REQUEST)
 
-    data = request.data
+    try:
+        username = request.data["username"].lower().replace(" ", "")
+        email = request.data["email"]
+        password = request.data["password"]
+        passwordc = request.data["passwordc"]
+        first_name = request.data["first_name"]
+        last_name = request.data["last_name"]
+        birth_date = request.data["birth_date"]
 
-    username = data["username"]
-    email = data["email"]
-    password = data["password"]
-    passwordc = data["passwordc"]
-    first_name = data["first_name"]
-    last_name = data["last_name"]
-    birth_date = data["birth_date"]
-
-    # user_type == student
-    university_name = data["university"] if "university" in data.keys() else ""
-    major_name = data["major"] if "major" in data.keys() else ""
-
-    # user_type == mentor
-    markets_name = data["markets"] if "markets" in data.keys() else []
+        if user_type == "student":
+            university_name = request.data["university"]
+            major_name = request.data["major"]
+            assert University.objects.filter(name=university_name).exists()
+            assert Major.objects.filter(name=major_name).exists()
+        elif user_type == "mentor":
+            markets = request.data["markets"]
+            assert Market.objects.filter(name__in=markets).exists()
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     # error messages that repeat in the code
     BLANK_FIELD_ERR_MSG = "Todos os campos devem ser preenchidos!"
@@ -73,47 +62,30 @@ def signup_view(request, user_type):
         and len(last_name)
         and len(birth_date)
     ):
-        return Response(BLANK_FIELD_ERR_MSG)
+        return Response(BLANK_FIELD_ERR_MSG, status=status.HTTP_400_BAD_REQUEST)
+
+    if len(username) > 25 or len(email) > 50 or len(password) > 50 or len(first_name) > 30 or len(last_name) > 30:
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
     if password != passwordc:
-        return Response("As senhas devem ser iguais!")
+        return Response("As senhas devem ser iguais!", status=status.HTTP_400_BAD_REQUEST)
 
-    if len(password) < 5:
-        return Response("A senha deve ter pelo menos 5 caracteres!")
+    if len(password) < 6:
+        return Response("A senha deve ter pelo menos 6 caracteres!", status=status.HTTP_400_BAD_REQUEST)
 
     if User.objects.filter(username=username).exists():
-        return Response("Nome de usuário já utilizado!")
+        return Response("Nome de usuário já utilizado!", status=status.HTTP_400_BAD_REQUEST)
 
     if User.objects.filter(email=email).exists():
-        return Response("Email já utilizado!")
+        return Response("Email já utilizado!", status=status.HTTP_400_BAD_REQUEST)
 
     try:
         age = datetime.date.today() - datetime.date.fromisoformat(birth_date)
 
         if age <= datetime.timedelta(days=0) or age >= datetime.timedelta(weeks=7800):
-            return Response(INVALID_BIRTH_DATE_ERR_MSG)
+            return Response(INVALID_BIRTH_DATE_ERR_MSG, status=status.HTTP_400_BAD_REQUEST)
     except:
-        return Response(INVALID_BIRTH_DATE_ERR_MSG)
-
-    if user_type == "student":
-        if not (len(university_name) or len(major_name)):
-            return Response(BLANK_FIELD_ERR_MSG)
-        if not University.objects.filter(name=university_name).exists():
-            return Response("Universidade não registrada na base de dados!")
-        if not Major.objects.filter(name=major_name.lower()).exists():
-            return Response("Curso não registrado na base de dados!")
-    elif user_type == "mentor":
-        if not len(markets_name):
-            return Response(BLANK_FIELD_ERR_MSG)
-
-        markets = []
-
-        for market_name in markets_name:
-            try:
-                market = Market.objects.get(name=market_name.lower())
-                markets.append(market)
-            except ObjectDoesNotExist:
-                return Response("Mercado não registrado na base de dados!")
+        return Response(INVALID_BIRTH_DATE_ERR_MSG, status=status.HTTP_400_BAD_REQUEST)
 
     user = User.objects.create(username=username.lower(), email=email)
     user.set_password(password)
@@ -129,17 +101,13 @@ def signup_view(request, user_type):
         major = Major.objects.get(name=major_name.lower())
         Student.objects.create(profile=user.profile, university=university, major=major)
 
-        return Response("success")
-
     elif user_type == "mentor":
         mentor = Mentor.objects.create(profile=user.profile)
 
-        for market in markets:
+        for market in Market.objects.filter(name__in=markets):
             market.mentors.add(mentor)
 
-        return Response("success")
-
-    return Response("Ocorreu um erro, por favor tente novamente.")
+    return Response("success")
 
 
 @api_view(["PUT"])
@@ -167,6 +135,15 @@ def edit_my_profile(request):
 
     if User.objects.exclude(pk=request.user.pk).filter(username=username).exists():
         return Response("Nome de usuário já utilizado!", status=status.HTTP_400_BAD_REQUEST)
+
+    if (
+        (username and len(username) > 25)
+        or (first_name and len(first_name) > 30)
+        or (last_name and len(last_name) > 30)
+        or (bio and len(bio) > 150)
+        or (linkedIn and len(linkedIn) > 50)
+    ):
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
     if photo is not None:
         format, photostr = photo.split(";base64,")

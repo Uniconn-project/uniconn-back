@@ -22,9 +22,9 @@ class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     photo = models.ImageField(default="profile_avatar.jpeg", upload_to="profile_photos")
-    first_name = models.CharField(max_length=50, blank=True, null=True)
-    last_name = models.CharField(max_length=50, blank=True, null=True)
-    bio = models.CharField(max_length=100, default="Sem bio...", blank=True, null=True)
+    first_name = models.CharField(max_length=30, blank=True, null=True)
+    last_name = models.CharField(max_length=30, blank=True, null=True)
+    bio = models.CharField(max_length=150, default="Sem bio...", blank=True, null=True)
     linkedIn = models.CharField(max_length=50, blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
