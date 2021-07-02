@@ -123,7 +123,7 @@ discussion_categories_choices = [
 
 
 class Discussion(models.Model):
-    title = models.CharField(max_length=300, blank=True, null=True)
+    title = models.CharField(max_length=125, blank=True, null=True)
     body = models.CharField(max_length=1000, blank=True, null=True)
     category = models.CharField(max_length=15, choices=discussion_categories_choices, blank=True, null=True)
     profile = models.ForeignKey(Profile, related_name="discussions", on_delete=models.CASCADE, blank=True, null=True)
