@@ -391,14 +391,17 @@ def create_link(request, project_id):
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     try:
-        name = request.data["name"]
-        href = request.data["href"]
+        name = request.data["name"].strip()
+        href = request.data["href"].strip()
         is_public = request.data["is_public"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
+    if name == "" or href == "":
+        return Response("Todos os campos devem ser preenchidos!", status=status.HTTP_400_BAD_REQUEST)
+
     if len(name) > 100:
-        return Response("não pode bro")
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
     link = Link.objects.create(name=name, href=href, is_public=is_public)
 
