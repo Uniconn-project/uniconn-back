@@ -149,20 +149,20 @@ def edit_project(request, project_id):
 @api_view(["PUT"])
 @login_required
 def invite_users_to_project(request, type, project_id):
-    try:
-        usernames = request.data[type]
-    except:
-        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        project = Project.objects.get(pk=project_id)
-    except:
-        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
-
     if request.user.profile.type != "student":
         return Response(
             "Somente universitários podem convidar usuários para o projeto!", status=status.HTTP_401_UNAUTHORIZED
         )
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        usernames = request.data[type]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     if not request.user.profile.student in project.students.all():
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)

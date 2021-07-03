@@ -316,7 +316,81 @@ class TestEditProject(TestCase):
 
 
 class TestInviteUsersToProject(TestCase):
-    pass
+    url = BASE_URL + "invite-{}-to-project/{}"
+
+    def test_req(self):
+        response = client.put(self.url.format("students", "1"))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "delete", "post", "patch"]:
+            response = getattr(client, method)(self.url.format("students", "1"))
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        profile = User.objects.create().profile
+        mentor = Mentor.objects.create(profile=profile)
+        client.force_login(profile.user)
+
+        project = Project.objects.create()
+        project.mentors.add(mentor)
+
+        response = client.put(self.url.format("students", "1"))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data, "Somente universitários podem convidar usuários para o projeto!")
+
+        mentor.delete()
+        student = Student.objects.create(profile=profile)
+
+        response = client.put(self.url.format("students", "2"))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Projeto não encontrado!")
+
+        response = client.put(self.url.format("students", "1"))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Dados inválidos!")
+
+        request_data = {
+            "students": [],
+        }
+
+        response = client.put(self.url.format("students", "1"), request_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data, "Você não faz parte do projeto!")
+
+        project.students.add(student)
+
+        response = client.put(self.url.format("invalid type", "1"), request_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Dados inválidos!")
+
+        response = client.put(self.url.format("students", "1"), request_data, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        student01 = Student.objects.create(profile=User.objects.create(username="austin").profile)
+        student02 = Student.objects.create(profile=User.objects.create(username="justin").profile)
+        mentor01 = Mentor.objects.create(profile=User.objects.create(username="peter").profile)
+        mentor02 = Mentor.objects.create(profile=User.objects.create(username="carol").profile)
+
+        response = client.put(
+            self.url.format("students", "1"),
+            {"students": [student01.profile.user.username, student02.profile.user.username]},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        self.assertEqual(list(project.pending_invited_students.all()), [student02, student01])
+
+        response = client.put(
+            self.url.format("mentors", "1"),
+            {"mentors": [mentor01.profile.user.username, mentor02.profile.user.username]},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        self.assertEqual(list(project.pending_invited_mentors.all()), [mentor02, mentor01])
 
 
 class TestUninviteUserFromProject(TestCase):
