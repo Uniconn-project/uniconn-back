@@ -400,7 +400,7 @@ def create_link(request, project_id):
     if name == "" or href == "":
         return Response("Todos os campos devem ser preenchidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    if len(name) > 100:
+    if len(name) > 100 or len(href) > 1000:
         return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
     link = Link.objects.create(name=name, href=href, is_public=is_public)
