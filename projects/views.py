@@ -60,18 +60,18 @@ def create_project(request):
         return Response("Somente universitários podem criar projetos!", status=status.HTTP_401_UNAUTHORIZED)
 
     try:
-        category = request.data["category"]
+        category = request.data["category"].strip()
         name = request.data["name"].strip()
         slogan = request.data["slogan"].strip()
         markets = request.data["markets"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    if name == "":
-        return Response("O nome do projeto não pode estar em branco!", status=status.HTTP_400_BAD_REQUEST)
+    if not (len(name) and len(slogan)):
+        return Response("Todos os campos devem ser preenchidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    if slogan == "":
-        return Response("O slogan do projeto não pode estar em branco!", status=status.HTTP_400_BAD_REQUEST)
+    if len(name) > 50 or len(slogan) > 125:
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
     if len(Market.objects.filter(name__in=markets)) == 0:
         return Response("Selecione pelo menos um mercado válido!", status=status.HTTP_400_BAD_REQUEST)
@@ -115,14 +115,17 @@ def edit_project(request, project_id):
 
     try:
         image = request.data["image"]
-        name = request.data["name"]
-        category = request.data["category"]
-        slogan = request.data["slogan"]
+        name = request.data["name"].strip()
+        category = request.data["category"].strip()
+        slogan = request.data["slogan"].strip()
         markets = request.data["markets"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    if category.strip() != "" and category not in Project.get_project_categories_choices(index=0):
+    if len(name) > 50 or len(slogan) > 125:
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
+
+    if category != "" and category not in Project.get_project_categories_choices(index=0):
         return Response("Categoria do projeto inválida!", status=status.HTTP_400_BAD_REQUEST)
 
     if image is not None:
@@ -146,20 +149,20 @@ def edit_project(request, project_id):
 @api_view(["PUT"])
 @login_required
 def invite_users_to_project(request, type, project_id):
-    try:
-        usernames = request.data[type]
-    except:
-        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        project = Project.objects.get(pk=project_id)
-    except:
-        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
-
     if request.user.profile.type != "student":
         return Response(
             "Somente universitários podem convidar usuários para o projeto!", status=status.HTTP_401_UNAUTHORIZED
         )
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        usernames = request.data[type]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     if not request.user.profile.student in project.students.all():
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
@@ -388,18 +391,24 @@ def create_link(request, project_id):
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     try:
-        name = request.data["name"]
-        href = request.data["href"]
+        name = request.data["name"].strip()
+        href = request.data["href"].strip()
         is_public = request.data["is_public"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if name == "" or href == "":
+        return Response("Todos os campos devem ser preenchidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if len(name) > 100 or len(href) > 1000:
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
     link = Link.objects.create(name=name, href=href, is_public=is_public)
 
     project.links.add(link)
     project.save()
 
-    return Response("Link created with success!")
+    return Response("success")
 
 
 @api_view(["DELETE"])
@@ -446,8 +455,8 @@ def get_project_discussions(request, project_id):
 @login_required
 def create_project_discussion(request, project_id):
     try:
-        title = request.data["title"]
-        body = request.data["body"]
+        title = request.data["title"].strip()
+        body = request.data["body"].strip()
         category = request.data["category"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
@@ -457,10 +466,13 @@ def create_project_discussion(request, project_id):
     except:
         return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
 
+    if len(title) > 125 or len(body) > 1000:
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
+
     if category not in Discussion.get_discussion_categories_choices(0):
         return Response("Categoria inválida!", status=status.HTTP_400_BAD_REQUEST)
 
-    if title.strip() == "" or body.strip() == "":
+    if title == "" or body == "":
         return Response("Todos os campos devem ser preenchidos!", status=status.HTTP_400_BAD_REQUEST)
 
     Discussion.objects.create(title=title, body=body, category=category, project=project, profile=request.user.profile)

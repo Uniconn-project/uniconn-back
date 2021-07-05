@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "storages",
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
@@ -171,17 +172,19 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media_root")
 
 
+# AWS S3 Buckets
+AWS_ACCESS_KEY_ID = "AKIAYFS3Y2EHTGPLMFOH"
+AWS_SECRET_ACCESS_KEY = "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"
+AWS_STORAGE_BUCKET_NAME = "uniconn-bucket"
+
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+
 # Auth User Model
 AUTH_USER_MODEL = "profiles.User"
-
-ADMINS = [("Felipe", "felipebarrettocarvalho@gmail.com")]
-
-EMAIL_HOST = "smtp.umbler.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "uniconn.br21@gmail.com"
-EMAIL_HOST_PASSWORD = "Unic0nn2021"
-SERVER_EMAIL = "root@django"
 
 
 django_heroku.settings(locals())

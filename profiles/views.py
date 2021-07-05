@@ -30,12 +30,12 @@ def signup_view(request, user_type):
         return Response("Tipo de usuário inválido!", status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        username = request.data["username"].lower().replace(" ", "")
-        email = request.data["email"]
-        password = request.data["password"]
-        passwordc = request.data["passwordc"]
-        first_name = request.data["first_name"]
-        last_name = request.data["last_name"]
+        username = request.data["username"].strip().lower().replace(" ", "")
+        email = request.data["email"].strip()
+        password = request.data["password"].strip()
+        passwordc = request.data["passwordc"].strip()
+        first_name = request.data["first_name"].strip()
+        last_name = request.data["last_name"].strip()
         birth_date = request.data["birth_date"]
 
         if user_type == "student":
@@ -148,7 +148,7 @@ def edit_my_profile(request):
     if photo is not None:
         format, photostr = photo.split(";base64,")
         photo_format = format.split("/")[-1]
-        profile_photo = ContentFile(base64.b64decode(photostr), name=profile.user.username + photo_format)
+        profile_photo = ContentFile(base64.b64decode(photostr), name=f'{profile.user.username}.{photo_format}')
         profile.photo = profile_photo
 
     profile.user.username = username
