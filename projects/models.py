@@ -58,7 +58,7 @@ class Project(models.Model):
         default='{"blocks": [{"key": "5v3ub", "text": "Sem descrição...", "type": "unstyled", "depth": 0, "inlineStyleRanges": [], "entityRanges": [], "data": {}}], "entityMap": {}}',
         max_length=20000,
     )
-    image = models.ImageField(default="default_project.jpg", upload_to="projects_photos")
+    image = models.ImageField(default="default_project.jpg", upload_to="project_images")
     students = models.ManyToManyField(Student, related_name="projects", blank=True)
     mentors = models.ManyToManyField(Mentor, related_name="projects", blank=True)
     pending_invited_students = models.ManyToManyField(Student, related_name="pending_projects_invitations", blank=True)

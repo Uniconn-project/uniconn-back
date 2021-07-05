@@ -131,7 +131,7 @@ def edit_project(request, project_id):
     if image is not None:
         format, imgstr = image.split(";base64,")
         img_format = format.split("/")[-1]
-        project_image = ContentFile(base64.b64decode(imgstr), name=project.name + img_format)
+        project_image = ContentFile(base64.b64decode(imgstr), name=f'{project.name}.{img_format}')
         project.image = project_image
 
         print(project_image, image)
