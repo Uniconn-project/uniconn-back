@@ -53,14 +53,14 @@ def signup_view(request, user_type):
     BLANK_FIELD_ERR_MSG = "Todos os campos devem ser preenchidos!"
     INVALID_BIRTH_DATE_ERR_MSG = "Data de nascimento inválida!"
 
-    if not (
-        len(username)
-        and len(email)
-        and len(password)
-        and len(passwordc)
-        and len(first_name)
-        and len(last_name)
-        and len(birth_date)
+    if (
+        username == ""
+        or email == ""
+        or password == ""
+        or passwordc == ""
+        or first_name == ""
+        or last_name == ""
+        or birth_date == ""
     ):
         return Response(BLANK_FIELD_ERR_MSG, status=status.HTTP_400_BAD_REQUEST)
 
@@ -116,12 +116,12 @@ def edit_my_profile(request):
     profile = request.user.profile
 
     try:
-        username = request.data["username"]
+        username = request.data["username"].strip()
         photo = request.data["photo"]
-        first_name = request.data["first_name"]
-        last_name = request.data["last_name"]
-        bio = request.data["bio"]
-        linkedIn = request.data["linkedIn"]
+        first_name = request.data["first_name"].strip()
+        last_name = request.data["last_name"].strip()
+        bio = request.data["bio"].strip()
+        linkedIn = request.data["linkedIn"].strip()
 
         if profile.type == "student":
             university = request.data["university"]
@@ -148,7 +148,7 @@ def edit_my_profile(request):
     if photo is not None:
         format, photostr = photo.split(";base64,")
         photo_format = format.split("/")[-1]
-        profile_photo = ContentFile(base64.b64decode(photostr), name=f'{profile.user.username}.{photo_format}')
+        profile_photo = ContentFile(base64.b64decode(photostr), name=f"{profile.user.username}.{photo_format}")
         profile.photo = profile_photo
 
     profile.user.username = username
@@ -258,6 +258,8 @@ def get_notifications(request):
     elif profile.type == "mentor":
         projects_invitations = profile.mentor.pending_projects_invitations
         projects_entering_requests = []
+    else:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     projects_invitations_serializer = ProjectSerializer03(projects_invitations, many=True)
     projects_entering_requests_serializer = ProjectEnteringRequestSerializer01(projects_entering_requests, many=True)
@@ -281,5 +283,7 @@ def get_notifications_number(request):
     elif profile.type == "mentor":
         project_invitations = profile.mentor.pending_projects_invitations.all()
         projects_entering_requests = []
+    else:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     return Response(len(project_invitations) + len(projects_entering_requests))

@@ -1,7 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
-from projects.models import Project
-from projects.serializers import MarketSerializer01, ProjectSerializer01
+from projects.models import Project, ProjectEnteringRequest
+from projects.serializers import (
+    MarketSerializer01,
+    ProjectEnteringRequestSerializer01,
+    ProjectSerializer01,
+    ProjectSerializer03,
+)
 from rest_framework import status
 
 from ..models import Mentor, Profile, Student
@@ -249,7 +254,95 @@ class TestGetProfileList(TestCase):
 
 
 class TestGetNotifications(TestCase):
-    pass
+    url = BASE_URL + "get-notifications"
+
+    def test_req(self):
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create(username="felipe")
+        client.force_login(user)
+
+        profile01 = User.objects.create(username="peter").profile
+        Student.objects.create(profile=profile01)
+        profile02 = User.objects.create(username="jane").profile
+        Mentor.objects.create(profile=profile02)
+
+        project01 = Project.objects.create()
+        project02 = Project.objects.create()
+        project03 = Project.objects.create()
+
+        project_enetring_request01 = ProjectEnteringRequest.objects.create(project=project01, profile=profile01)
+        project_enetring_request02 = ProjectEnteringRequest.objects.create(project=project01, profile=profile02)
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Dados inválidos!")
+
+        student = Student.objects.create(profile=user.profile)
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            {
+                "projects_invitations": [],
+                "projects_entering_requests": [],
+            },
+        )
+
+        project01.students.add(student)
+        project01.save()
+        project02.pending_invited_students.add(student)
+        project02.save()
+        project03.pending_invited_students.add(student)
+        project03.save()
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            {
+                "projects_invitations": ProjectSerializer03([project03, project02], many=True).data,
+                "projects_entering_requests": ProjectEnteringRequestSerializer01(
+                    [project_enetring_request02, project_enetring_request01], many=True
+                ).data,
+            },
+        )
+
+        student.delete()
+        mentor = Mentor.objects.create(profile=user.profile)
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            {
+                "projects_invitations": [],
+                "projects_entering_requests": [],
+            },
+        )
+
+        project01.mentors.add(mentor)
+        project02.pending_invited_mentors.add(mentor)
+        project02.save()
+        project03.pending_invited_mentors.add(mentor)
+        project03.save()
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            {
+                "projects_invitations": ProjectSerializer03([project03, project02], many=True).data,
+                "projects_entering_requests": [],
+            },
+        )
 
 
 class TestGetNotificationsNumber(TestCase):

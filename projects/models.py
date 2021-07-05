@@ -111,6 +111,9 @@ class ProjectEnteringRequest(models.Model):
         Profile, related_name="projects_entering_requests", on_delete=models.CASCADE, blank=True, null=True
     )
 
+    class Meta:
+        ordering = ["-id"]
+
     def __str__(self):
         return f"{self.profile.user.username} to {self.project.name}"
 
