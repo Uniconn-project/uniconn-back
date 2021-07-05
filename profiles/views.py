@@ -148,7 +148,7 @@ def edit_my_profile(request):
     if photo is not None:
         format, photostr = photo.split(";base64,")
         photo_format = format.split("/")[-1]
-        profile_photo = ContentFile(base64.b64decode(photostr), name=profile.user.username + photo_format)
+        profile_photo = ContentFile(base64.b64decode(photostr), name=f'{profile.user.username}.{photo_format}')
         profile.photo = profile_photo
 
     profile.user.username = username
