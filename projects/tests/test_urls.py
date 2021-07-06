@@ -58,11 +58,20 @@ class TestUrls(TestCase):
     def test_delete_link_url(self):
         self.assertEqual(resolve(BASE_URL + "delete-link").func, delete_link)
 
-    def test_get_project_discussions_url(self):
-        self.assertEqual(resolve(BASE_URL + "get-project-discussions/3").func, get_project_discussions)
-
     def test_create_project_discussion_url(self):
         self.assertEqual(resolve(BASE_URL + "create-project-discussion/3").func, create_project_discussion)
 
+    def test_get_project_discussions_url(self):
+        self.assertEqual(resolve(BASE_URL + "get-project-discussions/3").func, get_project_discussions)
+
+    def test_get_project_discussion_url(self):
+        self.assertEqual(resolve(BASE_URL + "get-project-discussion/3").func, get_project_discussion)
+
     def test_delete_project_discussion_url(self):
         self.assertEqual(resolve(BASE_URL + "delete-project-discussion").func, delete_project_discussion)
+
+    def test_star_discussion_url(self):
+        self.assertEqual(resolve(BASE_URL + "star-discussion/1").func, star_discussion)
+
+    def test_unstar_discussion_url(self):
+        self.assertEqual(resolve(BASE_URL + "unstar-discussion/1").func, unstar_discussion)

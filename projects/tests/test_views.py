@@ -4,7 +4,7 @@ from profiles.models import Mentor, Student
 from profiles.tests.test_views import User
 from rest_framework import status
 
-from ..models import Market, Project
+from ..models import Discussion, DiscussionStar, Market, Project
 from ..serializers import MarketSerializer01, ProjectSerializer01, ProjectSerializer02
 
 client = Client()
@@ -423,3 +423,79 @@ class TestCreateLink(TestCase):
 
 class TestDeleteLink(TestCase):
     pass
+
+
+class TestCreateProjectDiscussion(TestCase):
+    pass
+
+
+class TestGetProjectDiscussions(TestCase):
+    pass
+
+
+class TestGetProjectDiscussion(TestCase):
+    pass
+
+
+class TestStarDiscussion(TestCase):
+    url = BASE_URL + "star-discussion/"
+
+    def test_req(self):
+        response = client.post(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "delete", "put", "patch"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create(username="mosh")
+        client.force_login(user)
+
+        response = client.post(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Discussão não encontrada!")
+
+        Discussion.objects.create()
+
+        response = client.post(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        response = client.post(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Você não pode estrelar a mesma discussão mais de uma vez!")
+
+
+class TestUnstarDiscussion(TestCase):
+    url = BASE_URL + "unstar-discussion/"
+
+    def test_req(self):
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "post", "put", "patch"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create(username="mosh")
+        client.force_login(user)
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Discussão não encontrada!")
+
+        discussion = Discussion.objects.create()
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Estrela não encontrada!")
+
+        DiscussionStar.objects.create(profile=user.profile, discussion=discussion)
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        self.assertFalse(DiscussionStar.objects.exists())

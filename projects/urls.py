@@ -19,7 +19,10 @@ urlpatterns = [
     path("edit-project-description/<int:project_id>", edit_project_description),
     path("create-link/<int:project_id>", create_link),
     path("delete-link", delete_link),
-    path("get-project-discussions/<int:project_id>", get_project_discussions),
     path("create-project-discussion/<int:project_id>", create_project_discussion),
+    path("get-project-discussions/<int:project_id>", get_project_discussions),
+    path("get-project-discussion/<int:discussion_id>", get_project_discussion),
     path("delete-project-discussion", delete_project_discussion),
+    path("star-discussion/<int:discussion_id>", star_discussion),
+    path("unstar-discussion/<int:discussion_id>", unstar_discussion),
 ]

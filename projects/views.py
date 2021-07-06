@@ -7,7 +7,14 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Discussion, Link, Market, Project, ProjectEnteringRequest
+from .models import (
+    Discussion,
+    DiscussionStar,
+    Link,
+    Market,
+    Project,
+    ProjectEnteringRequest,
+)
 from .serializers import (
     DiscussionSerializer01,
     MarketSerializer01,
@@ -227,7 +234,7 @@ def ask_to_join_project(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
     except:
-        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     profile = request.user.profile
 
@@ -256,7 +263,7 @@ def remove_user_from_project(request, type, project_id):
     try:
         project = Project.objects.get(pk=project_id)
     except:
-        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     if request.user.profile.type != "student":
         return Response(
@@ -358,7 +365,7 @@ def edit_project_description(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
     except:
-        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     if request.user.profile.type != "student":
         return Response(
@@ -385,7 +392,7 @@ def create_link(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
     except:
-        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     if not request.user.profile in project.students_profiles + project.mentors_profiles:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
@@ -423,13 +430,13 @@ def delete_link(request):
     try:
         project = Project.objects.get(pk=project_id)
     except:
-        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     try:
         link = Link.objects.get(pk=link_id)
         assert link in project.links.all()
     except:
-        return Response("Link não encontrado", status=status.HTTP_404_NOT_FOUND)
+        return Response("Link não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     if not request.user.profile in project.students_profiles + project.mentors_profiles:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
@@ -437,18 +444,6 @@ def delete_link(request):
     link.delete()
 
     return Response("success")
-
-
-@api_view(["GET"])
-def get_project_discussions(request, project_id):
-    try:
-        project = Project.objects.get(pk=project_id)
-    except:
-        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
-
-    serializer = DiscussionSerializer01(project.discussions, many=True)
-
-    return Response(serializer.data)
 
 
 @api_view(["POST"])
@@ -464,7 +459,7 @@ def create_project_discussion(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
     except:
-        return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     if len(title) > 125 or len(body) > 1000:
         return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
@@ -480,6 +475,30 @@ def create_project_discussion(request, project_id):
     return Response("success")
 
 
+@api_view(["GET"])
+def get_project_discussions(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    serializer = DiscussionSerializer01(project.discussions, many=True)
+
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+def get_project_discussion(request, discussion_id):
+    try:
+        discussion = Discussion.objects.get(pk=discussion_id)
+    except:
+        return Response("Discussão não encontrada", status=status.HTTP_404_NOT_FOUND)
+
+    serializer = DiscussionSerializer01(discussion)
+
+    return Response(serializer.data)
+
+
 @api_view(["DELETE"])
 @login_required
 def delete_project_discussion(request):
@@ -492,7 +511,7 @@ def delete_project_discussion(request):
         discussion = Discussion.objects.get(pk=discussion_id)
         project = discussion.project
     except:
-        return Response("Discussão não encontrada", status=status.HTTP_404_NOT_FOUND)
+        return Response("Discussão não encontrada!", status=status.HTTP_404_NOT_FOUND)
 
     is_project_member = request.user.profile in project.students_profiles + project.mentors_profiles
 
@@ -500,5 +519,41 @@ def delete_project_discussion(request):
         return Response("Você não pode deletar essa discussão!", status=status.HTTP_400_BAD_REQUEST)
 
     discussion.delete()
+
+    return Response("success")
+
+
+@api_view(["POST"])
+@login_required
+def star_discussion(request, discussion_id):
+    try:
+        discussion = Discussion.objects.get(pk=discussion_id)
+    except:
+        return Response("Discussão não encontrada!", status=status.HTTP_404_NOT_FOUND)
+
+    if DiscussionStar.objects.filter(profile=request.user.profile, discussion=discussion).exists():
+        return Response(
+            "Você não pode estrelar a mesma discussão mais de uma vez!", status=status.HTTP_400_BAD_REQUEST
+        )
+
+    DiscussionStar.objects.create(profile=request.user.profile, discussion=discussion)
+
+    return Response("success")
+
+
+@api_view(["DELETE"])
+@login_required
+def unstar_discussion(request, discussion_id):
+    try:
+        discussion = Discussion.objects.get(pk=discussion_id)
+    except:
+        return Response("Discussão não encontrada!", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        discussion_star = DiscussionStar.objects.get(profile=request.user.profile, discussion=discussion)
+    except:
+        return Response("Estrela não encontrada!", status=status.HTTP_404_NOT_FOUND)
+
+    discussion_star.delete()
 
     return Response("success")
