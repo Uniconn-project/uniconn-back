@@ -92,18 +92,19 @@ class ProjectEnteringRequestSerializer01(serializers.ModelSerializer):
         fields = ["id", "message", "project", "profile"]
 
 
-class DiscussionSerializer01(serializers.ModelSerializer):
-    profile = ProfileSerializer03()
-    category = serializers.DictField(source="category_value_and_readable")
-
-    class Meta:
-        model = Discussion
-        fields = ["id", "title", "body", "category", "profile", "created_at"]
-
-
 class DiscussionStarSerializer01(serializers.ModelSerializer):
     profile = ProfileSerializer03()
 
     class Meta:
         model = Discussion
         fields = ["profile", "created_at"]
+
+
+class DiscussionSerializer01(serializers.ModelSerializer):
+    profile = ProfileSerializer03()
+    category = serializers.DictField(source="category_value_and_readable")
+    stars = DiscussionStarSerializer01(many=True)
+
+    class Meta:
+        model = Discussion
+        fields = ["id", "title", "body", "category", "profile", "stars", "created_at"]
