@@ -6,6 +6,7 @@ from django.test import TestCase
 from profiles.models import Mentor, Student
 from projects.models import (
     Discussion,
+    DiscussionStar,
     Link,
     Market,
     Project,
@@ -456,3 +457,70 @@ class TestDiscussion(TestCase):
             discussion.category_value_and_readable,
             {"value": discussion_categories_choices[0][0], "readable": discussion_categories_choices[0][1]},
         )
+
+
+class TestDiscussionStar(TestCase):
+    def test_create_delete(self):
+        now_naive = datetime.datetime.now()
+        timezone = pytz.timezone("UTC")
+        now_aware = timezone.localize(now_naive)
+
+        # test create
+        discussion_star = DiscussionStar.objects.create()
+        self.assertIsInstance(discussion_star, DiscussionStar)
+        self.assertEqual(discussion_star.pk, 1)
+        self.assertFalse(discussion_star.visualized)
+        self.assertLessEqual(now_aware, discussion_star.created_at)
+        self.assertLessEqual(now_aware, discussion_star.updated_at)
+
+        # test delete
+        discussion_star.delete()
+        self.assertFalse(DiscussionStar.objects.filter().exists())
+
+    def test_fields(self):
+        discussion_star = DiscussionStar.objects.create()
+
+        profile = User.objects.create().profile
+        discussion = Discussion.objects.create()
+        visualized = True
+
+        discussion_star.profile = profile
+        discussion_star.discussion = discussion
+        discussion_star.visualized = visualized
+
+        discussion_star.save()
+
+        self.assertEqual(discussion_star.profile, profile)
+        self.assertEqual(discussion_star.discussion, discussion)
+        self.assertTrue(discussion_star.visualized)
+
+    def test_profile_relation(self):
+        profile = User.objects.create().profile
+        discussion_star = DiscussionStar.objects.create(profile=profile)
+
+        # testing related name
+        self.assertIn(discussion_star, profile.discussions_stars.all())
+
+        # testing cascade
+        profile.delete()
+        self.assertFalse(DiscussionStar.objects.filter().exists())
+
+    def test_discussion_relation(self):
+        discussion = Discussion.objects.create()
+        discussion_star = DiscussionStar.objects.create(discussion=discussion)
+
+        # testing related name
+        self.assertIn(discussion_star, discussion.stars.all())
+
+        # testing cascade
+        discussion.delete()
+        self.assertFalse(DiscussionStar.objects.filter().exists())
+
+    def test_str(self):
+        profile01 = User.objects.create(username="richard").profile
+
+        profile02 = User.objects.create(username="mark").profile
+        discussion = Discussion.objects.create(title="Lorem ipsum dolor sit amet", profile=profile02)
+
+        discussion_star = DiscussionStar.objects.create(profile=profile01, discussion=discussion)
+        self.assertEqual(str(discussion_star), f"{profile01.user.username} starred {discussion}")
