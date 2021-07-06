@@ -111,6 +111,9 @@ class ProjectEnteringRequest(models.Model):
         Profile, related_name="projects_entering_requests", on_delete=models.CASCADE, blank=True, null=True
     )
 
+    class Meta:
+        ordering = ["-id"]
+
     def __str__(self):
         return f"{self.profile.user.username} to {self.project.name}"
 
@@ -131,6 +134,9 @@ class Discussion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ["-id"]
+
     @staticmethod
     def get_discussion_categories_choices(index=-1):
         return [
@@ -144,3 +150,19 @@ class Discussion(models.Model):
     @property
     def category_value_and_readable(self):
         return {"value": self.category, "readable": self.get_category_display()}
+
+
+class DiscussionStar(models.Model):
+    profile = models.ForeignKey(
+        Profile, related_name="discussions_stars", on_delete=models.CASCADE, blank=True, null=True
+    )
+    discussion = models.ForeignKey(Discussion, related_name="stars", on_delete=models.CASCADE, blank=True, null=True)
+    visualized = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-id"]
+
+    def __str__(self):
+        return f"{self.profile.user.username} starred {self.discussion}"
