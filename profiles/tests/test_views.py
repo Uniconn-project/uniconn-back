@@ -366,3 +366,40 @@ class TestGetNotifications(TestCase):
 
 class TestGetNotificationsNumber(TestCase):
     pass
+
+
+class TestVisualizeNotifications(TestCase):
+    url = BASE_URL + "visualize-notifications"
+
+    def test_req(self):
+        response = client.patch(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "delete", "post", "put"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create()
+        client.force_login(user)
+
+        response = client.patch(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        discussion = Discussion.objects.create(profile=user.profile)
+        discussion_star01 = DiscussionStar.objects.create(discussion=discussion)
+        discussion_star02 = DiscussionStar.objects.create(discussion=discussion)
+
+        self.assertFalse(discussion_star01.visualized)
+        self.assertFalse(discussion_star02.visualized)
+
+        response = client.patch(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        discussion_star01.refresh_from_db()
+        discussion_star02.refresh_from_db()
+
+        self.assertTrue(discussion_star01.visualized)
+        self.assertTrue(discussion_star02.visualized)
