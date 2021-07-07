@@ -166,3 +166,11 @@ class DiscussionStar(models.Model):
 
     def __str__(self):
         return f"{self.profile.user.username} starred {self.discussion}"
+
+
+""" class DiscussionReply(models.Model):
+    profile = models.ForeignKey(
+        Profile, related_name="discussion_replies", on_delete=models.CASCADE, blank=True, null=True
+    )
+    discussion = models.ForeignKey(Discussion, related_name="replies", on_delete=models.CASCADE, blank=True, null=True)
+    content = models.CharField(max_length=125, blank=True, null=True) """

@@ -88,3 +88,15 @@ class ProfileSerializer03(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["id", "type", "first_name", "last_name", "user", "photo", "bio"]
+
+
+class ProfileSerializer04(serializers.ModelSerializer):
+    """
+    Light Profile serializer only id, user and image
+    """
+
+    user = UserSerializer()
+
+    class Meta:
+        model = Profile
+        fields = ["id", "user", "photo"]

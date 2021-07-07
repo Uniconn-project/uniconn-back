@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
-from projects.models import Project, ProjectEnteringRequest
+from projects.models import Discussion, DiscussionStar, Project, ProjectEnteringRequest
 from projects.serializers import (
+    DiscussionStarSerializer02,
     MarketSerializer01,
     ProjectEnteringRequestSerializer01,
     ProjectSerializer01,
@@ -277,8 +278,11 @@ class TestGetNotifications(TestCase):
         project02 = Project.objects.create()
         project03 = Project.objects.create()
 
-        project_enetring_request01 = ProjectEnteringRequest.objects.create(project=project01, profile=profile01)
-        project_enetring_request02 = ProjectEnteringRequest.objects.create(project=project01, profile=profile02)
+        discussion01 = Discussion.objects.create(profile=user.profile)
+        discussion02 = Discussion.objects.create(profile=user.profile)
+
+        project_entering_request01 = ProjectEnteringRequest.objects.create(project=project01, profile=profile01)
+        project_entering_request02 = ProjectEnteringRequest.objects.create(project=project01, profile=profile02)
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -293,15 +297,21 @@ class TestGetNotifications(TestCase):
             {
                 "projects_invitations": [],
                 "projects_entering_requests": [],
+                "discussions_stars": [],
             },
         )
 
         project01.students.add(student)
         project01.save()
+
         project02.pending_invited_students.add(student)
         project02.save()
         project03.pending_invited_students.add(student)
         project03.save()
+
+        discussion_star01 = DiscussionStar.objects.create(discussion=discussion01, profile=profile01)
+        discussion_star02 = DiscussionStar.objects.create(discussion=discussion01, profile=profile02)
+        discussion_star03 = DiscussionStar.objects.create(discussion=discussion02, profile=profile01)
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -310,7 +320,10 @@ class TestGetNotifications(TestCase):
             {
                 "projects_invitations": ProjectSerializer03([project03, project02], many=True).data,
                 "projects_entering_requests": ProjectEnteringRequestSerializer01(
-                    [project_enetring_request02, project_enetring_request01], many=True
+                    [project_entering_request02, project_entering_request01], many=True
+                ).data,
+                "discussions_stars": DiscussionStarSerializer02(
+                    [discussion_star03, discussion_star02, discussion_star01], many=True
                 ).data,
             },
         )
@@ -325,6 +338,9 @@ class TestGetNotifications(TestCase):
             {
                 "projects_invitations": [],
                 "projects_entering_requests": [],
+                "discussions_stars": DiscussionStarSerializer02(
+                    [discussion_star03, discussion_star02, discussion_star01], many=True
+                ).data,
             },
         )
 
@@ -341,6 +357,9 @@ class TestGetNotifications(TestCase):
             {
                 "projects_invitations": ProjectSerializer03([project03, project02], many=True).data,
                 "projects_entering_requests": [],
+                "discussions_stars": DiscussionStarSerializer02(
+                    [discussion_star03, discussion_star02, discussion_star01], many=True
+                ).data,
             },
         )
 
