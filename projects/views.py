@@ -532,9 +532,7 @@ def star_discussion(request, discussion_id):
         return Response("Discussão não encontrada!", status=status.HTTP_404_NOT_FOUND)
 
     if DiscussionStar.objects.filter(profile=request.user.profile, discussion=discussion).exists():
-        return Response(
-            "Você não pode estrelar a mesma discussão mais de uma vez!", status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response("Você não pode curtir a mesma discussão mais de uma vez!", status=status.HTTP_400_BAD_REQUEST)
 
     DiscussionStar.objects.create(profile=request.user.profile, discussion=discussion)
 
@@ -552,7 +550,7 @@ def unstar_discussion(request, discussion_id):
     try:
         discussion_star = DiscussionStar.objects.get(profile=request.user.profile, discussion=discussion)
     except:
-        return Response("Estrela não encontrada!", status=status.HTTP_404_NOT_FOUND)
+        return Response("Curtida não encontrada!", status=status.HTTP_404_NOT_FOUND)
 
     discussion_star.delete()
 

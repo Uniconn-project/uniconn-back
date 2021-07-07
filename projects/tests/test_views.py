@@ -463,7 +463,7 @@ class TestStarDiscussion(TestCase):
 
         response = client.post(f"{self.url}1")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data, "Você não pode estrelar a mesma discussão mais de uma vez!")
+        self.assertEqual(response.data, "Você não pode curtir a mesma discussão mais de uma vez!")
 
 
 class TestUnstarDiscussion(TestCase):
@@ -489,7 +489,7 @@ class TestUnstarDiscussion(TestCase):
 
         response = client.delete(f"{self.url}1")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data, "Estrela não encontrada!")
+        self.assertEqual(response.data, "Curtida não encontrada!")
 
         DiscussionStar.objects.create(profile=user.profile, discussion=discussion)
 

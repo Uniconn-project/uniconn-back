@@ -37,3 +37,6 @@ class TestUrls(TestCase):
 
     def test_get_notifications_number_url(self):
         self.assertEqual(resolve(BASE_URL + "get-notifications-number").func, get_notifications_number)
+
+    def test_visualize_notifications_url(self):
+        self.assertEqual(resolve(BASE_URL + "visualize-notifications").func, visualize_notifications)

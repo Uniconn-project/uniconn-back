@@ -13,4 +13,5 @@ urlpatterns = [
     path("get-profile-list", get_profile_list),
     path("get-notifications", get_notifications),
     path("get-notifications-number", get_notifications_number),
+    path('visualize-notifications', visualize_notifications)
 ]

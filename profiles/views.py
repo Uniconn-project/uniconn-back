@@ -271,7 +271,7 @@ def get_notifications(request):
             discussions_stars.append(star)
             continue
 
-        if star.updated_at > now - datetime.timedelta(2):
+        if now - star.updated_at < datetime.timedelta(2):
             discussions_stars.append(star)
 
     projects_invitations_serializer = ProjectSerializer03(projects_invitations, many=True)
@@ -304,3 +304,13 @@ def get_notifications_number(request):
     unvisualized_stars = DiscussionStar.objects.filter(discussion__profile=request.user.profile, visualized=False)
 
     return Response(len(project_invitations) + len(projects_entering_requests) + len(unvisualized_stars))
+
+
+@api_view(["PATCH"])
+@login_required
+def visualize_notifications(request):
+    for star in DiscussionStar.objects.filter(discussion__profile=request.user.profile, visualized=False):
+        star.visualized = True
+        star.save()
+
+    return Response("success")
