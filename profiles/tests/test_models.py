@@ -1,5 +1,4 @@
 import datetime
-from time import sleep
 
 import pytz
 from django.contrib.auth import get_user_model

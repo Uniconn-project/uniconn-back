@@ -1,7 +1,14 @@
-from profiles.serializers import ProfileSerializer03
+from profiles.serializers import ProfileSerializer03, ProfileSerializer04
 from rest_framework import serializers
 
-from .models import Discussion, Link, Market, Project, ProjectEnteringRequest
+from .models import (
+    Discussion,
+    DiscussionStar,
+    Link,
+    Market,
+    Project,
+    ProjectEnteringRequest,
+)
 
 
 class MarketSerializer01(serializers.ModelSerializer):
@@ -85,7 +92,7 @@ class ProjectSerializer03(serializers.ModelSerializer):
 
 class ProjectEnteringRequestSerializer01(serializers.ModelSerializer):
     project = ProjectSerializer03()
-    profile = ProfileSerializer03()
+    profile = ProfileSerializer04()
 
     class Meta:
         model = ProjectEnteringRequest
@@ -96,8 +103,8 @@ class DiscussionStarSerializer01(serializers.ModelSerializer):
     profile = ProfileSerializer03()
 
     class Meta:
-        model = Discussion
-        fields = ["profile", "created_at"]
+        model = DiscussionStar
+        fields = ["id", "profile"]
 
 
 class DiscussionSerializer01(serializers.ModelSerializer):
@@ -108,3 +115,18 @@ class DiscussionSerializer01(serializers.ModelSerializer):
     class Meta:
         model = Discussion
         fields = ["id", "title", "body", "category", "profile", "stars", "created_at"]
+
+
+class DiscussionSerializer02(serializers.ModelSerializer):
+    class Meta:
+        model = Discussion
+        fields = ["id", "title"]
+
+
+class DiscussionStarSerializer02(serializers.ModelSerializer):
+    profile = ProfileSerializer04()
+    discussion = DiscussionSerializer02()
+
+    class Meta:
+        model = DiscussionStar
+        fields = ["id", "profile", "discussion", "created_at"]

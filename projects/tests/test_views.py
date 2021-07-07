@@ -1,4 +1,3 @@
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from profiles.models import Mentor, Student
 from profiles.tests.test_views import User

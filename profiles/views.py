@@ -1,13 +1,14 @@
 import base64
 import datetime
-from os import name
 
+import pytz
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from jwt_auth.decorators import login_required
-from projects.models import Market, Project, ProjectEnteringRequest
+from projects.models import DiscussionStar, Market, Project, ProjectEnteringRequest
 from projects.serializers import (
+    DiscussionStarSerializer02,
     MarketSerializer01,
     ProjectEnteringRequestSerializer01,
     ProjectSerializer01,
@@ -251,6 +252,8 @@ def get_profile_list(request):
 @login_required
 def get_notifications(request):
     profile = request.user.profile
+    now = datetime.datetime.now()
+    now = pytz.utc.localize(now)
 
     if profile.type == "student":
         projects_invitations = profile.student.pending_projects_invitations
@@ -261,13 +264,25 @@ def get_notifications(request):
     else:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
+    discussions_stars = []
+
+    for star in DiscussionStar.objects.filter(discussion__profile=request.user.profile):
+        if not star.visualized:
+            discussions_stars.append(star)
+            continue
+
+        if star.updated_at > now - datetime.timedelta(2):
+            discussions_stars.append(star)
+
     projects_invitations_serializer = ProjectSerializer03(projects_invitations, many=True)
     projects_entering_requests_serializer = ProjectEnteringRequestSerializer01(projects_entering_requests, many=True)
+    discussions_stars_serializer = DiscussionStarSerializer02(discussions_stars, many=True)
 
     return Response(
         {
             "projects_invitations": projects_invitations_serializer.data,
             "projects_entering_requests": projects_entering_requests_serializer.data,
+            "discussions_stars": discussions_stars_serializer.data,
         }
     )
 
@@ -286,4 +301,6 @@ def get_notifications_number(request):
     else:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    return Response(len(project_invitations) + len(projects_entering_requests))
+    unvisualized_stars = DiscussionStar.objects.filter(discussion__profile=request.user.profile, visualized=False)
+
+    return Response(len(project_invitations) + len(projects_entering_requests) + len(unvisualized_stars))
