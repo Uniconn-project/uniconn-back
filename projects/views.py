@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from .models import (
     Discussion,
+    DiscussionReply,
     DiscussionStar,
     Link,
     Market,
@@ -553,5 +554,23 @@ def unstar_discussion(request, discussion_id):
         return Response("Curtida não encontrada!", status=status.HTTP_404_NOT_FOUND)
 
     discussion_star.delete()
+
+    return Response("success")
+
+
+@api_view(["POST"])
+@login_required
+def reply_discussion(request, discussion_id):
+    try:
+        content = request.data["content"]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        discussion = Discussion.objects.get(pk=discussion_id)
+    except:
+        return Response("Discussão não encontrada!", status=status.HTTP_404_NOT_FOUND)
+
+    DiscussionReply.objects.create(content=content, profile=request.user.profile, discussion=discussion)
 
     return Response("success")

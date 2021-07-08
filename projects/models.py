@@ -168,9 +168,18 @@ class DiscussionStar(models.Model):
         return f"{self.profile.user.username} starred {self.discussion}"
 
 
-""" class DiscussionReply(models.Model):
+class DiscussionReply(models.Model):
+    content = models.CharField(max_length=125, blank=True, null=True)
     profile = models.ForeignKey(
-        Profile, related_name="discussion_replies", on_delete=models.CASCADE, blank=True, null=True
+        Profile, related_name="discussions_replies", on_delete=models.CASCADE, blank=True, null=True
     )
     discussion = models.ForeignKey(Discussion, related_name="replies", on_delete=models.CASCADE, blank=True, null=True)
-    content = models.CharField(max_length=125, blank=True, null=True) """
+    visualized = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-id"]
+
+    def __str__(self):
+        return f"{self.profile.user.username} replied {self.content[:50]} to {self.discussion.title[:50]}"
