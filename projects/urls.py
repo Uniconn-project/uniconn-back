@@ -1,4 +1,5 @@
-from django.urls import path
+from core.generic_views import http_404_not_found
+from django.urls import path, re_path
 
 from .views import *
 
@@ -25,4 +26,5 @@ urlpatterns = [
     path("delete-project-discussion", delete_project_discussion),
     path("star-discussion/<int:discussion_id>", star_discussion),
     path("unstar-discussion/<int:discussion_id>", unstar_discussion),
+    re_path(r".*", http_404_not_found),
 ]

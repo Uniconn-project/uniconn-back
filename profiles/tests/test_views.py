@@ -278,8 +278,8 @@ class TestGetNotifications(TestCase):
         project02 = Project.objects.create()
         project03 = Project.objects.create()
 
-        discussion01 = Discussion.objects.create(profile=user.profile)
-        discussion02 = Discussion.objects.create(profile=user.profile)
+        discussion01 = Discussion.objects.create(profile=user.profile, project=project01)
+        discussion02 = Discussion.objects.create(profile=user.profile, project=project02)
 
         project_entering_request01 = ProjectEnteringRequest.objects.create(project=project01, profile=profile01)
         project_entering_request02 = ProjectEnteringRequest.objects.create(project=project01, profile=profile02)
