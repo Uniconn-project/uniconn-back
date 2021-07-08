@@ -1,4 +1,5 @@
-from django.urls import path
+from core.generic_views import http_404_not_found
+from django.urls import path, re_path
 
 from .views import *
 
@@ -13,5 +14,6 @@ urlpatterns = [
     path("get-profile-list", get_profile_list),
     path("get-notifications", get_notifications),
     path("get-notifications-number", get_notifications_number),
-    path('visualize-notifications', visualize_notifications)
+    path("visualize-notifications", visualize_notifications),
+    re_path(r".*", http_404_not_found),
 ]

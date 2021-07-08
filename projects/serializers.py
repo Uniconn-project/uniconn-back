@@ -118,9 +118,11 @@ class DiscussionSerializer01(serializers.ModelSerializer):
 
 
 class DiscussionSerializer02(serializers.ModelSerializer):
+    project_id = serializers.IntegerField(source="project.id")
+
     class Meta:
         model = Discussion
-        fields = ["id", "title"]
+        fields = ["id", "title", "project_id"]
 
 
 class DiscussionStarSerializer02(serializers.ModelSerializer):
