@@ -27,5 +27,6 @@ urlpatterns = [
     path("star-discussion/<int:discussion_id>", star_discussion),
     path("unstar-discussion/<int:discussion_id>", unstar_discussion),
     path("reply-discussion/<int:discussion_id>", reply_discussion),
+    path("delete-discussion-reply/<int:reply_id>", delete_discussion_reply),
     re_path(r".*", http_404_not_found),
 ]
