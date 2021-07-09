@@ -524,13 +524,21 @@ class TestReplyDiscussion(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, "Dados inválidos!")
 
-        post_data = {"content": "Lorem ipsum dolor dit amet"}
+        post_data = {"content": "Lorem ipsum dolor sit amet"}
 
         response = client.post(f"{self.url}1", post_data)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data, "Discussão não encontrada!")
 
         discussion = Discussion.objects.create()
+
+        response = client.post(f"{self.url}1", {**post_data, "content": "aa"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "O comentário não pode ter menos de 3 caracteres!")
+
+        response = client.post(f"{self.url}1", {**post_data, "content": "a" * 301})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Respeite o limite de caracteres!")
 
         self.assertFalse(DiscussionReply.objects.exists())
 

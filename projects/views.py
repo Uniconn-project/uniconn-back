@@ -571,6 +571,12 @@ def reply_discussion(request, discussion_id):
     except:
         return Response("Discussão não encontrada!", status=status.HTTP_404_NOT_FOUND)
 
+    if len(content) < 3:
+        return Response("O comentário não pode ter menos de 3 caracteres!", status=status.HTTP_400_BAD_REQUEST)
+
+    if len(content) > 300:
+        return Response("Respeite o limite de caracteres!", status=status.HTTP_400_BAD_REQUEST)
+
     DiscussionReply.objects.create(content=content, profile=request.user.profile, discussion=discussion)
 
     return Response("success")

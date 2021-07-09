@@ -169,7 +169,7 @@ class DiscussionStar(models.Model):
 
 
 class DiscussionReply(models.Model):
-    content = models.CharField(max_length=125, blank=True, null=True)
+    content = models.CharField(max_length=300, blank=True, null=True)
     profile = models.ForeignKey(
         Profile, related_name="discussions_replies", on_delete=models.CASCADE, blank=True, null=True
     )
