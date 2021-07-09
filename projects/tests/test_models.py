@@ -6,6 +6,7 @@ from django.test import TestCase
 from profiles.models import Mentor, Student
 from projects.models import (
     Discussion,
+    DiscussionReply,
     DiscussionStar,
     Link,
     Market,
@@ -27,7 +28,7 @@ class TestMarket(TestCase):
 
         # test delete
         market.delete()
-        self.assertFalse(Market.objects.filter().exists())
+        self.assertFalse(Market.objects.exists())
 
     def test_fields(self):
         market = Market.objects.create()
@@ -73,7 +74,7 @@ class TestLink(TestCase):
 
         # test delete
         link.delete()
-        self.assertFalse(Link.objects.filter().exists())
+        self.assertFalse(Link.objects.exists())
 
     def test_fields(self):
         link = Link.objects.create()
@@ -116,7 +117,7 @@ class TestProject(TestCase):
 
         # test delete
         project.delete()
-        self.assertFalse(Project.objects.filter().exists())
+        self.assertFalse(Project.objects.exists())
 
     def test_fields(self):
         project = Project.objects.create()
@@ -318,7 +319,7 @@ class TestProjectEnteringRequest(TestCase):
 
         # test delete
         project_entering_request.delete()
-        self.assertFalse(ProjectEnteringRequest.objects.filter().exists())
+        self.assertFalse(ProjectEnteringRequest.objects.exists())
 
     def test_fields(self):
         project_entering_request = ProjectEnteringRequest.objects.create()
@@ -346,7 +347,7 @@ class TestProjectEnteringRequest(TestCase):
 
         # testing cascade
         project.delete()
-        self.assertFalse(ProjectEnteringRequest.objects.filter().exists())
+        self.assertFalse(ProjectEnteringRequest.objects.exists())
 
     def test_profile_relation(self):
         profile = User.objects.create().profile
@@ -357,7 +358,7 @@ class TestProjectEnteringRequest(TestCase):
 
         # testing cascade
         profile.delete()
-        self.assertFalse(ProjectEnteringRequest.objects.filter().exists())
+        self.assertFalse(ProjectEnteringRequest.objects.exists())
 
     def test_str(self):
         project = Project.objects.create(name="Simutomic")
@@ -381,7 +382,7 @@ class TestDiscussion(TestCase):
 
         # test delete
         discussion.delete()
-        self.assertFalse(Discussion.objects.filter().exists())
+        self.assertFalse(Discussion.objects.exists())
 
     def test_fields(self):
         discussion = Discussion.objects.create()
@@ -415,7 +416,7 @@ class TestDiscussion(TestCase):
 
         # testing cascade
         profile.delete()
-        self.assertFalse(Discussion.objects.filter().exists())
+        self.assertFalse(Discussion.objects.exists())
 
     def test_project_relation(self):
         project = Project.objects.create()
@@ -426,7 +427,7 @@ class TestDiscussion(TestCase):
 
         # testing cascade
         project.delete()
-        self.assertFalse(Discussion.objects.filter().exists())
+        self.assertFalse(Discussion.objects.exists())
 
     def test_get_discussion_categories_choices_staticmethod(self):
         self.assertEqual(
@@ -475,7 +476,7 @@ class TestDiscussionStar(TestCase):
 
         # test delete
         discussion_star.delete()
-        self.assertFalse(DiscussionStar.objects.filter().exists())
+        self.assertFalse(DiscussionStar.objects.exists())
 
     def test_fields(self):
         discussion_star = DiscussionStar.objects.create()
@@ -503,7 +504,7 @@ class TestDiscussionStar(TestCase):
 
         # testing cascade
         profile.delete()
-        self.assertFalse(DiscussionStar.objects.filter().exists())
+        self.assertFalse(DiscussionStar.objects.exists())
 
     def test_discussion_relation(self):
         discussion = Discussion.objects.create()
@@ -514,7 +515,7 @@ class TestDiscussionStar(TestCase):
 
         # testing cascade
         discussion.delete()
-        self.assertFalse(DiscussionStar.objects.filter().exists())
+        self.assertFalse(DiscussionStar.objects.exists())
 
     def test_str(self):
         profile01 = User.objects.create(username="richard").profile
@@ -524,3 +525,78 @@ class TestDiscussionStar(TestCase):
 
         discussion_star = DiscussionStar.objects.create(profile=profile01, discussion=discussion)
         self.assertEqual(str(discussion_star), f"{profile01.user.username} starred {discussion}")
+
+
+class TestDiscussionReply(TestCase):
+    def test_create_delete(self):
+        now_naive = datetime.datetime.now()
+        timezone = pytz.timezone("UTC")
+        now_aware = timezone.localize(now_naive)
+
+        # test create
+        discussion_reply = DiscussionReply.objects.create()
+        self.assertIsInstance(discussion_reply, DiscussionReply)
+        self.assertEqual(discussion_reply.pk, 1)
+        self.assertFalse(discussion_reply.visualized)
+        self.assertLessEqual(now_aware, discussion_reply.created_at)
+        self.assertLessEqual(now_aware, discussion_reply.updated_at)
+
+        # test delete
+        discussion_reply.delete()
+        self.assertFalse(DiscussionReply.objects.exists())
+
+    def test_fields(self):
+        discussion_reply = DiscussionReply.objects.create()
+
+        content = "Lorem ipsum dolor sit amet"
+        profile = User.objects.create().profile
+        discussion = Discussion.objects.create()
+        visualized = True
+
+        discussion_reply.content = content
+        discussion_reply.profile = profile
+        discussion_reply.discussion = discussion
+        discussion_reply.visualized = visualized
+
+        discussion_reply.save()
+
+        self.assertEqual(discussion_reply.content, content)
+        self.assertEqual(discussion_reply.profile, profile)
+        self.assertEqual(discussion_reply.discussion, discussion)
+        self.assertTrue(discussion_reply.visualized)
+
+    def test_profile_relation(self):
+        profile = User.objects.create().profile
+        discussion_reply = DiscussionReply.objects.create(profile=profile)
+
+        # testing related name
+        self.assertIn(discussion_reply, profile.discussions_replies.all())
+
+        # testing cascade
+        profile.delete()
+        self.assertFalse(DiscussionReply.objects.exists())
+
+    def test_discussion_relation(self):
+        discussion = Discussion.objects.create()
+        discussion_reply = DiscussionReply.objects.create(discussion=discussion)
+
+        # testing related name
+        self.assertIn(discussion_reply, discussion.replies.all())
+
+        # testing cascade
+        discussion.delete()
+        self.assertFalse(DiscussionReply.objects.exists())
+
+    def test_str(self):
+        profile01 = User.objects.create(username="richard").profile
+
+        profile02 = User.objects.create(username="mark").profile
+        discussion = Discussion.objects.create(title="Lorem ipsum dolor sit amet" * 10, profile=profile02)
+
+        discussion_reply = DiscussionReply.objects.create(
+            content="Foo bar" * 10, profile=profile01, discussion=discussion
+        )
+        self.assertEqual(
+            str(discussion_reply),
+            f"{profile01.user.username} replied {discussion_reply.content[:50]} to {discussion.title[:50]}",
+        )

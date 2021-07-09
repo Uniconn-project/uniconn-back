@@ -24,7 +24,7 @@ class TestUniversity(TestCase):
 
         # test delete
         university.delete()
-        self.assertFalse(University.objects.filter().exists())
+        self.assertFalse(University.objects.exists())
 
     def test_fields(self):
         university = University.objects.create()
@@ -69,7 +69,7 @@ class TestMajor(TestCase):
 
         # test delete
         major.delete()
-        self.assertFalse(Major.objects.filter().exists())
+        self.assertFalse(Major.objects.exists())
 
     def test_fields(self):
         major = Major.objects.create()

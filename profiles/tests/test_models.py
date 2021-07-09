@@ -22,7 +22,7 @@ class TestUser(TestCase):
 
         # test delete
         user.delete()
-        self.assertFalse(User.objects.filter().exists())
+        self.assertFalse(User.objects.exists())
 
     def test_fields(self):
         user = User.objects.create()
@@ -62,7 +62,7 @@ class TestProfile(TestCase):
 
         # test delete
         profile.delete()
-        self.assertFalse(Profile.objects.filter().exists())
+        self.assertFalse(Profile.objects.exists())
 
     def test_fields(self):
         user = User.objects.create()
@@ -99,9 +99,7 @@ class TestProfile(TestCase):
         self.assertEqual(user.profile.user, user, "Asserting the profile-user related name is 'profile'")
 
         user.delete()
-        self.assertFalse(
-            Profile.objects.filter().exists(), "Asserting the profile-user relationship cascades on delete"
-        )
+        self.assertFalse(Profile.objects.exists(), "Asserting the profile-user relationship cascades on delete")
 
     def test_str(self):
         user = User.objects.create()
@@ -129,7 +127,7 @@ class TestStudent(TestCase):
 
         # test delete
         student.delete()
-        self.assertFalse(Student.objects.filter().exists())
+        self.assertFalse(Student.objects.exists())
 
     def test_fields(self):
         user = User.objects.create()
@@ -156,9 +154,7 @@ class TestStudent(TestCase):
         self.assertEqual(profile.student.profile, profile, "Asserting the student-profile related name is 'student'")
 
         profile.delete()
-        self.assertFalse(
-            Student.objects.filter().exists(), "Asserting the student-profile relationship cascades on delete"
-        )
+        self.assertFalse(Student.objects.exists(), "Asserting the student-profile relationship cascades on delete")
 
     def test_str(self):
         user = User.objects.create(username="caroline")
@@ -187,7 +183,7 @@ class TestMentor(TestCase):
 
         # test delete
         mentor.delete()
-        self.assertFalse(Mentor.objects.filter().exists())
+        self.assertFalse(Mentor.objects.exists())
 
     def test_mentor_profile_relationship(self):
         # Asserting the mentor-profile relationship is one to one
@@ -200,9 +196,7 @@ class TestMentor(TestCase):
         self.assertEqual(profile.mentor.profile, profile, "Asserting the mentor-profile related name is 'mentor'")
 
         profile.delete()
-        self.assertFalse(
-            Mentor.objects.filter().exists(), "Asserting the mentor-profile relationship cascades on delete"
-        )
+        self.assertFalse(Mentor.objects.exists(), "Asserting the mentor-profile relationship cascades on delete")
 
     def test_str(self):
         user = User.objects.create(username="michael")

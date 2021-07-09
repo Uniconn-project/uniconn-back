@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from .models import (
     Discussion,
+    DiscussionReply,
     DiscussionStar,
     Link,
     Market,
@@ -107,14 +108,23 @@ class DiscussionStarSerializer01(serializers.ModelSerializer):
         fields = ["id", "profile"]
 
 
+class DiscussionReplySerializer01(serializers.ModelSerializer):
+    profile = ProfileSerializer03()
+
+    class Meta:
+        model = DiscussionReply
+        fields = ["id", "profile", "content", "created_at"]
+
+
 class DiscussionSerializer01(serializers.ModelSerializer):
     profile = ProfileSerializer03()
     category = serializers.DictField(source="category_value_and_readable")
     stars = DiscussionStarSerializer01(many=True)
+    replies = DiscussionReplySerializer01(many=True)
 
     class Meta:
         model = Discussion
-        fields = ["id", "title", "body", "category", "profile", "stars", "created_at"]
+        fields = ["id", "title", "body", "category", "profile", "stars", "replies", "created_at"]
 
 
 class DiscussionSerializer02(serializers.ModelSerializer):

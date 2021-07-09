@@ -3,7 +3,7 @@ from profiles.models import Mentor, Student
 from profiles.tests.test_views import User
 from rest_framework import status
 
-from ..models import Discussion, DiscussionStar, Market, Project
+from ..models import Discussion, DiscussionReply, DiscussionStar, Market, Project
 from ..serializers import MarketSerializer01, ProjectSerializer01, ProjectSerializer02
 
 client = Client()
@@ -455,11 +455,16 @@ class TestStarDiscussion(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data, "Discussão não encontrada!")
 
-        Discussion.objects.create()
+        discussion = Discussion.objects.create()
+
+        self.assertFalse(DiscussionStar.objects.exists())
 
         response = client.post(f"{self.url}1")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, "success")
+
+        self.assertEqual(len(DiscussionStar.objects.all()), 1)
+        self.assertTrue(DiscussionStar.objects.filter(profile=user.profile, discussion=discussion))
 
         response = client.post(f"{self.url}1")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -498,3 +503,50 @@ class TestUnstarDiscussion(TestCase):
         self.assertEqual(response.data, "success")
 
         self.assertFalse(DiscussionStar.objects.exists())
+
+
+class TestReplyDiscussion(TestCase):
+    url = BASE_URL + "reply-discussion/"
+
+    def test_req(self):
+        response = client.post(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "delete", "put", "patch"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create(username="mosh")
+        client.force_login(user)
+
+        response = client.post(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Dados inválidos!")
+
+        post_data = {"content": "Lorem ipsum dolor sit amet"}
+
+        response = client.post(f"{self.url}1", post_data)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Discussão não encontrada!")
+
+        discussion = Discussion.objects.create()
+
+        response = client.post(f"{self.url}1", {**post_data, "content": "aa"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "O comentário não pode ter menos de 3 caracteres!")
+
+        response = client.post(f"{self.url}1", {**post_data, "content": "a" * 301})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Respeite o limite de caracteres!")
+
+        self.assertFalse(DiscussionReply.objects.exists())
+
+        response = client.post(f"{self.url}1", post_data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        self.assertEqual(len(DiscussionReply.objects.all()), 1)
+        self.assertTrue(
+            DiscussionReply.objects.filter(profile=user.profile, discussion=discussion, content=post_data["content"])
+        )
