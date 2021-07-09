@@ -580,3 +580,19 @@ def reply_discussion(request, discussion_id):
     DiscussionReply.objects.create(content=content, profile=request.user.profile, discussion=discussion)
 
     return Response("success")
+
+
+@api_view(["DELETE"])
+@login_required
+def delete_discussion_reply(request, reply_id):
+    try:
+        reply = DiscussionReply.objects.get(pk=reply_id)
+    except:
+        return Response("Comentário não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    if reply.profile != request.user.profile:
+        return Response("O comentário não é seu!", status=status.HTTP_401_UNAUTHORIZED)
+
+    reply.delete()
+
+    return Response('success')

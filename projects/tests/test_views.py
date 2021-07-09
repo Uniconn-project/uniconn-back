@@ -550,3 +550,40 @@ class TestReplyDiscussion(TestCase):
         self.assertTrue(
             DiscussionReply.objects.filter(profile=user.profile, discussion=discussion, content=post_data["content"])
         )
+
+
+class TestDeleteDiscussionReply(TestCase):
+    url = BASE_URL + "delete-discussion-reply/"
+
+    def test_req(self):
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "put", "patch", "post"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create()
+        client.force_login(user)
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Comentário não encontrado!")
+
+        reply = DiscussionReply.objects.create()
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data, "O comentário não é seu!")
+
+        reply.profile = user.profile
+        reply.save()
+
+        self.assertTrue(DiscussionReply.objects.exists())
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        self.assertFalse(DiscussionReply.objects.exists())

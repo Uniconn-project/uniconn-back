@@ -75,3 +75,9 @@ class TestUrls(TestCase):
 
     def test_unstar_discussion_url(self):
         self.assertEqual(resolve(BASE_URL + "unstar-discussion/1").func, unstar_discussion)
+
+    def test_reply_discussion_url(self):
+        self.assertEqual(resolve(BASE_URL + "reply-discussion/1").func, reply_discussion)
+
+    def test_delete_discussion_reply_url(self):
+        self.assertEqual(resolve(BASE_URL + "delete-discussion-reply/1").func, delete_discussion_reply)
