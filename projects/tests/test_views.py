@@ -22,8 +22,8 @@ class TestGetMarketsNameList(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        market01 = Market.objects.create()
-        market02 = Market.objects.create()
+        market01 = Market.objects.create(name="beverages")
+        market02 = Market.objects.create(name="genetical engineering")
 
         serializer = MarketSerializer01([market01, market02], many=True)
 

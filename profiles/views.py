@@ -6,8 +6,14 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from jwt_auth.decorators import login_required
-from projects.models import DiscussionStar, Market, Project, ProjectEnteringRequest
+from projects.models import (
+    DiscussionReply,
+    DiscussionStar,
+    Market,
+    ProjectEnteringRequest,
+)
 from projects.serializers import (
+    DiscussionReplySerializer02,
     DiscussionStarSerializer02,
     MarketSerializer01,
     ProjectEnteringRequestSerializer01,
@@ -266,7 +272,7 @@ def get_notifications(request):
 
     discussions_stars = []
 
-    for star in DiscussionStar.objects.filter(discussion__profile=request.user.profile):
+    for star in DiscussionStar.objects.filter(discussion__profile=profile).exclude(profile=profile):
         if not star.visualized:
             discussions_stars.append(star)
             continue
@@ -274,15 +280,27 @@ def get_notifications(request):
         if now - star.updated_at < datetime.timedelta(2):
             discussions_stars.append(star)
 
+    discussions_replies = []
+
+    for reply in DiscussionReply.objects.filter(discussion__profile=profile).exclude(profile=profile):
+        if not reply.visualized:
+            discussions_replies.append(reply)
+            continue
+
+        if now - reply.updated_at < datetime.timedelta(2):
+            discussions_replies.append(reply)
+
     projects_invitations_serializer = ProjectSerializer03(projects_invitations, many=True)
     projects_entering_requests_serializer = ProjectEnteringRequestSerializer01(projects_entering_requests, many=True)
     discussions_stars_serializer = DiscussionStarSerializer02(discussions_stars, many=True)
+    discussions_replies_serializer = DiscussionReplySerializer02(discussions_replies, many=True)
 
     return Response(
         {
             "projects_invitations": projects_invitations_serializer.data,
             "projects_entering_requests": projects_entering_requests_serializer.data,
             "discussions_stars": discussions_stars_serializer.data,
+            "discussions_replies": discussions_replies_serializer.data,
         }
     )
 
@@ -301,9 +319,17 @@ def get_notifications_number(request):
     else:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    unvisualized_stars = DiscussionStar.objects.filter(discussion__profile=request.user.profile, visualized=False)
+    unvisualized_discussions_stars = DiscussionStar.objects.filter(
+        discussion__profile=request.user.profile, visualized=False
+    )
+    unvisualized_replies = DiscussionReply.objects.filter(discussion__profile=request.user.profile, visualized=False)
 
-    return Response(len(project_invitations) + len(projects_entering_requests) + len(unvisualized_stars))
+    return Response(
+        len(project_invitations)
+        + len(projects_entering_requests)
+        + len(unvisualized_discussions_stars)
+        + len(unvisualized_replies)
+    )
 
 
 @api_view(["PATCH"])
@@ -312,5 +338,9 @@ def visualize_notifications(request):
     for star in DiscussionStar.objects.filter(discussion__profile=request.user.profile, visualized=False):
         star.visualized = True
         star.save()
+
+    for reply in DiscussionReply.objects.filter(discussion__profile=request.user.profile, visualized=False):
+        reply.visualized = True
+        reply.save()
 
     return Response("success")

@@ -8,7 +8,7 @@ class Market(models.Model):
     Market table - relates with mentors and projects
     """
 
-    name = models.CharField(max_length=50, blank=True, null=True, unique=True)
+    name = models.CharField(max_length=50, default="", unique=True)
     mentors = models.ManyToManyField(Mentor, related_name="markets", blank=True)
 
     class Meta:
@@ -37,8 +37,8 @@ class Link(models.Model):
     Link table
     """
 
-    name = models.CharField(max_length=100, blank=True, null=True)
-    href = models.CharField(max_length=300, blank=True, null=True)
+    name = models.CharField(max_length=100, default="")
+    href = models.CharField(max_length=300, default="")
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
@@ -51,8 +51,8 @@ class Project(models.Model):
     """
 
     category = models.CharField(max_length=50, choices=project_categories_choices)
-    name = models.CharField(max_length=50, blank=True, null=True)
-    slogan = models.CharField(help_text="Very quick description", max_length=125, blank=True, null=True)
+    name = models.CharField(max_length=50, default="")
+    slogan = models.CharField(help_text="Very quick description", max_length=125, default="")
     description = models.CharField(
         help_text="Detailed description",
         default='{"blocks": [{"key": "5v3ub", "text": "Sem descrição...", "type": "unstyled", "depth": 0, "inlineStyleRanges": [], "entityRanges": [], "data": {}}], "entityMap": {}}',
@@ -79,7 +79,7 @@ class Project(models.Model):
         ]
 
     def __str__(self):
-        return self.name if self.name is not None else ""
+        return self.name
 
     @property
     def category_value_and_readable(self):
@@ -103,7 +103,7 @@ class Project(models.Model):
 
 
 class ProjectEnteringRequest(models.Model):
-    message = models.CharField(max_length=500, blank=True, null=True)
+    message = models.CharField(max_length=500, default="")
     project = models.ForeignKey(
         Project, related_name="entering_requests", on_delete=models.CASCADE, blank=True, null=True
     )
@@ -126,8 +126,8 @@ discussion_categories_choices = [
 
 
 class Discussion(models.Model):
-    title = models.CharField(max_length=125, blank=True, null=True)
-    body = models.CharField(max_length=1000, blank=True, null=True)
+    title = models.CharField(max_length=125, default="")
+    body = models.CharField(max_length=1000, default="")
     category = models.CharField(max_length=15, choices=discussion_categories_choices, blank=True, null=True)
     profile = models.ForeignKey(Profile, related_name="discussions", on_delete=models.CASCADE, blank=True, null=True)
     project = models.ForeignKey(Project, related_name="discussions", on_delete=models.CASCADE, blank=True, null=True)
@@ -169,7 +169,7 @@ class DiscussionStar(models.Model):
 
 
 class DiscussionReply(models.Model):
-    content = models.CharField(max_length=300, blank=True, null=True)
+    content = models.CharField(max_length=300, default="")
     profile = models.ForeignKey(
         Profile, related_name="discussions_replies", on_delete=models.CASCADE, blank=True, null=True
     )

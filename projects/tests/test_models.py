@@ -144,8 +144,8 @@ class TestProject(TestCase):
         project.mentors.add(mentor01)
         project.pending_invited_mentors.add(mentor02)
 
-        market01 = Market.objects.create()
-        market02 = Market.objects.create()
+        market01 = Market.objects.create(name="agriculture")
+        market02 = Market.objects.create(name="computer-brain interface")
         project.markets.add(market01, market02)
 
         link01 = Link.objects.create()

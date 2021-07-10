@@ -45,11 +45,11 @@ class TestUniversity(TestCase):
             self.assertRaises(IntegrityError, University.objects.create, cnpj=cnpj)
 
     def test_ordering(self):
-        university01 = University.objects.create(name="aTest University")
-        university03 = University.objects.create(name="cTest University")
-        university02 = University.objects.create(name="bTest University")
-        university05 = University.objects.create(name="eTest University")
-        university04 = University.objects.create(name="dTest University")
+        university01 = University.objects.create(name="aTest University", cnpj="aaa")
+        university03 = University.objects.create(name="cTest University", cnpj="bbb")
+        university02 = University.objects.create(name="bTest University", cnpj="ccc")
+        university05 = University.objects.create(name="eTest University", cnpj="ddd")
+        university04 = University.objects.create(name="dTest University", cnpj="eee")
 
         self.assertEqual(
             list(University.objects.all()), [university01, university02, university03, university04, university05]
