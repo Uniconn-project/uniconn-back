@@ -21,11 +21,11 @@ class Profile(models.Model):
     """
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    photo = models.ImageField(default="profile_avatar.jpeg", upload_to="profile_photos")
-    first_name = models.CharField(max_length=30, default="")
-    last_name = models.CharField(max_length=30, default="")
-    bio = models.CharField(max_length=150, default="Sem bio...")
-    linkedIn = models.CharField(max_length=50, default="")
+    photo = models.ImageField(default="profile_avatar.jpeg", upload_to="profile_photos", blank=True, null=True)
+    first_name = models.CharField(max_length=30, default="", null=True)
+    last_name = models.CharField(max_length=30, default="", null=True)
+    bio = models.CharField(max_length=150, default="Sem bio...", null=True)
+    linkedIn = models.CharField(max_length=50, default="", null=True)
     birth_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
