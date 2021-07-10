@@ -142,3 +142,12 @@ class DiscussionStarSerializer02(serializers.ModelSerializer):
     class Meta:
         model = DiscussionStar
         fields = ["id", "profile", "discussion", "created_at"]
+
+
+class DiscussionReplySerializer02(serializers.ModelSerializer):
+    profile = ProfileSerializer03()
+    discussion = DiscussionSerializer02()
+
+    class Meta:
+        model = DiscussionReply
+        fields = ["id", "profile", "discussion", "content", "created_at"]

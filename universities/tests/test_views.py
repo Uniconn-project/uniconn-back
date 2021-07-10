@@ -20,8 +20,8 @@ class TestGetUniversitiesNameList(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        university01 = University.objects.create()
-        university02 = University.objects.create()
+        university01 = University.objects.create(cnpj="x")
+        university02 = University.objects.create(cnpj="y")
         # Asserting that view won't return this university
         University.objects.create(is_active=False)
 
@@ -43,8 +43,8 @@ class TestGetMajorNameList(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        major01 = Major.objects.create()
-        major02 = Major.objects.create()
+        major01 = Major.objects.create(name="computer eng.")
+        major02 = Major.objects.create(name="electrical eng.")
 
         serializer = MajorSerializer01([major01, major02], many=True)
 

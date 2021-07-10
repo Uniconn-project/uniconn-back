@@ -1,7 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
-from projects.models import Discussion, DiscussionStar, Project, ProjectEnteringRequest
+from projects.models import (
+    Discussion,
+    DiscussionReply,
+    DiscussionStar,
+    Project,
+    ProjectEnteringRequest,
+)
 from projects.serializers import (
+    DiscussionReplySerializer02,
     DiscussionStarSerializer02,
     MarketSerializer01,
     ProjectEnteringRequestSerializer01,
@@ -298,6 +305,7 @@ class TestGetNotifications(TestCase):
                 "projects_invitations": [],
                 "projects_entering_requests": [],
                 "discussions_stars": [],
+                "discussions_replies": [],
             },
         )
 
@@ -313,6 +321,10 @@ class TestGetNotifications(TestCase):
         discussion_star02 = DiscussionStar.objects.create(discussion=discussion01, profile=profile02)
         discussion_star03 = DiscussionStar.objects.create(discussion=discussion02, profile=profile01)
 
+        discussion_reply01 = DiscussionReply.objects.create(discussion=discussion01, profile=profile01)
+        discussion_reply02 = DiscussionReply.objects.create(discussion=discussion01, profile=profile02)
+        discussion_reply03 = DiscussionReply.objects.create(discussion=discussion02, profile=profile01)
+
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -324,6 +336,9 @@ class TestGetNotifications(TestCase):
                 ).data,
                 "discussions_stars": DiscussionStarSerializer02(
                     [discussion_star03, discussion_star02, discussion_star01], many=True
+                ).data,
+                "discussions_replies": DiscussionReplySerializer02(
+                    [discussion_reply03, discussion_reply02, discussion_reply01], many=True
                 ).data,
             },
         )
@@ -340,6 +355,9 @@ class TestGetNotifications(TestCase):
                 "projects_entering_requests": [],
                 "discussions_stars": DiscussionStarSerializer02(
                     [discussion_star03, discussion_star02, discussion_star01], many=True
+                ).data,
+                "discussions_replies": DiscussionReplySerializer02(
+                    [discussion_reply03, discussion_reply02, discussion_reply01], many=True
                 ).data,
             },
         )
@@ -359,6 +377,9 @@ class TestGetNotifications(TestCase):
                 "projects_entering_requests": [],
                 "discussions_stars": DiscussionStarSerializer02(
                     [discussion_star03, discussion_star02, discussion_star01], many=True
+                ).data,
+                "discussions_replies": DiscussionReplySerializer02(
+                    [discussion_reply03, discussion_reply02, discussion_reply01], many=True
                 ).data,
             },
         )
