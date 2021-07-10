@@ -8,7 +8,7 @@ class Market(models.Model):
     Market table - relates with mentors and projects
     """
 
-    name = models.CharField(max_length=50, default="", null=True, unique=True)
+    name = models.CharField(max_length=50, default="", unique=True)
     mentors = models.ManyToManyField(Mentor, related_name="markets", blank=True)
 
     class Meta:
@@ -37,8 +37,8 @@ class Link(models.Model):
     Link table
     """
 
-    name = models.CharField(max_length=100, default="", null=True)
-    href = models.CharField(max_length=300, default="", null=True)
+    name = models.CharField(max_length=100, default="")
+    href = models.CharField(max_length=300, default="")
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
@@ -50,8 +50,8 @@ class Project(models.Model):
     Project table
     """
 
-    category = models.CharField(max_length=50, choices=project_categories_choices)
-    name = models.CharField(max_length=50, default="", null=True)
+    category = models.CharField(max_length=50, choices=project_categories_choices, blank=True, null=True)
+    name = models.CharField(max_length=50, default="")
     slogan = models.CharField(help_text="Very quick description", max_length=125, default="", null=True)
     description = models.CharField(
         help_text="Detailed description",
@@ -59,7 +59,7 @@ class Project(models.Model):
         null=True,
         max_length=20000,
     )
-    image = models.ImageField(default="default_project.jpg", null=True, upload_to="project_images")
+    image = models.ImageField(default="default_project.jpg", upload_to="project_images")
     students = models.ManyToManyField(Student, related_name="projects", blank=True)
     mentors = models.ManyToManyField(Mentor, related_name="projects", blank=True)
     pending_invited_students = models.ManyToManyField(Student, related_name="pending_projects_invitations", blank=True)
@@ -104,7 +104,7 @@ class Project(models.Model):
 
 
 class ProjectEnteringRequest(models.Model):
-    message = models.CharField(max_length=500, default="", null=True)
+    message = models.CharField(max_length=500, default="")
     project = models.ForeignKey(
         Project, related_name="entering_requests", on_delete=models.CASCADE, blank=True, null=True
     )
@@ -127,8 +127,8 @@ discussion_categories_choices = [
 
 
 class Discussion(models.Model):
-    title = models.CharField(max_length=125, default="", null=True)
-    body = models.CharField(max_length=1000, default="", null=True)
+    title = models.CharField(max_length=125, default="")
+    body = models.CharField(max_length=1000, default="")
     category = models.CharField(max_length=15, choices=discussion_categories_choices, blank=True, null=True)
     profile = models.ForeignKey(Profile, related_name="discussions", on_delete=models.CASCADE, blank=True, null=True)
     project = models.ForeignKey(Project, related_name="discussions", on_delete=models.CASCADE, blank=True, null=True)

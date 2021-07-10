@@ -6,8 +6,8 @@ class University(models.Model):
     University table
     """
 
-    name = models.CharField(max_length=50, default="", null=True)
-    cnpj = models.CharField(max_length=20, default="", null=True, unique=True)
+    name = models.CharField(max_length=50, default="")
+    cnpj = models.CharField(max_length=20, default="", unique=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
@@ -25,7 +25,7 @@ class Major(models.Model):
     e.g., Computer Engeneering, Economics, Law, etc
     """
 
-    name = models.CharField(max_length=50, default="", null=True, unique=True)
+    name = models.CharField(max_length=50, default="", unique=True)
 
     class Meta:
         ordering = ["name"]
