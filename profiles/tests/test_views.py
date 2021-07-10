@@ -386,7 +386,63 @@ class TestGetNotifications(TestCase):
 
 
 class TestGetNotificationsNumber(TestCase):
-    pass
+    url = BASE_URL + "get-notifications-number"
+
+    def test_req(self):
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["delete", "post", "put", "patch"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create()
+        client.force_login(user)
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Dados inválidos!")
+
+        student = Student.objects.create(profile=user.profile)
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, 0)
+
+        project01 = Project.objects.create()
+        project01.pending_invited_students.add(student)  # 1
+        project01.save()
+
+        project02 = Project.objects.create()
+        project02.students.add(student)
+        project02.save()
+
+        ProjectEnteringRequest.objects.create(project=project02)  # 2
+
+        discussion = Discussion.objects.create(profile=user.profile)
+        DiscussionStar.objects.create(discussion=discussion)  # 3
+        DiscussionStar.objects.create(discussion=discussion)  # 4
+        DiscussionReply.objects.create(discussion=discussion)  # 5
+        DiscussionReply.objects.create(discussion=discussion)  # 6
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, 6)
+
+        student.delete()
+
+        mentor = Mentor.objects.create(profile=user.profile)
+
+        project01.pending_invited_mentors.add(mentor)
+        project01.save()
+
+        project02.mentors.add(mentor)
+        project02.save()
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, 5)
 
 
 class TestVisualizeNotifications(TestCase):
@@ -412,8 +468,14 @@ class TestVisualizeNotifications(TestCase):
         discussion_star01 = DiscussionStar.objects.create(discussion=discussion)
         discussion_star02 = DiscussionStar.objects.create(discussion=discussion)
 
+        discussion_reply01 = DiscussionReply.objects.create(discussion=discussion)
+        discussion_reply02 = DiscussionReply.objects.create(discussion=discussion)
+
         self.assertFalse(discussion_star01.visualized)
         self.assertFalse(discussion_star02.visualized)
+
+        self.assertFalse(discussion_reply01.visualized)
+        self.assertFalse(discussion_reply02.visualized)
 
         response = client.patch(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -422,5 +484,11 @@ class TestVisualizeNotifications(TestCase):
         discussion_star01.refresh_from_db()
         discussion_star02.refresh_from_db()
 
+        discussion_reply01.refresh_from_db()
+        discussion_reply02.refresh_from_db()
+
         self.assertTrue(discussion_star01.visualized)
         self.assertTrue(discussion_star02.visualized)
+
+        self.assertTrue(discussion_reply01.visualized)
+        self.assertTrue(discussion_reply02.visualized)
