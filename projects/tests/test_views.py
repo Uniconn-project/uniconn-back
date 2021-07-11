@@ -436,6 +436,10 @@ class TestGetProjectDiscussion(TestCase):
     pass
 
 
+class TestDeleteProjectDiscussion(TestCase):
+    pass
+
+
 class TestStarDiscussion(TestCase):
     url = BASE_URL + "star-discussion/"
 

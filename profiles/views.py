@@ -319,10 +319,8 @@ def get_notifications_number(request):
     else:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    unvisualized_discussions_stars = DiscussionStar.objects.filter(
-        discussion__profile=request.user.profile, visualized=False
-    )
-    unvisualized_replies = DiscussionReply.objects.filter(discussion__profile=request.user.profile, visualized=False)
+    unvisualized_discussions_stars = DiscussionStar.objects.filter(discussion__profile=profile, visualized=False)
+    unvisualized_replies = DiscussionReply.objects.filter(discussion__profile=profile, visualized=False)
 
     return Response(
         len(project_invitations)
