@@ -12,6 +12,7 @@ from projects.models import (
     Market,
     Project,
     ProjectEnteringRequest,
+    ProjectStar,
     discussion_categories_choices,
     project_categories_choices,
 )
@@ -308,6 +309,72 @@ class TestProject(TestCase):
         self.assertEqual(len(pending_invited_mentors_profiles), 2)
         self.assertIn(user01.profile, pending_invited_mentors_profiles)
         self.assertIn(user02.profile, pending_invited_mentors_profiles)
+
+
+class TestProjectStar(TestCase):
+    def test_create_delete(self):
+        now_naive = datetime.datetime.now()
+        timezone = pytz.timezone("UTC")
+        now_aware = timezone.localize(now_naive)
+
+        # test create
+        project_star = ProjectStar.objects.create()
+        self.assertIsInstance(project_star, ProjectStar)
+        self.assertEqual(project_star.pk, 1)
+        self.assertFalse(project_star.visualized)
+        self.assertLessEqual(now_aware, project_star.created_at)
+        self.assertLessEqual(now_aware, project_star.updated_at)
+
+        # test delete
+        project_star.delete()
+        self.assertFalse(ProjectStar.objects.exists())
+
+    def test_fields(self):
+        project_star = ProjectStar.objects.create()
+
+        profile = User.objects.create().profile
+        project = Project.objects.create()
+        visualized = True
+
+        project_star.profile = profile
+        project_star.project = project
+        project_star.visualized = visualized
+
+        project_star.save()
+
+        self.assertEqual(project_star.profile, profile)
+        self.assertEqual(project_star.project, project)
+        self.assertTrue(project_star.visualized)
+
+    def test_profile_relation(self):
+        profile = User.objects.create().profile
+        project_star = ProjectStar.objects.create(profile=profile)
+
+        # testing related name
+        self.assertIn(project_star, profile.projects_stars.all())
+
+        # testing cascade
+        profile.delete()
+        self.assertFalse(ProjectStar.objects.exists())
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        project_star = ProjectStar.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(project_star, project.stars.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(ProjectStar.objects.exists())
+
+    def test_str(self):
+        profile = User.objects.create(username="richard").profile
+
+        project = Project.objects.create(name="Simulantum")
+
+        project_star = ProjectStar.objects.create(profile=profile, project=project)
+        self.assertEqual(str(project_star), f"{profile.user.username} starred {project}")
 
 
 class TestProjectEnteringRequest(TestCase):

@@ -103,7 +103,31 @@ class Project(models.Model):
         return [mentor.profile for mentor in self.pending_invited_mentors.all()]
 
 
+class ProjectStar(models.Model):
+    """
+    Project star table
+    """
+
+    profile = models.ForeignKey(
+        Profile, related_name="projects_stars", on_delete=models.CASCADE, blank=True, null=True
+    )
+    project = models.ForeignKey(Project, related_name="stars", on_delete=models.CASCADE, blank=True, null=True)
+    visualized = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-id"]
+
+    def __str__(self):
+        return f"{self.profile.user.username} starred {self.project}"
+
+
 class ProjectEnteringRequest(models.Model):
+    """
+    Project entering request table
+    """
+
     message = models.CharField(max_length=500, default="")
     project = models.ForeignKey(
         Project, related_name="entering_requests", on_delete=models.CASCADE, blank=True, null=True
@@ -127,6 +151,10 @@ discussion_categories_choices = [
 
 
 class Discussion(models.Model):
+    """
+    Discussion table
+    """
+
     title = models.CharField(max_length=125, default="")
     body = models.CharField(max_length=1000, default="")
     category = models.CharField(max_length=15, choices=discussion_categories_choices, blank=True, null=True)
@@ -154,6 +182,10 @@ class Discussion(models.Model):
 
 
 class DiscussionStar(models.Model):
+    """
+    Discussion star table
+    """
+
     profile = models.ForeignKey(
         Profile, related_name="discussions_stars", on_delete=models.CASCADE, blank=True, null=True
     )
@@ -170,6 +202,10 @@ class DiscussionStar(models.Model):
 
 
 class DiscussionReply(models.Model):
+    """
+    Discussion reply table - replies are all in the same layer
+    """
+
     content = models.CharField(max_length=300, default="", null=True)
     profile = models.ForeignKey(
         Profile, related_name="discussions_replies", on_delete=models.CASCADE, blank=True, null=True
