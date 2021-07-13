@@ -1,11 +1,12 @@
+from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from profiles.models import Mentor, Student
-from profiles.tests.test_views import User
 from rest_framework import status
 
 from ..models import Discussion, DiscussionReply, DiscussionStar, Market, Project
 from ..serializers import MarketSerializer01, ProjectSerializer01, ProjectSerializer02
 
+User = get_user_model()
 client = Client()
 BASE_URL = "/api/projects/"
 
