@@ -1,6 +1,6 @@
 TEST MODELS
 
-class Test[Model](Testcase):
+class Test[Model](TestCase):
     def test_create_delete(self):
         # create
          (...)
@@ -39,3 +39,19 @@ class Test[Model](Testcase):
 
 
 --------------------------------------------------------
+
+TEST VIEWS
+
+class Test[View](TestCase):
+    url = BASE_URL + '[view_url]'
+
+    def test_req(self):
+        response = client.[view_method](self.url)
+        self.assertEqual(response.status_code, status.[expected_status_code])
+
+        for method in [unallowed_methods]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        (...)
