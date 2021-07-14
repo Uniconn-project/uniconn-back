@@ -15,6 +15,7 @@ from .models import (
     Market,
     Project,
     ProjectEnteringRequest,
+    ProjectStar,
 )
 from .serializers import (
     DiscussionSerializer01,
@@ -389,6 +390,40 @@ def edit_project_description(request, project_id):
 
 @api_view(["POST"])
 @login_required
+def star_project(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    if ProjectStar.objects.filter(profile=request.user.profile, project=project).exists():
+        return Response("Você não pode curtir o mesmo projeto mais de uma vez!", status=status.HTTP_400_BAD_REQUEST)
+
+    ProjectStar.objects.create(profile=request.user.profile, project=project)
+
+    return Response("success")
+
+
+@api_view(["DELETE"])
+@login_required
+def unstar_project(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        project_star = ProjectStar.objects.get(profile=request.user.profile, project=project)
+    except:
+        return Response("Curtida não encontrada!", status=status.HTTP_404_NOT_FOUND)
+
+    project_star.delete()
+
+    return Response("success")
+
+
+@api_view(["POST"])
+@login_required
 def create_link(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
@@ -595,4 +630,4 @@ def delete_discussion_reply(request, reply_id):
 
     reply.delete()
 
-    return Response('success')
+    return Response("success")

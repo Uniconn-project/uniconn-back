@@ -52,6 +52,12 @@ class TestUrls(TestCase):
     def test_edit_project_description_url(self):
         self.assertEqual(resolve(BASE_URL + "edit-project-description/918").func, edit_project_description)
 
+    def test_star_project_url(self):
+        self.assertEqual(resolve(BASE_URL + "star-project/1564").func, star_project)
+
+    def test_unstar_project_url(self):
+        self.assertEqual(resolve(BASE_URL + "unstar-project/14763844").func, unstar_project)
+
     def test_create_link_url(self):
         self.assertEqual(resolve(BASE_URL + "create-link/10").func, create_link)
 

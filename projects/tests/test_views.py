@@ -3,7 +3,14 @@ from django.test import Client, TestCase
 from profiles.models import Mentor, Student
 from rest_framework import status
 
-from ..models import Discussion, DiscussionReply, DiscussionStar, Market, Project
+from ..models import (
+    Discussion,
+    DiscussionReply,
+    DiscussionStar,
+    Market,
+    Project,
+    ProjectStar,
+)
 from ..serializers import MarketSerializer01, ProjectSerializer01, ProjectSerializer02
 
 User = get_user_model()
@@ -417,6 +424,82 @@ class TestEditProjectDescription(TestCase):
     pass
 
 
+class TestStarProject(TestCase):
+    url = BASE_URL + "star-project/"
+
+    def test_req(self):
+        response = client.post(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "delete", "put", "patch"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create(username="mosh")
+        client.force_login(user)
+
+        response = client.post(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Projeto não encontrado!")
+
+        project = Project.objects.create()
+
+        self.assertFalse(ProjectStar.objects.exists())
+
+        response = client.post(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        self.assertEqual(len(ProjectStar.objects.all()), 1)
+        self.assertTrue(ProjectStar.objects.filter(profile=user.profile, project=project).exists())
+
+        response = client.post(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Você não pode curtir o mesmo projeto mais de uma vez!")
+
+
+class TestUnstarProject(TestCase):
+    url = BASE_URL + "unstar-project/"
+
+    def test_req(self):
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "post", "put", "patch"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create(username="mosh")
+        client.force_login(user)
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Projeto não encontrado!")
+
+        project = Project.objects.create()
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Curtida não encontrada!")
+
+        star = ProjectStar.objects.create(project=project)
+        # asserting the view will only delete a project's star if it was created by the request user
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Curtida não encontrada!")
+        star.delete()
+
+        ProjectStar.objects.create(profile=user.profile, project=project)
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+
+        self.assertFalse(ProjectStar.objects.exists())
+
+
 class TestCreateLink(TestCase):
     pass
 
@@ -469,7 +552,7 @@ class TestStarDiscussion(TestCase):
         self.assertEqual(response.data, "success")
 
         self.assertEqual(len(DiscussionStar.objects.all()), 1)
-        self.assertTrue(DiscussionStar.objects.filter(profile=user.profile, discussion=discussion))
+        self.assertTrue(DiscussionStar.objects.filter(profile=user.profile, discussion=discussion).exists())
 
         response = client.post(f"{self.url}1")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -500,6 +583,13 @@ class TestUnstarDiscussion(TestCase):
         response = client.delete(f"{self.url}1")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data, "Curtida não encontrada!")
+
+        star = DiscussionStar.objects.create(discussion=discussion)
+        # asserting the view will only delete a discussion's star if it was created by the request user
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Curtida não encontrada!")
+        star.delete()
 
         DiscussionStar.objects.create(profile=user.profile, discussion=discussion)
 
