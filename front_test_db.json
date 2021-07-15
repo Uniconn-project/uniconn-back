@@ -26,5 +26,19 @@
         "fields": {
             "profile": 1
         }
+    },
+    {
+        "model": "projects.market",
+        "pk": 1,
+        "fields": {
+            "name": "software"
+        }
+    },
+    {
+        "model": "projects.market",
+        "pk": 2,
+        "fields": {
+            "name": "finanças"
+        }
     }
 ]
