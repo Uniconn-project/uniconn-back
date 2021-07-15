@@ -310,6 +310,15 @@ class TestProject(TestCase):
         self.assertIn(user01.profile, pending_invited_mentors_profiles)
         self.assertIn(user02.profile, pending_invited_mentors_profiles)
 
+    def test_discussions_length_method(self):
+        project = Project.objects.create()
+
+        Discussion.objects.create(project=project)
+        Discussion.objects.create(project=project)
+        Discussion.objects.create(project=project)
+
+        self.assertEqual(project.discussions_length, 3)
+
 
 class TestProjectStar(TestCase):
     def test_create_delete(self):

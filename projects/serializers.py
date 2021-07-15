@@ -28,6 +28,14 @@ class LinksSerializer01(serializers.ModelSerializer):
         fields = ["id", "name", "href", "is_public"]
 
 
+class ProjectStarSerializer01(serializers.ModelSerializer):
+    profile = ProfileSerializer03()
+
+    class Meta:
+        model = DiscussionStar
+        fields = ["id", "profile"]
+
+
 class ProjectSerializer01(serializers.ModelSerializer):
     """
     Light project serializer - useful for projects list items
@@ -36,18 +44,11 @@ class ProjectSerializer01(serializers.ModelSerializer):
     category = serializers.DictField(source="category_value_and_readable")
     students = ProfileSerializer03(source="students_profiles", many=True)
     markets = MarketSerializer01(many=True)
+    stars = ProjectStarSerializer01(many=True)
 
     class Meta:
         model = Project
-        fields = [
-            "id",
-            "category",
-            "name",
-            "slogan",
-            "image",
-            "students",
-            "markets",
-        ]
+        fields = ["id", "category", "name", "slogan", "image", "students", "markets", "stars", "discussions_length"]
 
 
 class ProjectSerializer02(serializers.ModelSerializer):
@@ -78,6 +79,8 @@ class ProjectSerializer02(serializers.ModelSerializer):
             "pending_invited_mentors",
             "markets",
             "links",
+            "stars",
+            "discussions_length",
         ]
 
 

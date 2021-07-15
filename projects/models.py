@@ -102,6 +102,10 @@ class Project(models.Model):
     def pending_invited_mentors_profiles(self):
         return [mentor.profile for mentor in self.pending_invited_mentors.all()]
 
+    @property
+    def discussions_length(self):
+        return len(self.discussions.all())
+
 
 class ProjectStar(models.Model):
     """
