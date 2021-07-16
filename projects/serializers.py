@@ -63,6 +63,7 @@ class ProjectSerializer02(serializers.ModelSerializer):
     pending_invited_mentors = ProfileSerializer03(source="pending_invited_mentors_profiles", many=True)
     markets = MarketSerializer01(many=True)
     links = LinksSerializer01(many=True)
+    stars = ProjectStarSerializer01(many=True)
 
     class Meta:
         model = Project
