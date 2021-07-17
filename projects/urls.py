@@ -20,6 +20,7 @@ urlpatterns = [
     path("edit-project-description/<int:project_id>", edit_project_description),
     path("star-project/<int:project_id>", star_project),
     path("unstar-project/<int:project_id>", unstar_project),
+    path("leave-project/<int:project_id>", leave_project),
     path("create-link/<int:project_id>", create_link),
     path("delete-link", delete_link),
     path("create-project-discussion/<int:project_id>", create_project_discussion),

@@ -500,6 +500,54 @@ class TestUnstarProject(TestCase):
         self.assertFalse(ProjectStar.objects.exists())
 
 
+class TestLeaveProject(TestCase):
+    url = BASE_URL + "leave-project/"
+
+    def test_req(self):
+        response = client.patch(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "post", "put", "delete"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create(username="mosh")
+        client.force_login(user)
+
+        response = client.patch(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Projeto não encontrado!")
+
+        project = Project.objects.create()
+
+        response = client.patch(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Você não faz parte do projeto!")
+
+        student = Student.objects.create(profile=user.profile)
+        project.students.add(student)
+        project.save()
+
+        self.assertIn(student, project.students.all())
+        response = client.patch(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+        self.assertNotIn(student, project.students.all())
+
+        student.delete()
+
+        mentor = Mentor.objects.create(profile=user.profile)
+        project.mentors.add(mentor)
+        project.save()
+
+        self.assertIn(mentor, project.mentors.all())
+        response = client.patch(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "success")
+        self.assertNotIn(mentor, project.mentors.all())
+
+
 class TestCreateLink(TestCase):
     pass
 

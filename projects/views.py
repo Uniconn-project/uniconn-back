@@ -422,6 +422,26 @@ def unstar_project(request, project_id):
     return Response("success")
 
 
+@api_view(["PATCH"])
+@login_required
+def leave_project(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    profile = request.user.profile
+
+    if profile not in project.students_profiles + project.mentors_profiles:
+        return Response("Você não faz parte do projeto!", status=status.HTTP_400_BAD_REQUEST)
+
+    # removing either profile mentor or profile student from project
+    getattr(project, f"{profile.type}s").remove(getattr(profile, profile.type))
+    project.save()
+
+    return Response("success")
+
+
 @api_view(["POST"])
 @login_required
 def create_link(request, project_id):

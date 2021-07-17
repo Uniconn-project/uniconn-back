@@ -58,6 +58,9 @@ class TestUrls(TestCase):
     def test_unstar_project_url(self):
         self.assertEqual(resolve(BASE_URL + "unstar-project/14763844").func, unstar_project)
 
+    def test_leave_project_url(self):
+        self.assertEqual(resolve(BASE_URL + "leave-project/10").func, leave_project)
+
     def test_create_link_url(self):
         self.assertEqual(resolve(BASE_URL + "create-link/10").func, create_link)
 
