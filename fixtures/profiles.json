@@ -26,5 +26,19 @@
         "fields": {
             "profile": 1
         }
+    },
+    {
+        "model": "profiles.studentskill",
+        "pk": 1,
+        "fields": {
+            "name": "programação"
+        }
+    },
+    {
+        "model": "profiles.studentskill",
+        "pk": 2,
+        "fields": {
+            "name": "design"
+        }
     }
 ]
