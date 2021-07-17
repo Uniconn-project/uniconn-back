@@ -7,7 +7,7 @@ from django.db.utils import IntegrityError
 from django.test import TestCase
 from universities.models import Major, University
 
-from ..models import Mentor, Profile, Student
+from ..models import Mentor, Profile, Student, StudentSkill
 
 User = get_user_model()
 
@@ -42,6 +42,31 @@ class TestUser(TestCase):
         # testing username unique constrain
         with transaction.atomic():
             self.assertRaises(IntegrityError, User.objects.create, username=username)
+
+
+class TestStudentSkill(TestCase):
+    def test_create_delete(self):
+        # test create
+        skill = StudentSkill.objects.create()
+        self.assertIsInstance(skill, StudentSkill)
+        self.assertEqual(skill.pk, 1)
+
+        # test delete
+        skill.delete()
+        self.assertFalse(StudentSkill.objects.exists())
+
+    def test_fields(self):
+        skill = StudentSkill.objects.create()
+
+        name = "programming"
+        skill.name = name
+        skill.save()
+
+        self.assertEqual(skill.name, name)
+
+    def test_str(self):
+        skill = StudentSkill.objects.create()
+        self.assertEqual(str(skill), skill.name)
 
 
 class TestProfile(TestCase):
@@ -135,13 +160,17 @@ class TestStudent(TestCase):
 
         university = University.objects.create()
         major = Major.objects.create()
+        skill01 = StudentSkill.objects.create()
+        skill02 = StudentSkill.objects.create()
 
         student.university = university
         student.major = major
+        student.skills.add(skill01, skill02)
         student.save()
 
         self.assertEqual(student.university, university)
         self.assertEqual(student.major, major)
+        self.assertEqual(list(student.skills.all()), [skill01, skill02])
 
     def test_student_profile_relationship(self):
         # Asserting the student-profile relationship is one to one

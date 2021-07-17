@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.fields import related
 from universities.models import Major, University
 
 
@@ -13,6 +14,15 @@ class User(AbstractUser):
     """
 
     pass
+
+
+class StudentSkill(models.Model):
+    "Skill table - represents student's skills (e.g. programming, design, marketing)"
+
+    name = models.CharField(max_length=50, default="")
+
+    def __str__(self):
+        return self.name
 
 
 class Profile(models.Model):
@@ -51,6 +61,8 @@ class Student(models.Model):
         University, on_delete=models.SET_NULL, related_name="students", blank=True, null=True
     )
     major = models.ForeignKey(Major, on_delete=models.SET_NULL, related_name="students", blank=True, null=True)
+
+    skills = models.ManyToManyField(StudentSkill, related_name="students", blank=True)
 
     class Meta:
         ordering = ["-profile__id"]

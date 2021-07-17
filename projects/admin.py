@@ -1,4 +1,5 @@
 from django.contrib import admin
+from profiles.models import StudentSkill
 
 from .models import (
     Discussion,
@@ -19,3 +20,4 @@ admin.site.register(ProjectEnteringRequest)
 admin.site.register(Discussion)
 admin.site.register(DiscussionStar)
 admin.site.register(DiscussionReply)
+admin.site.register(StudentSkill)
