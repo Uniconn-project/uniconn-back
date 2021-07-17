@@ -263,7 +263,7 @@ def get_filtered_profiles(request, query):
 
 @api_view(["GET"])
 def get_profile_list(request):
-    profiles = Profile.objects.all()[:10]
+    profiles = Profile.objects.exclude(user__is_superuser=True)[:15]
     serializer = ProfileSerializer03(profiles, many=True)
 
     return Response(serializer.data)

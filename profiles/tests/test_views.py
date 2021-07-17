@@ -256,15 +256,17 @@ class TestGetProfileList(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        profiles = []
+        # asserting that the superuser's profile won't be returned by the view
+        superuser = User.objects.create(username="superuser", is_superuser=True)
+        profiles = [superuser.profile]
 
-        for i in range(15):
+        for i in range(20):
             user = User.objects.create(username=f"user0{i}")
             profiles.append(user.profile)
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, ProfileSerializer03(profiles[:10], many=True).data)
+        self.assertEqual(response.data, ProfileSerializer03(profiles[1:16], many=True).data)
 
 
 class TestGetSkillsNameList(TestCase):
