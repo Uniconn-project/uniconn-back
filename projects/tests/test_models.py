@@ -2,6 +2,8 @@ import datetime
 
 import pytz
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.db.utils import IntegrityError
 from django.test import TestCase
 from profiles.models import Mentor, Student
 from projects.models import (
@@ -51,6 +53,10 @@ class TestMarket(TestCase):
         self.assertEqual(len(market.mentors.all()), 2)
         self.assertIn(mentor01, market.mentors.all())
         self.assertIn(mentor02, market.mentors.all())
+
+        # testing name unique constrain
+        with transaction.atomic():
+            self.assertRaises(IntegrityError, Market.objects.create, name=name)
 
     def test_related_name(self):
         user = User.objects.create()

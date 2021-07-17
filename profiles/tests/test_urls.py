@@ -32,6 +32,9 @@ class TestUrls(TestCase):
     def test_get_profile_list_url(self):
         self.assertEqual(resolve(BASE_URL + "get-profile-list").func, get_profile_list)
 
+    def test_get_skills_name_list_url(self):
+        self.assertEqual(resolve(BASE_URL + "get-skills-name-list").func, get_skills_name_list)
+
     def test_get_notifications_url(self):
         self.assertEqual(resolve(BASE_URL + "get-notifications").func, get_notifications)
 

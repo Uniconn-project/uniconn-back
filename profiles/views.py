@@ -25,8 +25,13 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from universities.models import Major, University
 
-from .models import Mentor, Profile, Student
-from .serializers import ProfileSerializer01, ProfileSerializer02, ProfileSerializer03
+from .models import Mentor, Profile, Student, StudentSkill
+from .serializers import (
+    ProfileSerializer01,
+    ProfileSerializer02,
+    ProfileSerializer03,
+    StudentSkillSerializer01,
+)
 
 User = get_user_model()
 
@@ -48,8 +53,10 @@ def signup_view(request, user_type):
         if user_type == "student":
             university_name = request.data["university"]
             major_name = request.data["major"]
+            skills = request.data["skills"]
             assert University.objects.filter(name=university_name).exists()
             assert Major.objects.filter(name=major_name).exists()
+            assert StudentSkill.objects.filter(name__in=skills).exists()
         elif user_type == "mentor":
             markets = request.data["markets"]
             assert Market.objects.filter(name__in=markets).exists()
@@ -106,13 +113,17 @@ def signup_view(request, user_type):
     if user_type == "student":
         university = university = University.objects.get(name=university_name)
         major = Major.objects.get(name=major_name.lower())
-        Student.objects.create(profile=user.profile, university=university, major=major)
+        student = Student.objects.create(profile=user.profile, university=university, major=major)
+
+        student.skills.set(StudentSkill.objects.filter(name__in=skills))
+        student.save()
 
     elif user_type == "mentor":
         mentor = Mentor.objects.create(profile=user.profile)
 
         for market in Market.objects.filter(name__in=markets):
             market.mentors.add(mentor)
+            market.save()
 
     return Response("success")
 
@@ -133,10 +144,13 @@ def edit_my_profile(request):
         if profile.type == "student":
             university = request.data["university"]
             major = request.data["major"]
+            skills = request.data["skills"]
             assert University.objects.filter(name=university).exists()
             assert Major.objects.filter(name=major).exists()
+            assert StudentSkill.objects.filter(name__in=skills).exists()
         elif profile.type == "mentor":
             markets = request.data["markets"]
+            assert Market.objects.filter(name__in=markets).exists()
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
@@ -167,6 +181,7 @@ def edit_my_profile(request):
     if profile.type == "student":
         profile.student.university = University.objects.get(name=university)
         profile.student.major = Major.objects.get(name=major)
+        profile.student.skills.set(StudentSkill.objects.filter(name__in=skills))
         profile.student.save()
     elif profile.type == "mentor":
         profile.mentor.markets.set(Market.objects.filter(name__in=markets))
@@ -250,6 +265,14 @@ def get_filtered_profiles(request, query):
 def get_profile_list(request):
     profiles = Profile.objects.all()[:10]
     serializer = ProfileSerializer03(profiles, many=True)
+
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+def get_skills_name_list(request):
+    skills = StudentSkill.objects.all()
+    serializer = StudentSkillSerializer01(skills, many=True)
 
     return Response(serializer.data)
 

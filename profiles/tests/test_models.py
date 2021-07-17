@@ -58,11 +58,15 @@ class TestStudentSkill(TestCase):
     def test_fields(self):
         skill = StudentSkill.objects.create()
 
-        name = "programming"
+        name = "Programming"
         skill.name = name
         skill.save()
 
-        self.assertEqual(skill.name, name)
+        self.assertEqual(skill.name, name.lower())
+
+        # testing name unique constrain
+        with transaction.atomic():
+            self.assertRaises(IntegrityError, StudentSkill.objects.create, name=name)
 
     def test_str(self):
         skill = StudentSkill.objects.create()
@@ -160,8 +164,8 @@ class TestStudent(TestCase):
 
         university = University.objects.create()
         major = Major.objects.create()
-        skill01 = StudentSkill.objects.create()
-        skill02 = StudentSkill.objects.create()
+        skill01 = StudentSkill.objects.create(name="accounting")
+        skill02 = StudentSkill.objects.create(name="corporate law")
 
         student.university = university
         student.major = major

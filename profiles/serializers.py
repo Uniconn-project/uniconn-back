@@ -13,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "email"]
 
 
-class SkillSerializer01(serializers.ModelSerializer):
+class StudentSkillSerializer01(serializers.ModelSerializer):
     class Meta:
         model = StudentSkill
         fields = ["id", "name"]
@@ -22,7 +22,7 @@ class SkillSerializer01(serializers.ModelSerializer):
 class StudentSerializer01(serializers.ModelSerializer):
     university = UniversitySerializer01()
     major = MajorSerializer01()
-    skills = SkillSerializer01(many=True)
+    skills = StudentSkillSerializer01(many=True)
 
     class Meta:
         model = Student

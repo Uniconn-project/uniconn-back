@@ -18,9 +18,7 @@ class Market(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if self.name is not None:
-            self.name = self.name.lower()
-
+        self.name = self.name.lower()
         super().save(*args, **kwargs)
 
 

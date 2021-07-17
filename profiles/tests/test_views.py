@@ -17,8 +17,13 @@ from projects.serializers import (
 )
 from rest_framework import status
 
-from ..models import Mentor, Profile, Student
-from ..serializers import ProfileSerializer01, ProfileSerializer02, ProfileSerializer03
+from ..models import Mentor, Profile, Student, StudentSkill
+from ..serializers import (
+    ProfileSerializer01,
+    ProfileSerializer02,
+    ProfileSerializer03,
+    StudentSkillSerializer01,
+)
 
 User = get_user_model()
 client = Client()
@@ -258,7 +263,31 @@ class TestGetProfileList(TestCase):
             profiles.append(user.profile)
 
         response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, ProfileSerializer03(profiles[:10], many=True).data)
+
+
+class TestGetSkillsNameList(TestCase):
+    url = BASE_URL + "get-skills-name-list"
+
+    def test_req(self):
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        skill01 = StudentSkill.objects.create(name="programming")
+        skill02 = StudentSkill.objects.create(name="design")
+        skill03 = StudentSkill.objects.create(name="physics")
+
+        skills = [skill01, skill02, skill03]
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, StudentSkillSerializer01(skills, many=True).data)
 
 
 class TestGetNotifications(TestCase):

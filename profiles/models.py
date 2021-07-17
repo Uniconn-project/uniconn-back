@@ -17,12 +17,16 @@ class User(AbstractUser):
 
 
 class StudentSkill(models.Model):
-    "Skill table - represents student's skills (e.g. programming, design, marketing)"
+    "Student skill table - represents students skills (e.g. programming, design, marketing)"
 
-    name = models.CharField(max_length=50, default="")
+    name = models.CharField(max_length=50, default="", unique=True)
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.name = self.name.lower()
+        super().save(*args, **kwargs)
 
 
 class Profile(models.Model):

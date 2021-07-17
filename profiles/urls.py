@@ -12,6 +12,7 @@ urlpatterns = [
     path("get-mentor-markets/<str:slug>", get_mentor_markets),
     path("get-filtered-profiles/<str:query>", get_filtered_profiles),
     path("get-profile-list", get_profile_list),
+    path("get-skills-name-list", get_skills_name_list),
     path("get-notifications", get_notifications),
     path("get-notifications-number", get_notifications_number),
     path("visualize-notifications", visualize_notifications),
