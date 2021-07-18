@@ -15,8 +15,10 @@ from projects.models import (
     Project,
     ProjectEnteringRequest,
     ProjectStar,
+    Tool,
     discussion_categories_choices,
     project_categories_choices,
+    tool_categories_choices,
 )
 
 User = get_user_model()
@@ -77,7 +79,6 @@ class TestLink(TestCase):
         link = Link.objects.create()
         self.assertIsInstance(link, Link)
         self.assertEqual(link.pk, 1)
-        self.assertFalse(link.is_public)
 
         # test delete
         link.delete()
@@ -91,17 +92,55 @@ class TestLink(TestCase):
 
         link.name = name
         link.href = href
-        link.is_public = True
 
         link.save()
 
         self.assertEqual(link.name, name)
         self.assertEqual(link.href, href)
-        self.assertTrue(link.is_public)
 
     def test_str(self):
         link = Link.objects.create(name="Figma Mockup")
         self.assertEqual(str(link), link.name)
+
+
+class TestTool(TestCase):
+    def test_create_delete(self):
+        # test create
+        tool = Tool.objects.create()
+        self.assertIsInstance(tool, Tool)
+        self.assertEqual(tool.pk, 1)
+
+        # test delete
+        tool.delete()
+        self.assertFalse(Tool.objects.exists())
+
+    def test_fields(self):
+        tool = Tool.objects.create()
+
+        name = "Github"
+        href = "https://github.com/projectx"
+        category = "development_tools"
+
+        tool.category = category
+        tool.name = name
+        tool.href = href
+
+        tool.save()
+
+        self.assertEqual(tool.category, category)
+        self.assertEqual(tool.name, name)
+        self.assertEqual(tool.href, href)
+
+    def test_str(self):
+        tool = Tool.objects.create(name="Figma Mockup")
+        self.assertEqual(str(tool), tool.name)
+
+    def test_category_value_and_readable_method(self):
+        tool = Tool.objects.create(category=tool_categories_choices[0][0])
+        self.assertEqual(
+            tool.category_value_and_readable,
+            {"value": tool_categories_choices[0][0], "readable": tool_categories_choices[0][1]},
+        )
 
 
 class TestProject(TestCase):
@@ -159,6 +198,10 @@ class TestProject(TestCase):
         link02 = Link.objects.create()
         project.links.add(link01, link02)
 
+        tool01 = Tool.objects.create()
+        tool02 = Tool.objects.create()
+        project.tools.add(tool01, tool02)
+
         project.category = category
         project.name = name
         project.slogan = slogan
@@ -178,6 +221,7 @@ class TestProject(TestCase):
         self.assertEqual(list(project.pending_invited_mentors.all()), [mentor02])
         self.assertEqual(list(project.markets.all()), [market01, market02])
         self.assertEqual(list(project.links.all()), [link01, link02])
+        self.assertEqual(list(project.tools.all()), [tool01, tool02])
 
     def test_related_name(self):
         project = Project.objects.create()

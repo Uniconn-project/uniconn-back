@@ -7,6 +7,7 @@ from ..models import (
     Discussion,
     DiscussionReply,
     DiscussionStar,
+    Link,
     Market,
     Project,
     ProjectStar,
@@ -236,6 +237,18 @@ class TestGetProject(TestCase):
         self.assertEqual(response.data, "Projeto não encontrado")
 
         project = Project.objects.create()
+
+        link01 = Link.objects.create()
+        link02 = Link.objects.create()
+        link03 = Link.objects.create()
+
+        tool01 = Link.objects.create()
+        tool02 = Link.objects.create()
+        tool03 = Link.objects.create()
+
+        project.links.add(tool01, tool02, tool03)
+        project.links.add(link01, link02, link03)
+        project.save()
 
         response = client.get(f"{self.url}1")
         self.assertEqual(response.data, ProjectSerializer02(project).data)

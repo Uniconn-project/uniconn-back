@@ -22,14 +22,6 @@ class Market(models.Model):
         super().save(*args, **kwargs)
 
 
-project_categories_choices = [
-    ("startup", "startup"),
-    ("junior_enterprise", "empresa júnior"),
-    ("academic", "projeto acadêmico"),
-    ("social_project", "projeto social"),
-]
-
-
 class Link(models.Model):
     """
     Link table
@@ -37,10 +29,41 @@ class Link(models.Model):
 
     name = models.CharField(max_length=100, default="")
     href = models.CharField(max_length=300, default="")
-    is_public = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
+
+
+tool_categories_choices = [
+    ("task_managers", "gerenciadores de tarefas"),
+    ("development_tools", "ferramentas de desenvolvimento"),
+    ("communication_channels", "canais de comunicação"),
+]
+
+
+class Tool(models.Model):
+    """
+    Tool table
+    """
+
+    category = models.CharField(max_length=50, choices=tool_categories_choices, blank=True, null=True)
+    name = models.CharField(max_length=100, default="")
+    href = models.CharField(max_length=300, default="")
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def category_value_and_readable(self):
+        return {"value": self.category, "readable": self.get_category_display()}
+
+
+project_categories_choices = [
+    ("startup", "startup"),
+    ("junior_enterprise", "empresa júnior"),
+    ("academic", "projeto acadêmico"),
+    ("social_project", "projeto social"),
+]
 
 
 class Project(models.Model):
@@ -64,6 +87,7 @@ class Project(models.Model):
     pending_invited_mentors = models.ManyToManyField(Mentor, related_name="pending_projects_invitations", blank=True)
     markets = models.ManyToManyField(Market, related_name="projects", blank=True)
     links = models.ManyToManyField(Link, related_name="projects", blank=True)
+    tools = models.ManyToManyField(Tool, related_name="projects", blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
