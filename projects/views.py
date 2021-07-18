@@ -456,7 +456,6 @@ def create_link(request, project_id):
     try:
         name = request.data["name"].strip()
         href = request.data["href"].strip()
-        is_public = request.data["is_public"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
@@ -466,7 +465,7 @@ def create_link(request, project_id):
     if len(name) > 100 or len(href) > 1000:
         return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
-    link = Link.objects.create(name=name, href=href, is_public=is_public)
+    link = Link.objects.create(name=name, href=href)
 
     project.links.add(link)
     project.save()
