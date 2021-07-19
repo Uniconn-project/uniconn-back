@@ -365,6 +365,14 @@ def reply_project_entering_request(request):
 @login_required
 def edit_project_description(request, project_id):
     try:
+        description = request.data["description"]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if len(str(description)) > 20000:
+        return Response("A descrição superou o limite de caracteres!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
         project = Project.objects.get(pk=project_id)
     except:
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
@@ -377,15 +385,10 @@ def edit_project_description(request, project_id):
     if not request.user.profile.student in project.students.all():
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
-    try:
-        description = request.data["description"]
-    except:
-        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
-
     project.description = description
     project.save()
 
-    return Response("Project description edited with success!")
+    return Response("success")
 
 
 @api_view(["POST"])
