@@ -23,6 +23,8 @@ urlpatterns = [
     path("leave-project/<int:project_id>", leave_project),
     path("create-link/<int:project_id>", create_link),
     path("delete-link", delete_link),
+    path("create-tool/<int:project_id>", create_tool),
+    path("delete-tool/<int:tool_id>", delete_tool),
     path("create-project-discussion/<int:project_id>", create_project_discussion),
     path("get-project-discussions/<int:project_id>", get_project_discussions),
     path("get-project-discussion/<int:discussion_id>", get_project_discussion),

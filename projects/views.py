@@ -16,6 +16,8 @@ from .models import (
     Project,
     ProjectEnteringRequest,
     ProjectStar,
+    Tool,
+    ToolCategory,
 )
 from .serializers import (
     DiscussionSerializer01,
@@ -488,6 +490,56 @@ def delete_link(request):
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     link.delete()
+
+    return Response("success")
+
+
+@api_view(["POST"])
+@login_required
+def create_tool(request, project_id):
+    try:
+        category_name = request.data["category"].strip()
+        name = request.data["name"].strip()
+        href = request.data["href"].strip()
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        category = ToolCategory.objects.get(project=project, name=category_name)
+    except:
+        return Response("Categoria não encontrada!", status=status.HTTP_404_NOT_FOUND)
+
+    if not request.user.profile in project.students_profiles + project.mentors_profiles:
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    if name == "" or href == "":
+        return Response("Todos os campos devem ser preenchidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if len(name) > 100 or len(href) > 1000:
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
+
+    Tool.objects.create(category=category, name=name, href=href)
+
+    return Response("success")
+
+
+@api_view(["DELETE"])
+@login_required
+def delete_tool(request, tool_id):
+    try:
+        tool = Tool.objects.get(pk=tool_id)
+    except:
+        return Response("Ferramenta não encontrada!", status=status.HTTP_404_NOT_FOUND)
+
+    if not request.user.profile in tool.category.project.students_profiles + tool.category.project.mentors_profiles:
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    tool.delete()
 
     return Response("success")
 

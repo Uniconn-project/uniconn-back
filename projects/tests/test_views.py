@@ -569,6 +569,14 @@ class TestDeleteLink(TestCase):
     pass
 
 
+class TestCreateTool(TestCase):
+    pass
+
+
+class TestDeleteTool(TestCase):
+    pass
+
+
 class TestCreateProjectDiscussion(TestCase):
     pass
 
