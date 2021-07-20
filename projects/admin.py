@@ -11,10 +11,12 @@ from .models import (
     ProjectEnteringRequest,
     ProjectStar,
     Tool,
+    ToolCategory,
 )
 
 admin.site.register(Market)
 admin.site.register(Link)
+admin.site.register(ToolCategory)
 admin.site.register(Tool)
 admin.site.register(Project)
 admin.site.register(ProjectStar)

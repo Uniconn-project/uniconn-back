@@ -9,6 +9,8 @@ from .models import (
     Market,
     Project,
     ProjectEnteringRequest,
+    Tool,
+    ToolCategory,
 )
 
 
@@ -28,11 +30,17 @@ class LinkSerializer01(serializers.ModelSerializer):
         fields = ["id", "name", "href"]
 
 
+class ToolCategorySerializer01(serializers.ModelSerializer):
+    class Meta:
+        model = ToolCategory
+        fields = ["id", "name"]
+
+
 class ToolSerializer01(serializers.ModelSerializer):
-    category = serializers.DictField(source="category_value_and_readable")
+    category = ToolCategorySerializer01()
 
     class Meta:
-        model = Link
+        model = Tool
         fields = ["id", "category", "name", "href"]
 
 
@@ -71,7 +79,7 @@ class ProjectSerializer02(serializers.ModelSerializer):
     pending_invited_mentors = ProfileSerializer03(source="pending_invited_mentors_profiles", many=True)
     markets = MarketSerializer01(many=True)
     links = LinkSerializer01(many=True)
-    tools = ToolSerializer01(many=True)
+    tools_categories = ToolCategorySerializer01(many=True)
     stars = ProjectStarSerializer01(many=True)
 
     class Meta:
@@ -89,7 +97,7 @@ class ProjectSerializer02(serializers.ModelSerializer):
             "pending_invited_mentors",
             "markets",
             "links",
-            "tools",
+            "tools_categories",
             "stars",
             "discussions_length",
         ]

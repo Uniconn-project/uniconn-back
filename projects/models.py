@@ -34,11 +34,15 @@ class Link(models.Model):
         return self.name
 
 
-tool_categories_choices = [
-    ("task_managers", "gerenciadores de tarefas"),
-    ("development_tools", "ferramentas de desenvolvimento"),
-    ("communication_channels", "canais de comunicação"),
-]
+class ToolCategory(models.Model):
+    """
+    Tool category table
+    """
+
+    name = models.CharField(max_length=100, default="")
+
+    def __str__(self):
+        return self.name
 
 
 class Tool(models.Model):
@@ -46,16 +50,12 @@ class Tool(models.Model):
     Tool table
     """
 
-    category = models.CharField(max_length=50, choices=tool_categories_choices, blank=True, null=True)
+    category = models.ForeignKey(ToolCategory, related_name="tools", on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=100, default="")
     href = models.CharField(max_length=300, default="")
 
     def __str__(self):
         return self.name
-
-    @property
-    def category_value_and_readable(self):
-        return {"value": self.category, "readable": self.get_category_display()}
 
 
 project_categories_choices = [
@@ -87,7 +87,7 @@ class Project(models.Model):
     pending_invited_mentors = models.ManyToManyField(Mentor, related_name="pending_projects_invitations", blank=True)
     markets = models.ManyToManyField(Market, related_name="projects", blank=True)
     links = models.ManyToManyField(Link, related_name="projects", blank=True)
-    tools = models.ManyToManyField(Tool, related_name="projects", blank=True)
+    tools_categories = models.ManyToManyField(ToolCategory, related_name="projects", blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 

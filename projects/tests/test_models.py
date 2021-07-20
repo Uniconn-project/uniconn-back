@@ -16,9 +16,9 @@ from projects.models import (
     ProjectEnteringRequest,
     ProjectStar,
     Tool,
+    ToolCategory,
     discussion_categories_choices,
     project_categories_choices,
-    tool_categories_choices,
 )
 
 User = get_user_model()
@@ -103,6 +103,32 @@ class TestLink(TestCase):
         self.assertEqual(str(link), link.name)
 
 
+class TestToolCategory(TestCase):
+    def test_create_delete(self):
+        # test create
+        tool_category = ToolCategory.objects.create()
+        self.assertIsInstance(tool_category, ToolCategory)
+        self.assertEqual(tool_category.pk, 1)
+
+        # test delete
+        tool_category.delete()
+        self.assertFalse(ToolCategory.objects.exists())
+
+    def test_fields(self):
+        tool_category = ToolCategory.objects.create()
+
+        name = "Ferramentas de desenvolvimento"
+
+        tool_category.name = name
+        tool_category.save()
+
+        self.assertEqual(tool_category.name, name)
+
+    def test_str(self):
+        tool_category = ToolCategory.objects.create(name="Documentos em Nuvem")
+        self.assertEqual(str(tool_category), tool_category.name)
+
+
 class TestTool(TestCase):
     def test_create_delete(self):
         # test create
@@ -119,7 +145,7 @@ class TestTool(TestCase):
 
         name = "Github"
         href = "https://github.com/projectx"
-        category = "development_tools"
+        category = ToolCategory.objects.create()
 
         tool.category = category
         tool.name = name
@@ -134,13 +160,6 @@ class TestTool(TestCase):
     def test_str(self):
         tool = Tool.objects.create(name="Figma Mockup")
         self.assertEqual(str(tool), tool.name)
-
-    def test_category_value_and_readable_method(self):
-        tool = Tool.objects.create(category=tool_categories_choices[0][0])
-        self.assertEqual(
-            tool.category_value_and_readable,
-            {"value": tool_categories_choices[0][0], "readable": tool_categories_choices[0][1]},
-        )
 
 
 class TestProject(TestCase):
@@ -198,9 +217,9 @@ class TestProject(TestCase):
         link02 = Link.objects.create()
         project.links.add(link01, link02)
 
-        tool01 = Tool.objects.create()
-        tool02 = Tool.objects.create()
-        project.tools.add(tool01, tool02)
+        tool_category01 = ToolCategory.objects.create()
+        tool_category02 = ToolCategory.objects.create()
+        project.tools_categories.add(tool_category01, tool_category02)
 
         project.category = category
         project.name = name
@@ -221,7 +240,7 @@ class TestProject(TestCase):
         self.assertEqual(list(project.pending_invited_mentors.all()), [mentor02])
         self.assertEqual(list(project.markets.all()), [market01, market02])
         self.assertEqual(list(project.links.all()), [link01, link02])
-        self.assertEqual(list(project.tools.all()), [tool01, tool02])
+        self.assertEqual(list(project.tools_categories.all()), [tool_category01, tool_category02])
 
     def test_related_name(self):
         project = Project.objects.create()
@@ -234,32 +253,44 @@ class TestProject(TestCase):
         # students
         student01 = Student.objects.create(profile=user01.profile)
         project.students.add(student01)
+        project.save()
         self.assertIn(project, student01.projects.all())
 
         # pending_invited_students
         student02 = Student.objects.create(profile=user02.profile)
         project.pending_invited_students.add(student02)
+        project.save()
         self.assertIn(project, student02.pending_projects_invitations.all())
 
         # mentors
         mentor01 = Mentor.objects.create(profile=user03.profile)
         project.mentors.add(mentor01)
+        project.save()
         self.assertIn(project, mentor01.projects.all())
 
         # pending_invited_mentors
         mentor02 = Mentor.objects.create(profile=user04.profile)
         project.pending_invited_mentors.add(mentor02)
+        project.save()
         self.assertIn(project, mentor02.pending_projects_invitations.all())
 
         # markets
         market = Market.objects.create()
         project.markets.add(market)
+        project.save()
         self.assertIn(project, market.projects.all())
 
         # links
         link = Link.objects.create()
         project.links.add(link)
+        project.save()
         self.assertIn(project, link.projects.all())
+
+        # tools_categories
+        tool_category = ToolCategory.objects.create()
+        project.tools_categories.add(tool_category)
+        project.save()
+        self.assertIn(project, tool_category.projects.all())
 
     def test_get_project_categories_choices_staticmethod(self):
         self.assertEqual(
