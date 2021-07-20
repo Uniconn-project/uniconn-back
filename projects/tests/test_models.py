@@ -73,36 +73,6 @@ class TestMarket(TestCase):
         self.assertEqual(str(market), market.name)
 
 
-class TestLink(TestCase):
-    def test_create_delete(self):
-        # test create
-        link = Link.objects.create()
-        self.assertIsInstance(link, Link)
-        self.assertEqual(link.pk, 1)
-
-        # test delete
-        link.delete()
-        self.assertFalse(Link.objects.exists())
-
-    def test_fields(self):
-        link = Link.objects.create()
-
-        name = "Github"
-        href = "https://github.com/projectx"
-
-        link.name = name
-        link.href = href
-
-        link.save()
-
-        self.assertEqual(link.name, name)
-        self.assertEqual(link.href, href)
-
-    def test_str(self):
-        link = Link.objects.create(name="Figma Mockup")
-        self.assertEqual(str(link), link.name)
-
-
 class TestProject(TestCase):
     def test_create_delete(self):
         now_naive = datetime.datetime.now()
@@ -154,10 +124,6 @@ class TestProject(TestCase):
         market02 = Market.objects.create(name="computer-brain interface")
         project.markets.add(market01, market02)
 
-        link01 = Link.objects.create()
-        link02 = Link.objects.create()
-        project.links.add(link01, link02)
-
         project.category = category
         project.name = name
         project.slogan = slogan
@@ -176,7 +142,6 @@ class TestProject(TestCase):
         self.assertEqual(list(project.mentors.all()), [mentor01])
         self.assertEqual(list(project.pending_invited_mentors.all()), [mentor02])
         self.assertEqual(list(project.markets.all()), [market01, market02])
-        self.assertEqual(list(project.links.all()), [link01, link02])
 
     def test_related_name(self):
         project = Project.objects.create()
@@ -215,12 +180,6 @@ class TestProject(TestCase):
         project.markets.add(market)
         project.save()
         self.assertIn(project, market.projects.all())
-
-        # links
-        link = Link.objects.create()
-        project.links.add(link)
-        project.save()
-        self.assertIn(project, link.projects.all())
 
     def test_get_project_categories_choices_staticmethod(self):
         self.assertEqual(
@@ -329,6 +288,51 @@ class TestProject(TestCase):
         Discussion.objects.create(project=project)
 
         self.assertEqual(project.discussions_length, 3)
+
+
+class TestLink(TestCase):
+    def test_create_delete(self):
+        # test create
+        link = Link.objects.create()
+        self.assertIsInstance(link, Link)
+        self.assertEqual(link.pk, 1)
+
+        # test delete
+        link.delete()
+        self.assertFalse(Link.objects.exists())
+
+    def test_fields(self):
+        link = Link.objects.create()
+
+        name = "Github"
+        href = "https://github.com/projectx"
+        project = Project.objects.create()
+
+        link.name = name
+        link.href = href
+        link.project = project
+
+        link.save()
+
+        self.assertEqual(link.name, name)
+        self.assertEqual(link.href, href)
+        self.assertEqual(link.project, project)
+
+    def test_str(self):
+        project = Project.objects.create()
+        link = Link.objects.create(name="Figma Mockup", project=project)
+        self.assertEqual(str(link), f"{link.name} - {link.project}")
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        link = Link.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(link, project.links.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(Link.objects.exists())
 
 
 class TestToolCategory(TestCase):

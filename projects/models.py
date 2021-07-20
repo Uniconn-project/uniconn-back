@@ -22,18 +22,6 @@ class Market(models.Model):
         super().save(*args, **kwargs)
 
 
-class Link(models.Model):
-    """
-    Link table
-    """
-
-    name = models.CharField(max_length=100, default="")
-    href = models.CharField(max_length=300, default="")
-
-    def __str__(self):
-        return self.name
-
-
 project_categories_choices = [
     ("startup", "startup"),
     ("junior_enterprise", "empresa júnior"),
@@ -62,7 +50,6 @@ class Project(models.Model):
     pending_invited_students = models.ManyToManyField(Student, related_name="pending_projects_invitations", blank=True)
     pending_invited_mentors = models.ManyToManyField(Mentor, related_name="pending_projects_invitations", blank=True)
     markets = models.ManyToManyField(Market, related_name="projects", blank=True)
-    links = models.ManyToManyField(Link, related_name="projects", blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -102,6 +89,19 @@ class Project(models.Model):
     @property
     def discussions_length(self):
         return len(self.discussions.all())
+
+
+class Link(models.Model):
+    """
+    Link table
+    """
+
+    name = models.CharField(max_length=100, default="")
+    href = models.CharField(max_length=300, default="")
+    project = models.ForeignKey(Project, related_name="links", on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.project}"
 
 
 class ToolCategory(models.Model):
