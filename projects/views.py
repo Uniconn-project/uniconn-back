@@ -466,10 +466,7 @@ def create_link(request, project_id):
     if len(name) > 100 or len(href) > 1000:
         return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
-    link = Link.objects.create(name=name, href=href)
-
-    project.links.add(link)
-    project.save()
+    Link.objects.create(name=name, href=href, project=project)
 
     return Response("success")
 
@@ -479,22 +476,15 @@ def create_link(request, project_id):
 def delete_link(request):
     try:
         link_id = request.data["link_id"]
-        project_id = request.data["project_id"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        project = Project.objects.get(pk=project_id)
-    except:
-        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
-
-    try:
         link = Link.objects.get(pk=link_id)
-        assert link in project.links.all()
     except:
         return Response("Link não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
-    if not request.user.profile in project.students_profiles + project.mentors_profiles:
+    if not request.user.profile in link.project.students_profiles + link.project.mentors_profiles:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     link.delete()
