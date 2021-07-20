@@ -30,18 +30,18 @@ class LinkSerializer01(serializers.ModelSerializer):
         fields = ["id", "name", "href"]
 
 
-class ToolCategorySerializer01(serializers.ModelSerializer):
-    class Meta:
-        model = ToolCategory
-        fields = ["id", "name"]
-
-
 class ToolSerializer01(serializers.ModelSerializer):
-    category = ToolCategorySerializer01()
-
     class Meta:
         model = Tool
-        fields = ["id", "category", "name", "href"]
+        fields = ["id", "name", "href"]
+
+
+class ToolCategorySerializer01(serializers.ModelSerializer):
+    tools = ToolSerializer01(many=True)
+
+    class Meta:
+        model = ToolCategory
+        fields = ["id", "name", "tools"]
 
 
 class ProjectStarSerializer01(serializers.ModelSerializer):

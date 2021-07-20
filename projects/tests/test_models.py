@@ -103,65 +103,6 @@ class TestLink(TestCase):
         self.assertEqual(str(link), link.name)
 
 
-class TestToolCategory(TestCase):
-    def test_create_delete(self):
-        # test create
-        tool_category = ToolCategory.objects.create()
-        self.assertIsInstance(tool_category, ToolCategory)
-        self.assertEqual(tool_category.pk, 1)
-
-        # test delete
-        tool_category.delete()
-        self.assertFalse(ToolCategory.objects.exists())
-
-    def test_fields(self):
-        tool_category = ToolCategory.objects.create()
-
-        name = "Ferramentas de desenvolvimento"
-
-        tool_category.name = name
-        tool_category.save()
-
-        self.assertEqual(tool_category.name, name)
-
-    def test_str(self):
-        tool_category = ToolCategory.objects.create(name="Documentos em Nuvem")
-        self.assertEqual(str(tool_category), tool_category.name)
-
-
-class TestTool(TestCase):
-    def test_create_delete(self):
-        # test create
-        tool = Tool.objects.create()
-        self.assertIsInstance(tool, Tool)
-        self.assertEqual(tool.pk, 1)
-
-        # test delete
-        tool.delete()
-        self.assertFalse(Tool.objects.exists())
-
-    def test_fields(self):
-        tool = Tool.objects.create()
-
-        name = "Github"
-        href = "https://github.com/projectx"
-        category = ToolCategory.objects.create()
-
-        tool.category = category
-        tool.name = name
-        tool.href = href
-
-        tool.save()
-
-        self.assertEqual(tool.category, category)
-        self.assertEqual(tool.name, name)
-        self.assertEqual(tool.href, href)
-
-    def test_str(self):
-        tool = Tool.objects.create(name="Figma Mockup")
-        self.assertEqual(str(tool), tool.name)
-
-
 class TestProject(TestCase):
     def test_create_delete(self):
         now_naive = datetime.datetime.now()
@@ -217,10 +158,6 @@ class TestProject(TestCase):
         link02 = Link.objects.create()
         project.links.add(link01, link02)
 
-        tool_category01 = ToolCategory.objects.create()
-        tool_category02 = ToolCategory.objects.create()
-        project.tools_categories.add(tool_category01, tool_category02)
-
         project.category = category
         project.name = name
         project.slogan = slogan
@@ -240,7 +177,6 @@ class TestProject(TestCase):
         self.assertEqual(list(project.pending_invited_mentors.all()), [mentor02])
         self.assertEqual(list(project.markets.all()), [market01, market02])
         self.assertEqual(list(project.links.all()), [link01, link02])
-        self.assertEqual(list(project.tools_categories.all()), [tool_category01, tool_category02])
 
     def test_related_name(self):
         project = Project.objects.create()
@@ -285,12 +221,6 @@ class TestProject(TestCase):
         project.links.add(link)
         project.save()
         self.assertIn(project, link.projects.all())
-
-        # tools_categories
-        tool_category = ToolCategory.objects.create()
-        project.tools_categories.add(tool_category)
-        project.save()
-        self.assertIn(project, tool_category.projects.all())
 
     def test_get_project_categories_choices_staticmethod(self):
         self.assertEqual(
@@ -399,6 +329,80 @@ class TestProject(TestCase):
         Discussion.objects.create(project=project)
 
         self.assertEqual(project.discussions_length, 3)
+
+
+class TestToolCategory(TestCase):
+    def test_create_delete(self):
+        # test create
+        tool_category = ToolCategory.objects.create()
+        self.assertIsInstance(tool_category, ToolCategory)
+        self.assertEqual(tool_category.pk, 1)
+
+        # test delete
+        tool_category.delete()
+        self.assertFalse(ToolCategory.objects.exists())
+
+    def test_fields(self):
+        tool_category = ToolCategory.objects.create()
+
+        name = "Ferramentas de desenvolvimento"
+        project = Project.objects.create()
+
+        tool_category.name = name
+        tool_category.project = project
+        tool_category.save()
+
+        self.assertEqual(tool_category.name, name)
+        self.assertEqual(tool_category.project, project)
+
+    def test_str(self):
+        project = Project.objects.create()
+        tool_category = ToolCategory.objects.create(name="Documentos em Nuvem", project=project)
+        self.assertEqual(str(tool_category), f"{tool_category.name} - {tool_category.project}")
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        tool_category = ToolCategory.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(tool_category, project.tools_categories.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(ToolCategory.objects.exists())
+
+
+class TestTool(TestCase):
+    def test_create_delete(self):
+        # test create
+        tool = Tool.objects.create()
+        self.assertIsInstance(tool, Tool)
+        self.assertEqual(tool.pk, 1)
+
+        # test delete
+        tool.delete()
+        self.assertFalse(Tool.objects.exists())
+
+    def test_fields(self):
+        tool = Tool.objects.create()
+
+        name = "Github"
+        href = "https://github.com/projectx"
+        category = ToolCategory.objects.create()
+
+        tool.category = category
+        tool.name = name
+        tool.href = href
+
+        tool.save()
+
+        self.assertEqual(tool.category, category)
+        self.assertEqual(tool.name, name)
+        self.assertEqual(tool.href, href)
+
+    def test_str(self):
+        tool = Tool.objects.create(name="Figma Mockup")
+        self.assertEqual(str(tool), tool.name)
 
 
 class TestProjectStar(TestCase):

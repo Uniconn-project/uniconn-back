@@ -34,30 +34,6 @@ class Link(models.Model):
         return self.name
 
 
-class ToolCategory(models.Model):
-    """
-    Tool category table
-    """
-
-    name = models.CharField(max_length=100, default="")
-
-    def __str__(self):
-        return self.name
-
-
-class Tool(models.Model):
-    """
-    Tool table
-    """
-
-    category = models.ForeignKey(ToolCategory, related_name="tools", on_delete=models.CASCADE, blank=True, null=True)
-    name = models.CharField(max_length=100, default="")
-    href = models.CharField(max_length=300, default="")
-
-    def __str__(self):
-        return self.name
-
-
 project_categories_choices = [
     ("startup", "startup"),
     ("junior_enterprise", "empresa júnior"),
@@ -87,7 +63,6 @@ class Project(models.Model):
     pending_invited_mentors = models.ManyToManyField(Mentor, related_name="pending_projects_invitations", blank=True)
     markets = models.ManyToManyField(Market, related_name="projects", blank=True)
     links = models.ManyToManyField(Link, related_name="projects", blank=True)
-    tools_categories = models.ManyToManyField(ToolCategory, related_name="projects", blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -127,6 +102,33 @@ class Project(models.Model):
     @property
     def discussions_length(self):
         return len(self.discussions.all())
+
+
+class ToolCategory(models.Model):
+    """
+    Tool category table
+    """
+
+    name = models.CharField(max_length=100, default="")
+    project = models.ForeignKey(
+        Project, related_name="tools_categories", on_delete=models.CASCADE, blank=True, null=True
+    )
+
+    def __str__(self):
+        return f"{self.name} - {self.project}"
+
+
+class Tool(models.Model):
+    """
+    Tool table
+    """
+
+    category = models.ForeignKey(ToolCategory, related_name="tools", on_delete=models.CASCADE, blank=True, null=True)
+    name = models.CharField(max_length=100, default="")
+    href = models.CharField(max_length=300, default="")
+
+    def __str__(self):
+        return self.name
 
 
 class ProjectStar(models.Model):

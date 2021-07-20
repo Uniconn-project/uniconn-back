@@ -143,8 +143,6 @@ def edit_project(request, project_id):
         project_image = ContentFile(base64.b64decode(imgstr), name=f"{project.name}.{img_format}")
         project.image = project_image
 
-        print(project_image, image)
-
     project.name = name
     project.category = category
     project.slogan = slogan
