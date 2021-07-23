@@ -178,9 +178,16 @@ def invite_users_to_project(request, type, project_id):
 
     if type == "students":
         students = Student.objects.filter(profile__user__username__in=usernames)
+        if not students.exists():
+            return Response("Nenhum universitário foi encontrado!", status=status.HTTP_400_BAD_REQUEST)
+            
         project.pending_invited_students.add(*students)
     elif type == "mentors":
         mentors = Mentor.objects.filter(profile__user__username__in=usernames)
+
+        if not mentors.exists():
+            return Response("Nenhum mentor foi encontrado!", status=status.HTTP_400_BAD_REQUEST)
+            
         project.pending_invited_mentors.add(*mentors)
     else:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
