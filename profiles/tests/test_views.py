@@ -17,8 +17,13 @@ from projects.serializers import (
 )
 from rest_framework import status
 
-from ..models import Mentor, Profile, Student
-from ..serializers import ProfileSerializer01, ProfileSerializer02, ProfileSerializer03
+from ..models import Mentor, Profile, Student, StudentSkill
+from ..serializers import (
+    ProfileSerializer01,
+    ProfileSerializer02,
+    ProfileSerializer03,
+    StudentSkillSerializer01,
+)
 
 User = get_user_model()
 client = Client()
@@ -251,14 +256,40 @@ class TestGetProfileList(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        profiles = []
+        # asserting that the superuser's profile won't be returned by the view
+        superuser = User.objects.create(username="superuser", is_superuser=True)
+        profiles = [superuser.profile]
 
-        for i in range(15):
+        for i in range(20):
             user = User.objects.create(username=f"user0{i}")
             profiles.append(user.profile)
 
         response = client.get(self.url)
-        self.assertEqual(response.data, ProfileSerializer03(profiles[:10], many=True).data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, ProfileSerializer03(profiles[1:16], many=True).data)
+
+
+class TestGetSkillsNameList(TestCase):
+    url = BASE_URL + "get-skills-name-list"
+
+    def test_req(self):
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        skill01 = StudentSkill.objects.create(name="programming")
+        skill02 = StudentSkill.objects.create(name="design")
+        skill03 = StudentSkill.objects.create(name="physics")
+
+        skills = [skill01, skill02, skill03]
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, StudentSkillSerializer01(skills, many=True).data)
 
 
 class TestGetNotifications(TestCase):

@@ -2,6 +2,8 @@ import datetime
 
 import pytz
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.db.utils import IntegrityError
 from django.test import TestCase
 from profiles.models import Mentor, Student
 from projects.models import (
@@ -12,6 +14,9 @@ from projects.models import (
     Market,
     Project,
     ProjectEnteringRequest,
+    ProjectStar,
+    Tool,
+    ToolCategory,
     discussion_categories_choices,
     project_categories_choices,
 )
@@ -51,6 +56,10 @@ class TestMarket(TestCase):
         self.assertIn(mentor01, market.mentors.all())
         self.assertIn(mentor02, market.mentors.all())
 
+        # testing name unique constrain
+        with transaction.atomic():
+            self.assertRaises(IntegrityError, Market.objects.create, name=name)
+
     def test_related_name(self):
         user = User.objects.create()
         mentor = Mentor.objects.create(profile=user.profile)
@@ -62,39 +71,6 @@ class TestMarket(TestCase):
     def test_str(self):
         market = Market.objects.create(name="Innovation")
         self.assertEqual(str(market), market.name)
-
-
-class TestLink(TestCase):
-    def test_create_delete(self):
-        # test create
-        link = Link.objects.create()
-        self.assertIsInstance(link, Link)
-        self.assertEqual(link.pk, 1)
-        self.assertFalse(link.is_public)
-
-        # test delete
-        link.delete()
-        self.assertFalse(Link.objects.exists())
-
-    def test_fields(self):
-        link = Link.objects.create()
-
-        name = "Github"
-        href = "https://github.com/projectx"
-
-        link.name = name
-        link.href = href
-        link.is_public = True
-
-        link.save()
-
-        self.assertEqual(link.name, name)
-        self.assertEqual(link.href, href)
-        self.assertTrue(link.is_public)
-
-    def test_str(self):
-        link = Link.objects.create(name="Figma Mockup")
-        self.assertEqual(str(link), link.name)
 
 
 class TestProject(TestCase):
@@ -148,10 +124,6 @@ class TestProject(TestCase):
         market02 = Market.objects.create(name="computer-brain interface")
         project.markets.add(market01, market02)
 
-        link01 = Link.objects.create()
-        link02 = Link.objects.create()
-        project.links.add(link01, link02)
-
         project.category = category
         project.name = name
         project.slogan = slogan
@@ -170,7 +142,6 @@ class TestProject(TestCase):
         self.assertEqual(list(project.mentors.all()), [mentor01])
         self.assertEqual(list(project.pending_invited_mentors.all()), [mentor02])
         self.assertEqual(list(project.markets.all()), [market01, market02])
-        self.assertEqual(list(project.links.all()), [link01, link02])
 
     def test_related_name(self):
         project = Project.objects.create()
@@ -183,32 +154,32 @@ class TestProject(TestCase):
         # students
         student01 = Student.objects.create(profile=user01.profile)
         project.students.add(student01)
+        project.save()
         self.assertIn(project, student01.projects.all())
 
         # pending_invited_students
         student02 = Student.objects.create(profile=user02.profile)
         project.pending_invited_students.add(student02)
+        project.save()
         self.assertIn(project, student02.pending_projects_invitations.all())
 
         # mentors
         mentor01 = Mentor.objects.create(profile=user03.profile)
         project.mentors.add(mentor01)
+        project.save()
         self.assertIn(project, mentor01.projects.all())
 
         # pending_invited_mentors
         mentor02 = Mentor.objects.create(profile=user04.profile)
         project.pending_invited_mentors.add(mentor02)
+        project.save()
         self.assertIn(project, mentor02.pending_projects_invitations.all())
 
         # markets
         market = Market.objects.create()
         project.markets.add(market)
+        project.save()
         self.assertIn(project, market.projects.all())
-
-        # links
-        link = Link.objects.create()
-        project.links.add(link)
-        self.assertIn(project, link.projects.all())
 
     def test_get_project_categories_choices_staticmethod(self):
         self.assertEqual(
@@ -308,6 +279,200 @@ class TestProject(TestCase):
         self.assertEqual(len(pending_invited_mentors_profiles), 2)
         self.assertIn(user01.profile, pending_invited_mentors_profiles)
         self.assertIn(user02.profile, pending_invited_mentors_profiles)
+
+    def test_discussions_length_method(self):
+        project = Project.objects.create()
+
+        Discussion.objects.create(project=project)
+        Discussion.objects.create(project=project)
+        Discussion.objects.create(project=project)
+
+        self.assertEqual(project.discussions_length, 3)
+
+
+class TestLink(TestCase):
+    def test_create_delete(self):
+        # test create
+        link = Link.objects.create()
+        self.assertIsInstance(link, Link)
+        self.assertEqual(link.pk, 1)
+
+        # test delete
+        link.delete()
+        self.assertFalse(Link.objects.exists())
+
+    def test_fields(self):
+        link = Link.objects.create()
+
+        name = "Github"
+        href = "https://github.com/projectx"
+        project = Project.objects.create()
+
+        link.name = name
+        link.href = href
+        link.project = project
+
+        link.save()
+
+        self.assertEqual(link.name, name)
+        self.assertEqual(link.href, href)
+        self.assertEqual(link.project, project)
+
+    def test_str(self):
+        project = Project.objects.create()
+        link = Link.objects.create(name="Figma Mockup", project=project)
+        self.assertEqual(str(link), f"{link.name} - {link.project}")
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        link = Link.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(link, project.links.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(Link.objects.exists())
+
+
+class TestToolCategory(TestCase):
+    def test_create_delete(self):
+        # test create
+        tool_category = ToolCategory.objects.create()
+        self.assertIsInstance(tool_category, ToolCategory)
+        self.assertEqual(tool_category.pk, 1)
+
+        # test delete
+        tool_category.delete()
+        self.assertFalse(ToolCategory.objects.exists())
+
+    def test_fields(self):
+        tool_category = ToolCategory.objects.create()
+
+        name = "Ferramentas de desenvolvimento"
+        project = Project.objects.create()
+
+        tool_category.name = name
+        tool_category.project = project
+        tool_category.save()
+
+        self.assertEqual(tool_category.name, name)
+        self.assertEqual(tool_category.project, project)
+
+    def test_str(self):
+        project = Project.objects.create()
+        tool_category = ToolCategory.objects.create(name="Documentos em Nuvem", project=project)
+        self.assertEqual(str(tool_category), f"{tool_category.name} - {tool_category.project}")
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        tool_category = ToolCategory.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(tool_category, project.tools_categories.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(ToolCategory.objects.exists())
+
+
+class TestTool(TestCase):
+    def test_create_delete(self):
+        # test create
+        tool = Tool.objects.create()
+        self.assertIsInstance(tool, Tool)
+        self.assertEqual(tool.pk, 1)
+
+        # test delete
+        tool.delete()
+        self.assertFalse(Tool.objects.exists())
+
+    def test_fields(self):
+        tool = Tool.objects.create()
+
+        name = "Github"
+        href = "https://github.com/projectx"
+        category = ToolCategory.objects.create()
+
+        tool.category = category
+        tool.name = name
+        tool.href = href
+
+        tool.save()
+
+        self.assertEqual(tool.category, category)
+        self.assertEqual(tool.name, name)
+        self.assertEqual(tool.href, href)
+
+    def test_str(self):
+        tool = Tool.objects.create(name="Figma Mockup")
+        self.assertEqual(str(tool), tool.name)
+
+
+class TestProjectStar(TestCase):
+    def test_create_delete(self):
+        now_naive = datetime.datetime.now()
+        timezone = pytz.timezone("UTC")
+        now_aware = timezone.localize(now_naive)
+
+        # test create
+        project_star = ProjectStar.objects.create()
+        self.assertIsInstance(project_star, ProjectStar)
+        self.assertEqual(project_star.pk, 1)
+        self.assertFalse(project_star.visualized)
+        self.assertLessEqual(now_aware, project_star.created_at)
+        self.assertLessEqual(now_aware, project_star.updated_at)
+
+        # test delete
+        project_star.delete()
+        self.assertFalse(ProjectStar.objects.exists())
+
+    def test_fields(self):
+        project_star = ProjectStar.objects.create()
+
+        profile = User.objects.create().profile
+        project = Project.objects.create()
+        visualized = True
+
+        project_star.profile = profile
+        project_star.project = project
+        project_star.visualized = visualized
+
+        project_star.save()
+
+        self.assertEqual(project_star.profile, profile)
+        self.assertEqual(project_star.project, project)
+        self.assertTrue(project_star.visualized)
+
+    def test_profile_relation(self):
+        profile = User.objects.create().profile
+        project_star = ProjectStar.objects.create(profile=profile)
+
+        # testing related name
+        self.assertIn(project_star, profile.projects_stars.all())
+
+        # testing cascade
+        profile.delete()
+        self.assertFalse(ProjectStar.objects.exists())
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        project_star = ProjectStar.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(project_star, project.stars.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(ProjectStar.objects.exists())
+
+    def test_str(self):
+        profile = User.objects.create(username="richard").profile
+
+        project = Project.objects.create(name="Simulantum")
+
+        project_star = ProjectStar.objects.create(profile=profile, project=project)
+        self.assertEqual(str(project_star), f"{profile.user.username} starred {project}")
 
 
 class TestProjectEnteringRequest(TestCase):

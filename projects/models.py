@@ -18,9 +18,7 @@ class Market(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if self.name is not None:
-            self.name = self.name.lower()
-
+        self.name = self.name.lower()
         super().save(*args, **kwargs)
 
 
@@ -30,19 +28,6 @@ project_categories_choices = [
     ("academic", "projeto acadêmico"),
     ("social_project", "projeto social"),
 ]
-
-
-class Link(models.Model):
-    """
-    Link table
-    """
-
-    name = models.CharField(max_length=100, default="")
-    href = models.CharField(max_length=300, default="")
-    is_public = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.name
 
 
 class Project(models.Model):
@@ -65,7 +50,6 @@ class Project(models.Model):
     pending_invited_students = models.ManyToManyField(Student, related_name="pending_projects_invitations", blank=True)
     pending_invited_mentors = models.ManyToManyField(Mentor, related_name="pending_projects_invitations", blank=True)
     markets = models.ManyToManyField(Market, related_name="projects", blank=True)
-    links = models.ManyToManyField(Link, related_name="projects", blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -102,8 +86,76 @@ class Project(models.Model):
     def pending_invited_mentors_profiles(self):
         return [mentor.profile for mentor in self.pending_invited_mentors.all()]
 
+    @property
+    def discussions_length(self):
+        return len(self.discussions.all())
+
+
+class Link(models.Model):
+    """
+    Link table
+    """
+
+    name = models.CharField(max_length=100, default="")
+    href = models.CharField(max_length=300, default="")
+    project = models.ForeignKey(Project, related_name="links", on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.project}"
+
+
+class ToolCategory(models.Model):
+    """
+    Tool category table
+    """
+
+    name = models.CharField(max_length=100, default="")
+    project = models.ForeignKey(
+        Project, related_name="tools_categories", on_delete=models.CASCADE, blank=True, null=True
+    )
+
+    def __str__(self):
+        return f"{self.name} - {self.project}"
+
+
+class Tool(models.Model):
+    """
+    Tool table
+    """
+
+    category = models.ForeignKey(ToolCategory, related_name="tools", on_delete=models.CASCADE, blank=True, null=True)
+    name = models.CharField(max_length=100, default="")
+    href = models.CharField(max_length=300, default="")
+
+    def __str__(self):
+        return self.name
+
+
+class ProjectStar(models.Model):
+    """
+    Project star table
+    """
+
+    profile = models.ForeignKey(
+        Profile, related_name="projects_stars", on_delete=models.CASCADE, blank=True, null=True
+    )
+    project = models.ForeignKey(Project, related_name="stars", on_delete=models.CASCADE, blank=True, null=True)
+    visualized = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-id"]
+
+    def __str__(self):
+        return f"{self.profile.user.username} starred {self.project}"
+
 
 class ProjectEnteringRequest(models.Model):
+    """
+    Project entering request table
+    """
+
     message = models.CharField(max_length=500, default="")
     project = models.ForeignKey(
         Project, related_name="entering_requests", on_delete=models.CASCADE, blank=True, null=True
@@ -127,6 +179,10 @@ discussion_categories_choices = [
 
 
 class Discussion(models.Model):
+    """
+    Discussion table
+    """
+
     title = models.CharField(max_length=125, default="")
     body = models.CharField(max_length=1000, default="")
     category = models.CharField(max_length=15, choices=discussion_categories_choices, blank=True, null=True)
@@ -154,6 +210,10 @@ class Discussion(models.Model):
 
 
 class DiscussionStar(models.Model):
+    """
+    Discussion star table
+    """
+
     profile = models.ForeignKey(
         Profile, related_name="discussions_stars", on_delete=models.CASCADE, blank=True, null=True
     )
@@ -170,6 +230,10 @@ class DiscussionStar(models.Model):
 
 
 class DiscussionReply(models.Model):
+    """
+    Discussion reply table - replies are all in the same layer
+    """
+
     content = models.CharField(max_length=300, default="", null=True)
     profile = models.ForeignKey(
         Profile, related_name="discussions_replies", on_delete=models.CASCADE, blank=True, null=True

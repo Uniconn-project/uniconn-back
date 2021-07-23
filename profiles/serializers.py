@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from universities.serializers import MajorSerializer01, UniversitySerializer01
 
-from .models import Mentor, Profile, Student
+from .models import Mentor, Profile, Student, StudentSkill
 
 User = get_user_model()
 
@@ -13,13 +13,20 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "email"]
 
 
+class StudentSkillSerializer01(serializers.ModelSerializer):
+    class Meta:
+        model = StudentSkill
+        fields = ["id", "name"]
+
+
 class StudentSerializer01(serializers.ModelSerializer):
     university = UniversitySerializer01()
     major = MajorSerializer01()
+    skills = StudentSkillSerializer01(many=True)
 
     class Meta:
         model = Student
-        fields = ["id", "university", "major"]
+        fields = ["id", "university", "major", "skills"]
 
 
 class MentorSerializer01(serializers.ModelSerializer):

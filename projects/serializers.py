@@ -9,6 +9,8 @@ from .models import (
     Market,
     Project,
     ProjectEnteringRequest,
+    Tool,
+    ToolCategory,
 )
 
 
@@ -22,10 +24,32 @@ class MarketSerializer01(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
-class LinksSerializer01(serializers.ModelSerializer):
+class LinkSerializer01(serializers.ModelSerializer):
     class Meta:
         model = Link
-        fields = ["id", "name", "href", "is_public"]
+        fields = ["id", "name", "href"]
+
+
+class ToolSerializer01(serializers.ModelSerializer):
+    class Meta:
+        model = Tool
+        fields = ["id", "name", "href"]
+
+
+class ToolCategorySerializer01(serializers.ModelSerializer):
+    tools = ToolSerializer01(many=True)
+
+    class Meta:
+        model = ToolCategory
+        fields = ["id", "name", "tools"]
+
+
+class ProjectStarSerializer01(serializers.ModelSerializer):
+    profile = ProfileSerializer03()
+
+    class Meta:
+        model = DiscussionStar
+        fields = ["id", "profile"]
 
 
 class ProjectSerializer01(serializers.ModelSerializer):
@@ -36,18 +60,11 @@ class ProjectSerializer01(serializers.ModelSerializer):
     category = serializers.DictField(source="category_value_and_readable")
     students = ProfileSerializer03(source="students_profiles", many=True)
     markets = MarketSerializer01(many=True)
+    stars = ProjectStarSerializer01(many=True)
 
     class Meta:
         model = Project
-        fields = [
-            "id",
-            "category",
-            "name",
-            "slogan",
-            "image",
-            "students",
-            "markets",
-        ]
+        fields = ["id", "category", "name", "slogan", "image", "students", "markets", "stars", "discussions_length"]
 
 
 class ProjectSerializer02(serializers.ModelSerializer):
@@ -61,7 +78,9 @@ class ProjectSerializer02(serializers.ModelSerializer):
     pending_invited_students = ProfileSerializer03(source="pending_invited_students_profiles", many=True)
     pending_invited_mentors = ProfileSerializer03(source="pending_invited_mentors_profiles", many=True)
     markets = MarketSerializer01(many=True)
-    links = LinksSerializer01(many=True)
+    links = LinkSerializer01(many=True)
+    tools_categories = ToolCategorySerializer01(many=True)
+    stars = ProjectStarSerializer01(many=True)
 
     class Meta:
         model = Project
@@ -78,6 +97,9 @@ class ProjectSerializer02(serializers.ModelSerializer):
             "pending_invited_mentors",
             "markets",
             "links",
+            "tools_categories",
+            "stars",
+            "discussions_length",
         ]
 
 

@@ -15,6 +15,9 @@ from .models import (
     Market,
     Project,
     ProjectEnteringRequest,
+    ProjectStar,
+    Tool,
+    ToolCategory,
 )
 from .serializers import (
     DiscussionSerializer01,
@@ -141,8 +144,6 @@ def edit_project(request, project_id):
         img_format = format.split("/")[-1]
         project_image = ContentFile(base64.b64decode(imgstr), name=f"{project.name}.{img_format}")
         project.image = project_image
-
-        print(project_image, image)
 
     project.name = name
     project.category = category
@@ -364,6 +365,14 @@ def reply_project_entering_request(request):
 @login_required
 def edit_project_description(request, project_id):
     try:
+        description = request.data["description"]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if len(str(description)) > 20000:
+        return Response("A descrição superou o limite de caracteres!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
         project = Project.objects.get(pk=project_id)
     except:
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
@@ -376,15 +385,64 @@ def edit_project_description(request, project_id):
     if not request.user.profile.student in project.students.all():
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
-    try:
-        description = request.data["description"]
-    except:
-        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
-
     project.description = description
     project.save()
 
-    return Response("Project description edited with success!")
+    return Response("success")
+
+
+@api_view(["POST"])
+@login_required
+def star_project(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    if ProjectStar.objects.filter(profile=request.user.profile, project=project).exists():
+        return Response("Você não pode curtir o mesmo projeto mais de uma vez!", status=status.HTTP_400_BAD_REQUEST)
+
+    ProjectStar.objects.create(profile=request.user.profile, project=project)
+
+    return Response("success")
+
+
+@api_view(["DELETE"])
+@login_required
+def unstar_project(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        project_star = ProjectStar.objects.get(profile=request.user.profile, project=project)
+    except:
+        return Response("Curtida não encontrada!", status=status.HTTP_404_NOT_FOUND)
+
+    project_star.delete()
+
+    return Response("success")
+
+
+@api_view(["PATCH"])
+@login_required
+def leave_project(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    profile = request.user.profile
+
+    if profile not in project.students_profiles + project.mentors_profiles:
+        return Response("Você não faz parte do projeto!", status=status.HTTP_400_BAD_REQUEST)
+
+    # removing either profile mentor or profile student from project
+    getattr(project, f"{profile.type}s").remove(getattr(profile, profile.type))
+    project.save()
+
+    return Response("success")
 
 
 @api_view(["POST"])
@@ -401,7 +459,6 @@ def create_link(request, project_id):
     try:
         name = request.data["name"].strip()
         href = request.data["href"].strip()
-        is_public = request.data["is_public"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
@@ -411,10 +468,7 @@ def create_link(request, project_id):
     if len(name) > 100 or len(href) > 1000:
         return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
-    link = Link.objects.create(name=name, href=href, is_public=is_public)
-
-    project.links.add(link)
-    project.save()
+    Link.objects.create(name=name, href=href, project=project)
 
     return Response("success")
 
@@ -424,7 +478,29 @@ def create_link(request, project_id):
 def delete_link(request):
     try:
         link_id = request.data["link_id"]
-        project_id = request.data["project_id"]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        link = Link.objects.get(pk=link_id)
+    except:
+        return Response("Link não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    if not request.user.profile in link.project.students_profiles + link.project.mentors_profiles:
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    link.delete()
+
+    return Response("success")
+
+
+@api_view(["POST"])
+@login_required
+def create_tool(request, project_id):
+    try:
+        category_name = request.data["category"].strip()
+        name = request.data["name"].strip()
+        href = request.data["href"].strip()
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
@@ -434,15 +510,36 @@ def delete_link(request):
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     try:
-        link = Link.objects.get(pk=link_id)
-        assert link in project.links.all()
+        category = ToolCategory.objects.get(project=project, name=category_name)
     except:
-        return Response("Link não encontrado!", status=status.HTTP_404_NOT_FOUND)
+        return Response("Categoria não encontrada!", status=status.HTTP_404_NOT_FOUND)
 
     if not request.user.profile in project.students_profiles + project.mentors_profiles:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
-    link.delete()
+    if name == "" or href == "":
+        return Response("Todos os campos devem ser preenchidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if len(name) > 100 or len(href) > 1000:
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
+
+    Tool.objects.create(category=category, name=name, href=href)
+
+    return Response("success")
+
+
+@api_view(["DELETE"])
+@login_required
+def delete_tool(request, tool_id):
+    try:
+        tool = Tool.objects.get(pk=tool_id)
+    except:
+        return Response("Ferramenta não encontrada!", status=status.HTTP_404_NOT_FOUND)
+
+    if not request.user.profile in tool.category.project.students_profiles + tool.category.project.mentors_profiles:
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    tool.delete()
 
     return Response("success")
 
@@ -595,4 +692,4 @@ def delete_discussion_reply(request, reply_id):
 
     reply.delete()
 
-    return Response('success')
+    return Response("success")

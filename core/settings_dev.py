@@ -26,9 +26,9 @@ SECRET_KEY = "django-insecure-$kd0=-)y+em-3v&9kwaak4u5tuuoehj)q^6_!#mib7wx=z*&gj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://localhost:1234"]
 
 # Application definition
 
@@ -118,6 +118,8 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+FIXTURE_DIRS = [os.path.join(BASE_DIR, "fixtures")]
 
 
 # Password validation

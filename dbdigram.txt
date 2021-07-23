@@ -54,7 +54,14 @@ Table Major {
 Table Market {
   id int pk
   name char
-  mentors id
+  mentors int
+}
+
+Table Link {
+  id int pk
+  name char
+  href char
+  is_public boolean
 }
 
 Table Project {
@@ -66,7 +73,49 @@ Table Project {
   image char
   students int
   mentors int
-  fields int
+  pending_invited_students int
+  pending_invited_mentors int
+  markets int
+  links int
+  created_at datetime
+  updated_at datetime
+}
+
+
+Table ProjectEnteringRequest {
+  id int pk
+  message char
+  project int
+  profile int
+}
+
+
+Table Discussion {
+  id int pk
+  title char
+  body char
+  category char
+  profile int
+  project int
+  created_at datetime
+  updated_at datetime
+}
+
+Table DiscussionStar {
+  id int pk
+  profile int
+  discussion int
+  vizualized boolean
+  created_at datetime
+  updated_at datetime
+}
+
+Table DiscussionReply {
+  id int pk
+  content char
+  profile int
+  discussion int
+  vizualized boolean
   created_at datetime
   updated_at datetime
 }
@@ -105,5 +154,49 @@ Ref {
 }
 
 Ref {
-  Project.fields < Market.id
+  Project.pending_invited_students < Student.id
+}
+
+Ref {
+  Project.pending_invited_mentors < Mentor.id
+}
+
+Ref {
+  Project.markets < Market.id
+}
+
+Ref {
+  Project.links < Link.id
+}
+
+Ref {
+  ProjectEnteringRequest.profile > Profile.id
+}
+
+Ref {
+  ProjectEnteringRequest.project > Project.id
+}
+
+Ref {
+  Discussion.profile > Profile.id
+}
+
+Ref {
+  Discussion.project > Project.id
+}
+
+Ref {
+  DiscussionStar.profile > Profile.id
+}
+
+Ref {
+  DiscussionStar.discussion > Discussion.id
+}
+
+Ref {
+  DiscussionReply.profile > Profile.id
+}
+
+Ref {
+  DiscussionReply.discussion > Discussion.id
 }
