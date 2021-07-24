@@ -281,9 +281,9 @@ class TestGetSkillsNameList(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        skill01 = StudentSkill.objects.create(name="programming")
-        skill02 = StudentSkill.objects.create(name="design")
-        skill03 = StudentSkill.objects.create(name="physics")
+        skill01 = StudentSkill.objects.create(name="design")
+        skill02 = StudentSkill.objects.create(name="physics")
+        skill03 = StudentSkill.objects.create(name="programming")
 
         skills = [skill01, skill02, skill03]
 

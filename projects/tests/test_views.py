@@ -369,9 +369,7 @@ class TestInviteUsersToProject(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, "Dados inválidos!")
 
-        request_data = {
-            "students": [],
-        }
+        request_data = {"students": []}
 
         response = client.put(self.url.format("students", "1"), request_data, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -384,8 +382,12 @@ class TestInviteUsersToProject(TestCase):
         self.assertEqual(response.data, "Dados inválidos!")
 
         response = client.put(self.url.format("students", "1"), request_data, content_type="application/json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, "success")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Nenhum universitário foi encontrado!")
+
+        response = client.put(self.url.format("mentors", "1"), {"mentors": []}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Nenhum mentor foi encontrado!")
 
         student01 = Student.objects.create(profile=User.objects.create(username="austin").profile)
         student02 = Student.objects.create(profile=User.objects.create(username="justin").profile)

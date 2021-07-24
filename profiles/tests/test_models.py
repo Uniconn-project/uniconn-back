@@ -72,6 +72,12 @@ class TestStudentSkill(TestCase):
         skill = StudentSkill.objects.create()
         self.assertEqual(str(skill), skill.name)
 
+    def test_ordering(self):
+        skill01 = StudentSkill.objects.create(name="design")
+        skill02 = StudentSkill.objects.create(name="coding")
+
+        self.assertEqual(list(StudentSkill.objects.all()), [skill02, skill01])
+
 
 class TestProfile(TestCase):
     def test_create_delete(self):

@@ -184,7 +184,6 @@ def invite_users_to_project(request, type, project_id):
         project.pending_invited_students.add(*students)
     elif type == "mentors":
         mentors = Mentor.objects.filter(profile__user__username__in=usernames)
-
         if not mentors.exists():
             return Response("Nenhum mentor foi encontrado!", status=status.HTTP_400_BAD_REQUEST)
 
