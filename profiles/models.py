@@ -57,4 +57,4 @@ class Profile(models.Model):
 
     @property
     def projects(self):
-        return [membership.project for membership in self.project_memberships]
+        return [membership.project for membership in self.project_memberships.all()]

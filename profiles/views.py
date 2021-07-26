@@ -36,14 +36,14 @@ def signup_view(request):
         first_name = request.data["first_name"].strip()
         last_name = request.data["last_name"].strip()
         birth_date = request.data["birth_date"]
-        skills = request.data["skills"]
         is_attending_university = request.data["is_attending_university"]
         if is_attending_university:
-            university_name = request.data["university"]
-            major_name = request.data["major"]
+            university_name = request.data["university_name"]
+            major_name = request.data["major_name"]
             assert University.objects.filter(name=university_name).exists()
             assert Major.objects.filter(name=major_name).exists()
-        assert Skill.objects.filter(name__in=skills).exists()
+        skills_names = request.data["skills_names"]
+        skills = Skill.objects.filter(name__in=skills_names)
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
@@ -77,6 +77,9 @@ def signup_view(request):
     if User.objects.filter(email=email).exists():
         return Response("Email já utilizado!", status=status.HTTP_400_BAD_REQUEST)
 
+    if not skills.exists():
+        return Response("Selecione pelo menos uma habilidade válida!", status=status.HTTP_400_BAD_REQUEST)
+
     try:
         age = datetime.date.today() - datetime.date.fromisoformat(birth_date)
 
@@ -92,7 +95,7 @@ def signup_view(request):
     user.profile.first_name = first_name
     user.profile.last_name = last_name
     user.profile.birth_date = birth_date
-    user.profile.skills.set(Skill.objects.filter(name__in=skills))
+    user.profile.skills.set(skills)
     user.profile.is_attending_university = is_attending_university
     if is_attending_university:
         user.profile.university = University.objects.get(name=university_name)
@@ -114,17 +117,27 @@ def edit_my_profile(request):
         last_name = request.data["last_name"].strip()
         bio = request.data["bio"].strip()
         linkedIn = request.data["linkedIn"].strip()
-        university_name = request.data["university"]
-        major_name = request.data["major"]
-        skills = request.data["skills"]
-        assert University.objects.filter(name=university_name).exists()
-        assert Major.objects.filter(name=major_name).exists()
-        assert Skill.objects.filter(name__in=skills).exists()
+        is_attending_university = request.data["is_attending_university"]
+        if is_attending_university:
+            university_name = request.data["university"]
+            major_name = request.data["major"]
+            assert University.objects.filter(name=university_name).exists()
+            assert Major.objects.filter(name=major_name).exists()
+        skills_names = request.data["skills_names"]
+        skills = Skill.objects.filter(name__in=skills_names)
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     if User.objects.exclude(pk=request.user.pk).filter(username=username).exists():
         return Response("Nome de usuário já utilizado!", status=status.HTTP_400_BAD_REQUEST)
+
+    if not skills.exists():
+        return Response("Selecione pelo menos uma habilidade válida!", status=status.HTTP_400_BAD_REQUEST)
+
+    if username == "" or first_name == "" or last_name == "" or bio == "":
+        return Response(
+            "Os campos nome de usuário, nome, sobrenome e bio são obrigatórios!", status=status.HTTP_400_BAD_REQUEST
+        )
 
     if (
         (username and len(username) > 25)
@@ -146,9 +159,10 @@ def edit_my_profile(request):
     profile.last_name = last_name
     profile.bio = bio
     profile.linkedIn = linkedIn
-    profile.skills.set(Skill.objects.filter(name__in=skills))
-    profile.university = University.objects.get(name=university_name)
-    profile.major = Major.objects.get(name=major_name.lower())
+    profile.skills.set(skills)
+    if is_attending_university:
+        profile.university = University.objects.get(name=university_name)
+        profile.major = Major.objects.get(name=major_name.lower())
 
     profile.user.save()
     profile.save()
