@@ -1,15 +1,13 @@
 from django.db import models
-from django.db.models.aggregates import Max
-from profiles.models import Mentor, Profile, Student
+from profiles.models import Profile
 
 
-class Market(models.Model):
+class Field(models.Model):
     """
-    Market table - relates with mentors and projects
+    Field table - relates with the Project table
     """
 
     name = models.CharField(max_length=50, default="", unique=True)
-    mentors = models.ManyToManyField(Mentor, related_name="markets", blank=True)
 
     class Meta:
         ordering = ["name"]
@@ -45,11 +43,7 @@ class Project(models.Model):
         max_length=20000,
     )
     image = models.ImageField(default="default_project.jpg", upload_to="project_images")
-    students = models.ManyToManyField(Student, related_name="projects", blank=True)
-    mentors = models.ManyToManyField(Mentor, related_name="projects", blank=True)
-    pending_invited_students = models.ManyToManyField(Student, related_name="pending_projects_invitations", blank=True)
-    pending_invited_mentors = models.ManyToManyField(Mentor, related_name="pending_projects_invitations", blank=True)
-    markets = models.ManyToManyField(Market, related_name="projects", blank=True)
+    fields = models.ManyToManyField(Field, related_name="projects", blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -67,28 +61,59 @@ class Project(models.Model):
         return self.name
 
     @property
+    def members_profiles(self):
+        return [member.profile for member in self.members.all()]
+
+    @property
+    def pending_invited_profiles(self):
+        return [request.profile for request in self.requests.filter(type="invitation")]
+
+    @property
     def category_value_and_readable(self):
         return {"value": self.category, "readable": self.get_category_display()}
 
     @property
-    def students_profiles(self):
-        return [student.profile for student in self.students.all()]
-
-    @property
-    def mentors_profiles(self):
-        return [mentor.profile for mentor in self.mentors.all()]
-
-    @property
-    def pending_invited_students_profiles(self):
-        return [student.profile for student in self.pending_invited_students.all()]
-
-    @property
-    def pending_invited_mentors_profiles(self):
-        return [mentor.profile for mentor in self.pending_invited_mentors.all()]
-
-    @property
     def discussions_length(self):
         return len(self.discussions.all())
+
+
+project_member_role_choices = [
+    ("admin", "admin"),
+    ("member", "membro"),
+]
+
+
+class ProjectMember(models.Model):
+    profile = models.ForeignKey(
+        Profile, related_name="project_memberships", on_delete=models.CASCADE, blank=True, null=True
+    )
+    project = models.ForeignKey(Project, related_name="members", on_delete=models.CASCADE, blank=True, null=True)
+    role = models.CharField(max_length=50, choices=project_member_role_choices, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.profile} [{self.role}] - {self.project}"
+
+
+project_request_type_choices = [("invitation", "invitation"), ("entry_request", "entry_request")]
+
+
+class ProjectRequest(models.Model):
+    """
+    Project request table
+    """
+
+    type = models.CharField(max_length=50, choices=project_request_type_choices, blank=True, null=True)
+    message = models.CharField(max_length=500, default="")
+    project = models.ForeignKey(Project, related_name="requests", on_delete=models.CASCADE, blank=True, null=True)
+    profile = models.ForeignKey(
+        Profile, related_name="projects_requests", on_delete=models.CASCADE, blank=True, null=True
+    )
+
+    class Meta:
+        ordering = ["-id"]
+
+    def __str__(self):
+        return f"{self.profile.user.username} to {self.project.name}"
 
 
 class Link(models.Model):
@@ -149,26 +174,6 @@ class ProjectStar(models.Model):
 
     def __str__(self):
         return f"{self.profile.user.username} starred {self.project}"
-
-
-class ProjectEnteringRequest(models.Model):
-    """
-    Project entering request table
-    """
-
-    message = models.CharField(max_length=500, default="")
-    project = models.ForeignKey(
-        Project, related_name="entering_requests", on_delete=models.CASCADE, blank=True, null=True
-    )
-    profile = models.ForeignKey(
-        Profile, related_name="projects_entering_requests", on_delete=models.CASCADE, blank=True, null=True
-    )
-
-    class Meta:
-        ordering = ["-id"]
-
-    def __str__(self):
-        return f"{self.profile.user.username} to {self.project.name}"
 
 
 discussion_categories_choices = [

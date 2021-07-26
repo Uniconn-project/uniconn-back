@@ -2,7 +2,7 @@ import base64
 
 from django.core.files.base import ContentFile
 from jwt_auth.decorators import login_required
-from profiles.models import Mentor, Profile, Student
+from profiles.models import Profile
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -11,26 +11,27 @@ from .models import (
     Discussion,
     DiscussionReply,
     DiscussionStar,
+    Field,
     Link,
-    Market,
     Project,
-    ProjectEnteringRequest,
+    ProjectMember,
+    ProjectRequest,
     ProjectStar,
     Tool,
     ToolCategory,
 )
 from .serializers import (
     DiscussionSerializer01,
-    MarketSerializer01,
+    FieldSerializer01,
     ProjectSerializer01,
     ProjectSerializer02,
 )
 
 
 @api_view(["GET"])
-def get_markets_name_list(request):
-    markets = Market.objects.all()
-    serializer = MarketSerializer01(markets, many=True)
+def get_fields_name_list(request):
+    Fields = Field.objects.all()
+    serializer = FieldSerializer01(Fields, many=True)
 
     return Response(serializer.data)
 
@@ -46,9 +47,9 @@ def get_projects_list(request):
 @api_view(["GET"])
 def get_filtered_projects_list(request):
     categories = request.query_params["categories"].split(";")
-    markets = request.query_params["markets"].split(";")
+    fields = request.query_params["fields"].split(";")
 
-    projects = Project.objects.filter(category__in=categories, markets__name__in=markets).distinct()
+    projects = Project.objects.filter(category__in=categories, fields__name__in=fields).distinct()
     serializer = ProjectSerializer01(projects, many=True)
 
     return Response(serializer.data)
@@ -67,14 +68,12 @@ def get_projects_categories_list(request):
 def create_project(request):
     profile = request.user.profile
 
-    if profile.type != "student":
-        return Response("Somente universitários podem criar projetos!", status=status.HTTP_401_UNAUTHORIZED)
-
     try:
         category = request.data["category"].strip()
         name = request.data["name"].strip()
         slogan = request.data["slogan"].strip()
-        markets = request.data["markets"]
+        fields_name = request.data["fields"]
+        fields = Field.objects.filter(name__in=fields_name)
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
@@ -84,16 +83,17 @@ def create_project(request):
     if len(name) > 50 or len(slogan) > 125:
         return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
-    if len(Market.objects.filter(name__in=markets)) == 0:
-        return Response("Selecione pelo menos um mercado válido!", status=status.HTTP_400_BAD_REQUEST)
+    if len(fields) == 0:
+        return Response("Selecione pelo menos uma área de atuação válida!", status=status.HTTP_400_BAD_REQUEST)
 
     if category not in Project.get_project_categories_choices(index=0):
         return Response("Categoria do projeto inválida!", status=status.HTTP_400_BAD_REQUEST)
 
     project = Project.objects.create(category=category, name=name, slogan=slogan)
-    project.markets.set(Market.objects.filter(name__in=markets))
-    project.students.add(profile.student)
+    project.fields.set(fields)
     project.save()
+
+    ProjectMember.objects.create(profile=profile, project=project, role="admin")
 
     return Response("success")
 
@@ -118,18 +118,21 @@ def edit_project(request, project_id):
     except:
         return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
 
-    if request.user.profile.type != "student":
-        return Response("Somente universitários podem editar o projeto!", status=status.HTTP_401_UNAUTHORIZED)
-
-    if not request.user.profile.student in project.students.all():
+    try:
+        project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+    except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    if project_membership.role != "admin":
+        return Response("Somente admins podem editar o projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     try:
         image = request.data["image"]
         name = request.data["name"].strip()
         category = request.data["category"].strip()
         slogan = request.data["slogan"].strip()
-        markets = request.data["markets"]
+        fields_name = request.data["fields"]
+        fields = Field.objects.filter(name__in=fields_name)
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
@@ -138,6 +141,9 @@ def edit_project(request, project_id):
 
     if category != "" and category not in Project.get_project_categories_choices(index=0):
         return Response("Categoria do projeto inválida!", status=status.HTTP_400_BAD_REQUEST)
+
+    if len(fields) == 0:
+        return Response("Selecione pelo menos uma área de atuação válida!", status=status.HTTP_400_BAD_REQUEST)
 
     if image is not None:
         format, imgstr = image.split(";base64,")
@@ -148,85 +154,80 @@ def edit_project(request, project_id):
     project.name = name
     project.category = category
     project.slogan = slogan
-    project.markets.set(Market.objects.filter(name__in=markets))
+    project.fields.set(fields)
 
     project.save()
 
     return Response("success")
 
 
-@api_view(["PUT"])
+@api_view(["POST"])
 @login_required
-def invite_users_to_project(request, type, project_id):
-    if request.user.profile.type != "student":
-        return Response(
-            "Somente universitários podem convidar usuários para o projeto!", status=status.HTTP_401_UNAUTHORIZED
-        )
-
+def invite_users_to_project(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
     except:
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     try:
-        usernames = request.data[type]
+        project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+    except:
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    if project_membership.role != "admin":
+        return Response("Somente admins podem convidar usuários para o projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        usernames = request.data["usernames"]
+        message = request.data["message"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    if not request.user.profile.student in project.students.all():
-        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+    profiles = Profile.objects.filter(user__username__in=usernames)
+    if not profiles.exists():
+        return Response("Nenhum usuário foi encontrado!", status=status.HTTP_400_BAD_REQUEST)
 
-    if type == "students":
-        students = Student.objects.filter(profile__user__username__in=usernames)
-        if not students.exists():
-            return Response("Nenhum universitário foi encontrado!", status=status.HTTP_400_BAD_REQUEST)
+    if not ProjectRequest.objects.filter(type="invitation", project=project, profile__in=profiles).exists():
+        return Response("Usuário já convidado!", status=status.HTTP_400_BAD_REQUEST)
 
-        project.pending_invited_students.add(*students)
-    elif type == "mentors":
-        mentors = Mentor.objects.filter(profile__user__username__in=usernames)
-        if not mentors.exists():
-            return Response("Nenhum mentor foi encontrado!", status=status.HTTP_400_BAD_REQUEST)
-
-        project.pending_invited_mentors.add(*mentors)
-    else:
-        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
-
-    project.save()
+    for profile in profiles:
+        ProjectRequest.objects.create(type="invitation", message=message, project=project, profile=profile)
 
     return Response("success")
 
 
-@api_view(["PUT"])
+@api_view(["DELETE"])
 @login_required
-def uninvite_user_from_project(request, type, project_id):
+def uninvite_user_from_project(request, project_id):
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+    except:
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    if project_membership.role != "admin":
+        return Response("Somente admins podem retirar convite para o projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
     try:
         username = request.data["username"]
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        project = Project.objects.get(pk=project_id)
-    except:
-        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
-
-    try:
         profile = Profile.objects.get(user__username=username)
-        profile_student_or_mentor = getattr(profile, type)
-        invited_students_or_mentors = getattr(project, f"pending_invited_{type}s")
-        assert profile_student_or_mentor in invited_students_or_mentors.all()
     except:
         return Response("Usuário não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
-    if request.user.profile.type != "student":
-        return Response(
-            "Somente universitários podem retirar convites para o projeto!", status=status.HTTP_401_UNAUTHORIZED
-        )
+    try:
+        invitation = ProjectRequest.objects.get(project=project, profile=profile, type="invitation")
+    except:
+        return Response("Convite não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
-    if not request.user.profile.student in project.students.all():
-        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
-
-    invited_students_or_mentors.remove(profile_student_or_mentor)
-    project.save()
+    invitation.delete()
 
     return Response("success")
 
@@ -246,23 +247,23 @@ def ask_to_join_project(request, project_id):
 
     profile = request.user.profile
 
-    if profile in project.students_profiles + project.mentors_profiles:
+    if profile in project.members_profiles:
         return Response("Você já está no projeto!", status=status.HTTP_400_BAD_REQUEST)
 
-    if profile in project.pending_invited_students_profiles + project.pending_invited_mentors_profiles:
+    if profile in project.pending_invited_profiles:
         return Response("O projeto já te convidou!", status=status.HTTP_400_BAD_REQUEST)
 
-    if ProjectEnteringRequest.objects.filter(project=project, profile=profile).exists():
+    if ProjectRequest.objects.filter(type="entry_request", project=project, profile=profile).exists():
         return Response("Você já pediu para entrar no projeto!", status=status.HTTP_400_BAD_REQUEST)
 
-    ProjectEnteringRequest.objects.create(message=message, project=project, profile=profile)
+    ProjectRequest.objects.create(type="entry_request", message=message, project=project, profile=profile)
 
     return Response("success")
 
 
-@api_view(["PUT"])
+@api_view(["DELETE"])
 @login_required
-def remove_user_from_project(request, type, project_id):
+def remove_user_from_project(request, project_id):
     try:
         username = request.data["username"]
     except:
@@ -273,24 +274,21 @@ def remove_user_from_project(request, type, project_id):
     except:
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
-    if request.user.profile.type != "student":
-        return Response(
-            "Somente universitários podem remover usuários do projeto!", status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    if not request.user.profile.student in project.students.all():
+    try:
+        my_project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+    except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    if my_project_membership.role != "admin":
+        return Response("Somente admins podem retirar convite para o projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     try:
         profile = Profile.objects.get(user__username=username)
-        profile_student_or_mentor = getattr(profile, type)
-        project_students_or_mentors = getattr(project, f"{type}s")
-        assert profile_student_or_mentor in project_students_or_mentors.all()
+        project_membership = ProjectMember.objects.get(profile=profile, project=project)
     except:
         return Response("Usuário não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
-    project_students_or_mentors.remove(profile_student_or_mentor)
-    project.save()
+    project_membership.delete()
 
     return Response("success")
 
@@ -333,41 +331,39 @@ def reply_project_invitation(request):
     return Response("success")
 
 
-@api_view(["PUT"])
+# --------- STOPPED HERE ----------------------------------------------------
+
+
+@api_view(["DELETE"])
 @login_required
 def reply_project_entering_request(request):
     try:
         reply = request.data["reply"]
-        project_entering_request_id = request.data["project_entering_request_id"]
+        request_id = request.data["request_id"]
 
-        project_entering_request = ProjectEnteringRequest.objects.get(pk=project_entering_request_id)
-        project = project_entering_request.project
-        profile = project_entering_request.profile
+        project_request = ProjectRequest.objects.get(pk=request_id)
+        project = project_request.project
+        profile = project_request.profile
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    if request.user.profile.type != "student":
-        return Response(
-            "Somente universitários podem aceitar usuários no projeto!", status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    if not request.user.profile.student in project.students.all():
+    try:
+        project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+    except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
-    project_entering_request.delete()
+    if project_membership.role != "admin":
+        return Response("Somente admins podem retirar convite para o projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    project_request.delete()
 
     if reply == "accept":
-        if profile.type == "student":
-            project.students.add(profile.student)
-            project.save()
-        elif profile.type == "mentor":
-            project.mentors.add(profile.mentor)
-            project.save()
+        ProjectMember.objects.create(profile=profile, project=project, role="member")
 
     return Response("success")
 
 
-@api_view(["PUT"])
+@api_view(["PATCH"])
 @login_required
 def edit_project_description(request, project_id):
     try:
@@ -383,13 +379,13 @@ def edit_project_description(request, project_id):
     except:
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
-    if request.user.profile.type != "student":
-        return Response(
-            "Somente universitários podem editar a descrição do projeto!", status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    if not request.user.profile.student in project.students.all():
+    try:
+        project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+    except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    if project_membership.role != "admin":
+        return Response("Somente admins podem retirar convite para o projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     project.description = description
     project.save()
@@ -441,12 +437,12 @@ def leave_project(request, project_id):
 
     profile = request.user.profile
 
-    if profile not in project.students_profiles + project.mentors_profiles:
+    try:
+        project_membership = ProjectMember.objects.get(profile=profile, project=project)
+    except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_400_BAD_REQUEST)
 
-    # removing either profile mentor or profile student from project
-    getattr(project, f"{profile.type}s").remove(getattr(profile, profile.type))
-    project.save()
+    project_membership.delete()
 
     return Response("success")
 
@@ -459,7 +455,7 @@ def create_link(request, project_id):
     except:
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
-    if not request.user.profile in project.students_profiles + project.mentors_profiles:
+    if not request.user.profile in project.members_profiles:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     try:
@@ -481,18 +477,13 @@ def create_link(request, project_id):
 
 @api_view(["DELETE"])
 @login_required
-def delete_link(request):
-    try:
-        link_id = request.data["link_id"]
-    except:
-        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
-
+def delete_link(request, link_id):
     try:
         link = Link.objects.get(pk=link_id)
     except:
         return Response("Link não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
-    if not request.user.profile in link.project.students_profiles + link.project.mentors_profiles:
+    if not request.user.profile in link.project.members_profiles:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     link.delete()
@@ -520,7 +511,7 @@ def create_tool(request, project_id):
     except:
         return Response("Categoria não encontrada!", status=status.HTTP_404_NOT_FOUND)
 
-    if not request.user.profile in project.students_profiles + project.mentors_profiles:
+    if not request.user.profile in project.members_profiles:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     if name == "" or href == "":
@@ -542,7 +533,7 @@ def delete_tool(request, tool_id):
     except:
         return Response("Ferramenta não encontrada!", status=status.HTTP_404_NOT_FOUND)
 
-    if not request.user.profile in tool.category.project.students_profiles + tool.category.project.mentors_profiles:
+    if not request.user.profile in tool.category.project.members_profiles:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     tool.delete()
@@ -617,7 +608,7 @@ def delete_project_discussion(request):
     except:
         return Response("Discussão não encontrada!", status=status.HTTP_404_NOT_FOUND)
 
-    is_project_member = request.user.profile in project.students_profiles + project.mentors_profiles
+    is_project_member = request.user.profile in project.members_profiles
 
     if request.user.profile != discussion.profile and not is_project_member:
         return Response("Você não pode deletar essa discussão!", status=status.HTTP_400_BAD_REQUEST)

@@ -6,17 +6,12 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from jwt_auth.decorators import login_required
-from projects.models import (
-    DiscussionReply,
-    DiscussionStar,
-    Market,
-    ProjectEnteringRequest,
-)
+from projects.models import DiscussionReply, DiscussionStar, Field, ProjectRequest
 from projects.serializers import (
     DiscussionReplySerializer02,
     DiscussionStarSerializer02,
-    MarketSerializer01,
-    ProjectEnteringRequestSerializer01,
+    FieldSerializer01,
+    ProjectRequestSerializer01,
     ProjectSerializer01,
     ProjectSerializer03,
 )
@@ -25,22 +20,14 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from universities.models import Major, University
 
-from .models import Mentor, Profile, Student, StudentSkill
-from .serializers import (
-    ProfileSerializer01,
-    ProfileSerializer02,
-    ProfileSerializer03,
-    StudentSkillSerializer01,
-)
+from .models import Profile, Skill
+from .serializers import ProfileSerializer01, ProfileSerializer03, SkillSerializer01
 
 User = get_user_model()
 
 
 @api_view(["POST"])
-def signup_view(request, user_type):
-    if user_type not in ["student", "mentor"]:
-        return Response("Tipo de usuário inválido!", status=status.HTTP_400_BAD_REQUEST)
-
+def signup_view(request):
     try:
         username = request.data["username"].strip().lower().replace(" ", "")
         email = request.data["email"].strip()
@@ -49,17 +36,14 @@ def signup_view(request, user_type):
         first_name = request.data["first_name"].strip()
         last_name = request.data["last_name"].strip()
         birth_date = request.data["birth_date"]
-
-        if user_type == "student":
+        skills = request.data["skills"]
+        is_attending_university = request.data["is_attending_university"]
+        if is_attending_university:
             university_name = request.data["university"]
             major_name = request.data["major"]
-            skills = request.data["skills"]
             assert University.objects.filter(name=university_name).exists()
             assert Major.objects.filter(name=major_name).exists()
-            assert StudentSkill.objects.filter(name__in=skills).exists()
-        elif user_type == "mentor":
-            markets = request.data["markets"]
-            assert Market.objects.filter(name__in=markets).exists()
+        assert Skill.objects.filter(name__in=skills).exists()
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
@@ -108,22 +92,12 @@ def signup_view(request, user_type):
     user.profile.first_name = first_name
     user.profile.last_name = last_name
     user.profile.birth_date = birth_date
+    user.profile.skills.set(Skill.objects.filter(name__in=skills))
+    user.profile.is_attending_university = is_attending_university
+    if is_attending_university:
+        user.profile.university = University.objects.get(name=university_name)
+        user.profile.major = Major.objects.get(name=major_name.lower())
     user.profile.save()
-
-    if user_type == "student":
-        university = university = University.objects.get(name=university_name)
-        major = Major.objects.get(name=major_name.lower())
-        student = Student.objects.create(profile=user.profile, university=university, major=major)
-
-        student.skills.set(StudentSkill.objects.filter(name__in=skills))
-        student.save()
-
-    elif user_type == "mentor":
-        mentor = Mentor.objects.create(profile=user.profile)
-
-        for market in Market.objects.filter(name__in=markets):
-            market.mentors.add(mentor)
-            market.save()
 
     return Response("success")
 
@@ -140,17 +114,12 @@ def edit_my_profile(request):
         last_name = request.data["last_name"].strip()
         bio = request.data["bio"].strip()
         linkedIn = request.data["linkedIn"].strip()
-
-        if profile.type == "student":
-            university = request.data["university"]
-            major = request.data["major"]
-            skills = request.data["skills"]
-            assert University.objects.filter(name=university).exists()
-            assert Major.objects.filter(name=major).exists()
-            assert StudentSkill.objects.filter(name__in=skills).exists()
-        elif profile.type == "mentor":
-            markets = request.data["markets"]
-            assert Market.objects.filter(name__in=markets).exists()
+        university_name = request.data["university"]
+        major_name = request.data["major"]
+        skills = request.data["skills"]
+        assert University.objects.filter(name=university_name).exists()
+        assert Major.objects.filter(name=major_name).exists()
+        assert Skill.objects.filter(name__in=skills).exists()
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
@@ -177,15 +146,9 @@ def edit_my_profile(request):
     profile.last_name = last_name
     profile.bio = bio
     profile.linkedIn = linkedIn
-
-    if profile.type == "student":
-        profile.student.university = University.objects.get(name=university)
-        profile.student.major = Major.objects.get(name=major)
-        profile.student.skills.set(StudentSkill.objects.filter(name__in=skills))
-        profile.student.save()
-    elif profile.type == "mentor":
-        profile.mentor.markets.set(Market.objects.filter(name__in=markets))
-        profile.mentor.save()
+    profile.skills.set(Skill.objects.filter(name__in=skills))
+    profile.university = University.objects.get(name=university_name)
+    profile.major = Major.objects.get(name=major_name.lower())
 
     profile.user.save()
     profile.save()
@@ -197,11 +160,7 @@ def edit_my_profile(request):
 @login_required
 def get_my_profile(request):
     profile = request.user.profile
-
-    if profile.type == "student":
-        serializer = ProfileSerializer01(profile)
-    elif profile.type == "mentor":
-        serializer = ProfileSerializer02(profile)
+    serializer = ProfileSerializer01(profile)
 
     return Response(serializer.data)
 
@@ -211,46 +170,21 @@ def get_profile(request, slug):
     try:
         profile = Profile.objects.get(user__username=slug)
 
-        if profile.type == "student":
-            serializer = ProfileSerializer01(profile)
-        elif profile.type == "mentor":
-            serializer = ProfileSerializer02(profile)
-
+        serializer = ProfileSerializer01(profile)
         return Response(serializer.data)
     except ObjectDoesNotExist:
-        return Response("There isn't any user with such username", status=status.HTTP_404_NOT_FOUND)
+        return Response("Usuário não encontrado", status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(["GET"])
 def get_profile_projects(request, slug):
     try:
         profile = Profile.objects.get(user__username=slug)
-
-        if profile.type == "student":
-            projects = profile.student.projects.all()
-        elif profile.type == "mentor":
-            projects = profile.mentor.projects.all()
-
-        serializer = ProjectSerializer01(projects, many=True)
+        serializer = ProjectSerializer01(profile.projects, many=True)
 
         return Response(serializer.data)
     except ObjectDoesNotExist:
-        return Response("There isn't any user with such username", status=status.HTTP_404_NOT_FOUND)
-
-
-@api_view(["GET"])
-def get_mentor_markets(request, slug):
-    try:
-        profile = Profile.objects.get(user__username=slug)
-    except ObjectDoesNotExist:
-        return Response("There isn't any user with such username", status=status.HTTP_404_NOT_FOUND)
-
-    if profile.type != "mentor":
-        return Response("Only mentors have markets", status=status.HTTP_400_BAD_REQUEST)
-
-    serializer = MarketSerializer01(profile.mentor.markets, many=True)
-
-    return Response(serializer.data)
+        return Response("Usuário não encontrado", status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(["GET"])
@@ -263,7 +197,7 @@ def get_filtered_profiles(request, query):
 
 @api_view(["GET"])
 def get_profile_list(request):
-    profiles = Profile.objects.exclude(user__is_superuser=True)[:15]
+    profiles = Profile.objects.exclude(user__is_superuser=True)[:25]
     serializer = ProfileSerializer03(profiles, many=True)
 
     return Response(serializer.data)
@@ -271,8 +205,8 @@ def get_profile_list(request):
 
 @api_view(["GET"])
 def get_skills_name_list(request):
-    skills = StudentSkill.objects.all()
-    serializer = StudentSkillSerializer01(skills, many=True)
+    skills = Skill.objects.all()
+    serializer = SkillSerializer01(skills, many=True)
 
     return Response(serializer.data)
 
@@ -284,14 +218,12 @@ def get_notifications(request):
     now = datetime.datetime.now()
     now = pytz.utc.localize(now)
 
-    if profile.type == "student":
-        projects_invitations = profile.student.pending_projects_invitations
-        projects_entering_requests = ProjectEnteringRequest.objects.filter(project__students=profile.student)
-    elif profile.type == "mentor":
-        projects_invitations = profile.mentor.pending_projects_invitations
-        projects_entering_requests = []
-    else:
-        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+    projects_invitations = ProjectRequest.objects.filter(profile=profile, type="invitation")
+    projects_entering_requests = [
+        request
+        for request in ProjectRequest.objects.filter(project__members__profile=profile, type="entry_request")
+        if request.project.members.get(profile=profile).role == "admin"
+    ]
 
     discussions_stars = []
 
@@ -314,7 +246,7 @@ def get_notifications(request):
             discussions_replies.append(reply)
 
     projects_invitations_serializer = ProjectSerializer03(projects_invitations, many=True)
-    projects_entering_requests_serializer = ProjectEnteringRequestSerializer01(projects_entering_requests, many=True)
+    projects_entering_requests_serializer = ProjectRequestSerializer01(projects_entering_requests, many=True)
     discussions_stars_serializer = DiscussionStarSerializer02(discussions_stars, many=True)
     discussions_replies_serializer = DiscussionReplySerializer02(discussions_replies, many=True)
 
@@ -333,20 +265,18 @@ def get_notifications(request):
 def get_notifications_number(request):
     profile = request.user.profile
 
-    if profile.type == "student":
-        project_invitations = profile.student.pending_projects_invitations.all()
-        projects_entering_requests = ProjectEnteringRequest.objects.filter(project__students=profile.student).all()
-    elif profile.type == "mentor":
-        project_invitations = profile.mentor.pending_projects_invitations.all()
-        projects_entering_requests = []
-    else:
-        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+    projects_invitations = ProjectRequest.objects.filter(profile=profile, type="invitation")
+    projects_entering_requests = [
+        request
+        for request in ProjectRequest.objects.filter(project__members__profile=profile, type="entry_request")
+        if request.project.members.get(profile=profile).role == "admin"
+    ]
 
     unvisualized_discussions_stars = DiscussionStar.objects.filter(discussion__profile=profile, visualized=False)
     unvisualized_replies = DiscussionReply.objects.filter(discussion__profile=profile, visualized=False)
 
     return Response(
-        len(project_invitations)
+        len(projects_invitations)
         + len(projects_entering_requests)
         + len(unvisualized_discussions_stars)
         + len(unvisualized_replies)

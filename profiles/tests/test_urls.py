@@ -23,9 +23,6 @@ class TestUrls(TestCase):
     def test_get_profile_projects_url(self):
         self.assertEqual(resolve(BASE_URL + "get-profile-projects/alicia").func, get_profile_projects)
 
-    def test_get_mentor_markets_url(self):
-        self.assertEqual(resolve(BASE_URL + "get-mentor-markets/alicia").func, get_mentor_markets)
-
     def test_get_filtered_profiles_url(self):
         self.assertEqual(resolve(BASE_URL + "get-filtered-profiles/ali").func, get_filtered_profiles)
 

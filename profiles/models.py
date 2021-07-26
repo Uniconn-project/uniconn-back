@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models.fields import related
 from universities.models import Major, University
 
 
@@ -16,8 +15,8 @@ class User(AbstractUser):
     pass
 
 
-class StudentSkill(models.Model):
-    "Student skill table - represents students skills (e.g. programming, design, marketing)"
+class Skill(models.Model):
+    "Skill table - represents skills (e.g. programming, design, marketing)"
 
     name = models.CharField(max_length=50, default="", unique=True)
 
@@ -42,8 +41,14 @@ class Profile(models.Model):
     first_name = models.CharField(max_length=30, default="")
     last_name = models.CharField(max_length=30, default="")
     bio = models.CharField(max_length=150, default="Sem bio...")
-    linkedIn = models.CharField(max_length=50, default="")
     birth_date = models.DateField(blank=True, null=True)
+    linkedIn = models.CharField(max_length=50, default="")
+    skills = models.ManyToManyField(Skill, related_name="profiles", blank=True)
+    is_attending_university = models.BooleanField(blank=True, null=True)
+    university = models.ForeignKey(
+        University, on_delete=models.SET_NULL, related_name="profiles", blank=True, null=True
+    )
+    major = models.ForeignKey(Major, on_delete=models.SET_NULL, related_name="profiles", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -51,42 +56,5 @@ class Profile(models.Model):
         return self.user.username
 
     @property
-    def type(self):
-        if hasattr(self, "student"):
-            return "student"
-        elif hasattr(self, "mentor"):
-            return "mentor"
-
-
-class Student(models.Model):
-    """
-    Student table
-    """
-
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="student")
-    university = models.ForeignKey(
-        University, on_delete=models.SET_NULL, related_name="students", blank=True, null=True
-    )
-    major = models.ForeignKey(Major, on_delete=models.SET_NULL, related_name="students", blank=True, null=True)
-
-    skills = models.ManyToManyField(StudentSkill, related_name="students", blank=True)
-
-    class Meta:
-        ordering = ["-profile__id"]
-
-    def __str__(self):
-        return f"{self.profile.user.username} [STUDENT]"
-
-
-class Mentor(models.Model):
-    """
-    Mentor table
-    """
-
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="mentor", blank=True, null=True)
-
-    class Meta:
-        ordering = ["-profile__id"]
-
-    def __str__(self):
-        return f"{self.profile.user.username} [MENTOR]"
+    def projects(self):
+        return [membership.project for membership in self.project_memberships]
