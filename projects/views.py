@@ -293,7 +293,7 @@ def remove_user_from_project(request, project_id):
     return Response("success")
 
 
-@api_view(["PUT"])
+@api_view(["DELETE"])
 @login_required
 def reply_project_invitation(request):
     profile = request.user.profile
@@ -306,25 +306,13 @@ def reply_project_invitation(request):
     except:
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
-    if profile.type == "student":
+    if not profile in project.pending_invited_profiles:
+        return Response("O projeto não te convidou!", status=status.HTTP_400_BAD_REQUEST)
 
-        if not profile.student in project.pending_invited_students.all():
-            return Response("O projeto não te convidou!", status=status.HTTP_400_BAD_REQUEST)
+    ProjectRequest.objects.get(type="invitation", profile=profile, project=project).delete()
 
-        project.pending_invited_students.remove(profile.student)
-
-        if reply == "accept":
-            project.students.add(profile.student)
-
-    elif profile.type == "mentor":
-
-        if not profile.mentor in project.pending_invited_mentors.all():
-            return Response("O projeto não te convidou!", status=status.HTTP_400_BAD_REQUEST)
-
-        project.pending_invited_mentors.remove(profile.mentor)
-
-        if reply == "accept":
-            project.mentors.add(profile.mentor)
+    if reply == "accept":
+        ProjectMember.objects.create(profile=profile, project=project, role="member")
 
     project.save()
 
