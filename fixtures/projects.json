@@ -1,13 +1,13 @@
 [
     {
-        "model": "projects.market",
+        "model": "projects.field",
         "pk": 1,
         "fields": {
             "name": "software"
         }
     },
     {
-        "model": "projects.market",
+        "model": "projects.field",
         "pk": 2,
         "fields": {
             "name": "finanças"
