@@ -675,3 +675,43 @@ def delete_discussion_reply(request, reply_id):
     reply.delete()
 
     return Response("success")
+
+
+@api_view(["PATCH"])
+@login_required
+def promote_project_member_to_admin(request, project_id):
+    try:
+        username = request.data["username"]
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        profile = Profile.objects.get(user__username=username)
+    except:
+        return Response("Perfil não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except:
+        return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        my_project_membership = ProjectMember.objects.get(profile=request.user.profile, project=project)
+    except:
+        return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    if my_project_membership.role != "admin":
+        return Response("Somente admins podem retirar convite para o projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        project_membership = ProjectMember.objects.get(profile=profile, project=project)
+    except:
+        return Response("O usuário não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
+
+    if project_membership.role == "admin":
+        return Response("O usuário já é admin do projeto!", status=status.HTTP_400_BAD_REQUEST)
+
+    project_membership.role = "admin"
+    project_membership.save()
+
+    return Response("success")

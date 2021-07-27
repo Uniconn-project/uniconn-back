@@ -14,7 +14,7 @@ urlpatterns = [
     path("invite-users-to-project/<int:project_id>", invite_users_to_project),
     path("uninvite-users-from-project/<int:project_id>", uninvite_user_from_project),
     path("ask-to-join-project/<int:project_id>", ask_to_join_project),
-    path("remove-users-from-project/<int:project_id>", remove_user_from_project),
+    path("remove-user-from-project/<int:project_id>", remove_user_from_project),
     path("reply-project-invitation", reply_project_invitation),
     path("reply-project-entering-request", reply_project_entering_request),
     path("edit-project-description/<int:project_id>", edit_project_description),
@@ -33,5 +33,6 @@ urlpatterns = [
     path("unstar-discussion/<int:discussion_id>", unstar_discussion),
     path("reply-discussion/<int:discussion_id>", reply_discussion),
     path("delete-discussion-reply/<int:reply_id>", delete_discussion_reply),
+    path("promote-project-member-to-admin/<int:project_id>", promote_project_member_to_admin),
     re_path(r".*", http_404_not_found),
 ]
