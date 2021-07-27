@@ -40,8 +40,6 @@ def signup_view(request):
         if is_attending_university:
             university_name = request.data["university_name"]
             major_name = request.data["major_name"]
-            assert University.objects.filter(name=university_name).exists()
-            assert Major.objects.filter(name=major_name).exists()
         skills_names = request.data["skills_names"]
         skills = Skill.objects.filter(name__in=skills_names)
     except:
@@ -88,6 +86,17 @@ def signup_view(request):
     except:
         return Response(INVALID_BIRTH_DATE_ERR_MSG, status=status.HTTP_400_BAD_REQUEST)
 
+    if is_attending_university:
+        try:
+            university = University.objects.get(name=university_name)
+        except:
+            return Response("Universidade inválida!", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            major = Major.objects.get(name=major_name)
+        except:
+            return Response("Curso inválido!", status=status.HTTP_400_BAD_REQUEST)
+
     user = User.objects.create(username=username.lower(), email=email)
     user.set_password(password)
     user.save()
@@ -98,8 +107,8 @@ def signup_view(request):
     user.profile.skills.set(skills)
     user.profile.is_attending_university = is_attending_university
     if is_attending_university:
-        user.profile.university = University.objects.get(name=university_name)
-        user.profile.major = Major.objects.get(name=major_name.lower())
+        user.profile.university = university
+        user.profile.major = major
     user.profile.save()
 
     return Response("success")
@@ -119,10 +128,8 @@ def edit_my_profile(request):
         linkedIn = request.data["linkedIn"].strip()
         is_attending_university = request.data["is_attending_university"]
         if is_attending_university:
-            university_name = request.data["university"]
-            major_name = request.data["major"]
-            assert University.objects.filter(name=university_name).exists()
-            assert Major.objects.filter(name=major_name).exists()
+            university_name = request.data["university_name"]
+            major_name = request.data["major_name"]
         skills_names = request.data["skills_names"]
         skills = Skill.objects.filter(name__in=skills_names)
     except:
@@ -154,15 +161,26 @@ def edit_my_profile(request):
         profile_photo = ContentFile(base64.b64decode(photostr), name=f"{profile.user.username}.{photo_format}")
         profile.photo = profile_photo
 
+    if is_attending_university:
+        try:
+            university = University.objects.get(name=university_name)
+        except:
+            return Response("Universidade inválida!", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            major = Major.objects.get(name=major_name)
+        except:
+            return Response("Curso inválido!", status=status.HTTP_400_BAD_REQUEST)
+
+        profile.university = university
+        profile.major = major
+
     profile.user.username = username
     profile.first_name = first_name
     profile.last_name = last_name
     profile.bio = bio
     profile.linkedIn = linkedIn
     profile.skills.set(skills)
-    if is_attending_university:
-        profile.university = University.objects.get(name=university_name)
-        profile.major = Major.objects.get(name=major_name.lower())
 
     profile.user.save()
     profile.save()
@@ -233,7 +251,7 @@ def get_notifications(request):
     now = pytz.utc.localize(now)
 
     projects_invitations = ProjectRequest.objects.filter(profile=profile, type="invitation")
-    projects_entering_requests = [
+    projects_entry_requests = [
         request
         for request in ProjectRequest.objects.filter(project__members__profile=profile, type="entry_request")
         if request.project.members.get(profile=profile).role == "admin"
@@ -259,15 +277,15 @@ def get_notifications(request):
         if now - reply.updated_at < datetime.timedelta(2):
             discussions_replies.append(reply)
 
-    projects_invitations_serializer = ProjectSerializer03(projects_invitations, many=True)
-    projects_entering_requests_serializer = ProjectRequestSerializer01(projects_entering_requests, many=True)
+    projects_invitations_serializer = ProjectRequestSerializer01(projects_invitations, many=True)
+    projects_entry_requests_serializer = ProjectRequestSerializer01(projects_entry_requests, many=True)
     discussions_stars_serializer = DiscussionStarSerializer02(discussions_stars, many=True)
     discussions_replies_serializer = DiscussionReplySerializer02(discussions_replies, many=True)
 
     return Response(
         {
             "projects_invitations": projects_invitations_serializer.data,
-            "projects_entering_requests": projects_entering_requests_serializer.data,
+            "projects_entry_requests": projects_entry_requests_serializer.data,
             "discussions_stars": discussions_stars_serializer.data,
             "discussions_replies": discussions_replies_serializer.data,
         }
@@ -280,7 +298,7 @@ def get_notifications_number(request):
     profile = request.user.profile
 
     projects_invitations = ProjectRequest.objects.filter(profile=profile, type="invitation")
-    projects_entering_requests = [
+    projects_entry_requests = [
         request
         for request in ProjectRequest.objects.filter(project__members__profile=profile, type="entry_request")
         if request.project.members.get(profile=profile).role == "admin"
@@ -291,7 +309,7 @@ def get_notifications_number(request):
 
     return Response(
         len(projects_invitations)
-        + len(projects_entering_requests)
+        + len(projects_entry_requests)
         + len(unvisualized_discussions_stars)
         + len(unvisualized_replies)
     )

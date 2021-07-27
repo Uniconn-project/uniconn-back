@@ -55,6 +55,7 @@ class ProjectStarSerializer01(serializers.ModelSerializer):
 
 class ProjectMemberSerializer01(serializers.ModelSerializer):
     profile = ProfileSerializer03()
+    role = serializers.DictField(source="role_value_and_readable")
 
     class Meta:
         model = ProjectMember

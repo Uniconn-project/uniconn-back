@@ -93,6 +93,10 @@ class ProjectMember(models.Model):
     def __str__(self):
         return f"{self.profile} [{self.role}] - {self.project}"
 
+    @property
+    def role_value_and_readable(self):
+        return {"value": self.role, "readable": self.get_role_display()}
+
 
 project_request_type_choices = [("invitation", "invitation"), ("entry_request", "entry_request")]
 

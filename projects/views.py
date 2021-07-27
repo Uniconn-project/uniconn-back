@@ -119,7 +119,7 @@ def edit_project(request, project_id):
         return Response("Projeto não encontrado", status=status.HTTP_404_NOT_FOUND)
 
     try:
-        project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+        project_membership = ProjectMember.objects.get(profile=request.user.profile, project=project)
     except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
@@ -170,7 +170,7 @@ def invite_users_to_project(request, project_id):
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     try:
-        project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+        project_membership = ProjectMember.objects.get(profile=request.user.profile, project=project)
     except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
@@ -187,7 +187,7 @@ def invite_users_to_project(request, project_id):
     if not profiles.exists():
         return Response("Nenhum usuário foi encontrado!", status=status.HTTP_400_BAD_REQUEST)
 
-    if not ProjectRequest.objects.filter(type="invitation", project=project, profile__in=profiles).exists():
+    if ProjectRequest.objects.filter(type="invitation", project=project, profile__in=profiles).exists():
         return Response("Usuário já convidado!", status=status.HTTP_400_BAD_REQUEST)
 
     for profile in profiles:
@@ -205,7 +205,7 @@ def uninvite_user_from_project(request, project_id):
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     try:
-        project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+        project_membership = ProjectMember.objects.get(profile=request.user.profile, project=project)
     except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
@@ -275,7 +275,7 @@ def remove_user_from_project(request, project_id):
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     try:
-        my_project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+        my_project_membership = ProjectMember.objects.get(profile=request.user.profile, project=project)
     except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
@@ -331,9 +331,6 @@ def reply_project_invitation(request):
     return Response("success")
 
 
-# --------- STOPPED HERE ----------------------------------------------------
-
-
 @api_view(["DELETE"])
 @login_required
 def reply_project_entering_request(request):
@@ -348,7 +345,7 @@ def reply_project_entering_request(request):
         return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+        project_membership = ProjectMember.objects.get(profile=request.user.profile, project=project)
     except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
@@ -380,7 +377,7 @@ def edit_project_description(request, project_id):
         return Response("Projeto não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     try:
-        project_membership = ProjectMember.objects.get(profile=request.profile, project=project)
+        project_membership = ProjectMember.objects.get(profile=request.user.profile, project=project)
     except:
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
