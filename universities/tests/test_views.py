@@ -22,9 +22,6 @@ class TestGetUniversitiesNameList(TestCase):
     def test_res(self):
         university01 = University.objects.create(cnpj="x")
         university02 = University.objects.create(cnpj="y")
-        # Asserting that view won't return this university
-        University.objects.create(is_active=False)
-
         serializer = UniversitySerializer01([university01, university02], many=True)
 
         response = client.get(self.url)

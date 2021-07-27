@@ -1,26 +1,27 @@
-from profiles.serializers import ProfileSerializer03, ProfileSerializer04
+from profiles.serializers import ProfileSerializer02, ProfileSerializer03
 from rest_framework import serializers
 
 from .models import (
     Discussion,
     DiscussionReply,
     DiscussionStar,
+    Field,
     Link,
-    Market,
     Project,
-    ProjectEnteringRequest,
+    ProjectMember,
+    ProjectRequest,
     Tool,
     ToolCategory,
 )
 
 
-class MarketSerializer01(serializers.ModelSerializer):
+class FieldSerializer01(serializers.ModelSerializer):
     """
-    Market serializer that serializes only the *id* and *name* of a given market object.
+    Field serializer that serializes only the *id* and *name* of a given field object.
     """
 
     class Meta:
-        model = Market
+        model = Field
         fields = ["id", "name"]
 
 
@@ -52,19 +53,38 @@ class ProjectStarSerializer01(serializers.ModelSerializer):
         fields = ["id", "profile"]
 
 
+class ProjectMemberSerializer01(serializers.ModelSerializer):
+    profile = ProfileSerializer03()
+    role = serializers.DictField(source="role_value_and_readable")
+
+    class Meta:
+        model = ProjectMember
+        fields = ["id", "profile", "role"]
+
+
 class ProjectSerializer01(serializers.ModelSerializer):
     """
     Light project serializer - useful for projects list items
     """
 
     category = serializers.DictField(source="category_value_and_readable")
-    students = ProfileSerializer03(source="students_profiles", many=True)
-    markets = MarketSerializer01(many=True)
+    members_profiles = ProfileSerializer02(many=True)
+    fields = FieldSerializer01(many=True)
     stars = ProjectStarSerializer01(many=True)
 
     class Meta:
         model = Project
-        fields = ["id", "category", "name", "slogan", "image", "students", "markets", "stars", "discussions_length"]
+        fields = [
+            "id",
+            "category",
+            "name",
+            "slogan",
+            "image",
+            "members_profiles",
+            "fields",
+            "stars",
+            "discussions_length",
+        ]
 
 
 class ProjectSerializer02(serializers.ModelSerializer):
@@ -73,11 +93,9 @@ class ProjectSerializer02(serializers.ModelSerializer):
     """
 
     category = serializers.DictField(source="category_value_and_readable")
-    students = ProfileSerializer03(source="students_profiles", many=True)
-    mentors = ProfileSerializer03(source="mentors_profiles", many=True)
-    pending_invited_students = ProfileSerializer03(source="pending_invited_students_profiles", many=True)
-    pending_invited_mentors = ProfileSerializer03(source="pending_invited_mentors_profiles", many=True)
-    markets = MarketSerializer01(many=True)
+    members = ProjectMemberSerializer01(many=True)
+    pending_invited_profiles = ProfileSerializer03(many=True)
+    fields = FieldSerializer01(many=True)
     links = LinkSerializer01(many=True)
     tools_categories = ToolCategorySerializer01(many=True)
     stars = ProjectStarSerializer01(many=True)
@@ -91,11 +109,9 @@ class ProjectSerializer02(serializers.ModelSerializer):
             "slogan",
             "image",
             "description",
-            "students",
-            "mentors",
-            "pending_invited_students",
-            "pending_invited_mentors",
-            "markets",
+            "members",
+            "pending_invited_profiles",
+            "fields",
             "links",
             "tools_categories",
             "stars",
@@ -113,12 +129,12 @@ class ProjectSerializer03(serializers.ModelSerializer):
         fields = ["id", "name", "image"]
 
 
-class ProjectEnteringRequestSerializer01(serializers.ModelSerializer):
+class ProjectRequestSerializer01(serializers.ModelSerializer):
     project = ProjectSerializer03()
-    profile = ProfileSerializer04()
+    profile = ProfileSerializer02()
 
     class Meta:
-        model = ProjectEnteringRequest
+        model = ProjectRequest
         fields = ["id", "message", "project", "profile"]
 
 
@@ -158,7 +174,7 @@ class DiscussionSerializer02(serializers.ModelSerializer):
 
 
 class DiscussionStarSerializer02(serializers.ModelSerializer):
-    profile = ProfileSerializer04()
+    profile = ProfileSerializer02()
     discussion = DiscussionSerializer02()
 
     class Meta:
@@ -167,7 +183,7 @@ class DiscussionStarSerializer02(serializers.ModelSerializer):
 
 
 class DiscussionReplySerializer02(serializers.ModelSerializer):
-    profile = ProfileSerializer03()
+    profile = ProfileSerializer02()
     discussion = DiscussionSerializer02()
 
     class Meta:

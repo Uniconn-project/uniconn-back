@@ -18,7 +18,6 @@ class TestUniversity(TestCase):
         university = University.objects.create()
         self.assertIsInstance(university, University)
         self.assertEqual(university.pk, 1)
-        self.assertTrue(university.is_active)
         self.assertLessEqual(now_aware, university.created_at)
         self.assertLessEqual(now_aware, university.updated_at)
 
@@ -33,12 +32,10 @@ class TestUniversity(TestCase):
         cnpj = "XX.XXX.XXX/0001-XX"
         university.name = name
         university.cnpj = cnpj
-        university.is_active = False
         university.save()
 
         self.assertEqual(university.name, name)
         self.assertEqual(university.cnpj, cnpj)
-        self.assertFalse(university.is_active)
 
         # testing cpnj unique constrain
         with transaction.atomic():

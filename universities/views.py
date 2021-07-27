@@ -7,7 +7,7 @@ from .serializers import MajorSerializer01, UniversitySerializer01
 
 @api_view(["GET"])
 def get_universities_name_list(request):
-    universities = University.objects.filter(is_active=True)
+    universities = University.objects.all()
     serializer = UniversitySerializer01(universities, many=True)
 
     return Response(serializer.data)

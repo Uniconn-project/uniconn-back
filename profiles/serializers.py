@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from universities.serializers import MajorSerializer01, UniversitySerializer01
 
-from .models import Mentor, Profile, Student, StudentSkill
+from .models import Profile, Skill
 
 User = get_user_model()
 
@@ -13,93 +13,44 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "email"]
 
 
-class StudentSkillSerializer01(serializers.ModelSerializer):
+class SkillSerializer01(serializers.ModelSerializer):
     class Meta:
-        model = StudentSkill
+        model = Skill
         fields = ["id", "name"]
-
-
-class StudentSerializer01(serializers.ModelSerializer):
-    university = UniversitySerializer01()
-    major = MajorSerializer01()
-    skills = StudentSkillSerializer01(many=True)
-
-    class Meta:
-        model = Student
-        fields = ["id", "university", "major", "skills"]
-
-
-class MentorSerializer01(serializers.ModelSerializer):
-    class Meta:
-        model = Mentor
-        fields = ["id", "markets"]
 
 
 class ProfileSerializer01(serializers.ModelSerializer):
     """
-    Profile serializer for student
+    Heavy Profile serializer - useful for profile pages
     """
 
     user = UserSerializer()
-    student = StudentSerializer01()
+    skills = SkillSerializer01(many=True)
+    university = UniversitySerializer01()
+    major = MajorSerializer01()
 
     class Meta:
         model = Profile
         fields = [
             "id",
-            "type",
-            "student",
             "user",
             "photo",
             "first_name",
             "last_name",
             "bio",
-            "linkedIn",
             "birth_date",
+            "linkedIn",
+            "skills",
+            "is_attending_university",
+            "university",
+            "major",
             "created_at",
         ]
 
 
 class ProfileSerializer02(serializers.ModelSerializer):
     """
-    Profile serializer for mentor
-    """
-
-    user = UserSerializer()
-    mentor = MentorSerializer01()
-
-    class Meta:
-        model = Profile
-        fields = [
-            "id",
-            "type",
-            "mentor",
-            "user",
-            "photo",
-            "first_name",
-            "last_name",
-            "bio",
-            "linkedIn",
-            "birth_date",
-            "created_at",
-        ]
-
-
-class ProfileSerializer03(serializers.ModelSerializer):
-    """
-    Profile serializer
-    """
-
-    user = UserSerializer()
-
-    class Meta:
-        model = Profile
-        fields = ["id", "type", "first_name", "last_name", "user", "photo", "bio"]
-
-
-class ProfileSerializer04(serializers.ModelSerializer):
-    """
-    Light Profile serializer only id, user and image
+    Lightest Profile serializer - only id, user and image
     """
 
     user = UserSerializer()
@@ -107,3 +58,22 @@ class ProfileSerializer04(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["id", "user", "photo"]
+
+
+class ProfileSerializer03(serializers.ModelSerializer):
+    """
+    Light Profile serializer - useful for profile list items
+    """
+
+    user = UserSerializer()
+
+    class Meta:
+        model = Profile
+        fields = [
+            "id",
+            "user",
+            "photo",
+            "first_name",
+            "last_name",
+            "bio",
+        ]

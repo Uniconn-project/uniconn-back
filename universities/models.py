@@ -8,7 +8,6 @@ class University(models.Model):
 
     name = models.CharField(max_length=50, default="")
     cnpj = models.CharField(max_length=20, default="", unique=True)
-    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
