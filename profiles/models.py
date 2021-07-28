@@ -18,7 +18,7 @@ class User(AbstractUser):
 class Skill(models.Model):
     "Skill table - represents skills (e.g. programming, design, marketing)"
 
-    name = models.CharField(max_length=50, default="", unique=True)
+    name = models.CharField(max_length=30, default="", unique=True)
 
     class Meta:
         ordering = ["name"]
