@@ -29,19 +29,16 @@ class TestUrls(TestCase):
         self.assertEqual(resolve(BASE_URL + "edit-project/4").func, edit_project)
 
     def test_invite_to_project_url(self):
-        self.assertEqual(resolve(BASE_URL + "invite-students-to-project/1").func, invite_users_to_project)
-        self.assertEqual(resolve(BASE_URL + "invite-mentors-to-project/1").func, invite_users_to_project)
+        self.assertEqual(resolve(BASE_URL + "invite-users-to-project/1").func, invite_users_to_project)
 
     def test_uninvite_from_project_url(self):
-        self.assertEqual(resolve(BASE_URL + "uninvite-student-from-project/8").func, uninvite_user_from_project)
-        self.assertEqual(resolve(BASE_URL + "uninvite-mentor-from-project/40").func, uninvite_user_from_project)
+        self.assertEqual(resolve(BASE_URL + "uninvite-user-from-project/8").func, uninvite_user_from_project)
 
     def test_ask_to_join_project_url(self):
         self.assertEqual(resolve(BASE_URL + "ask-to-join-project/52").func, ask_to_join_project)
 
     def test_remove_from_project_url(self):
-        self.assertEqual(resolve(BASE_URL + "remove-student-from-project/1001").func, remove_user_from_project)
-        self.assertEqual(resolve(BASE_URL + "remove-mentor-from-project/10000").func, remove_user_from_project)
+        self.assertEqual(resolve(BASE_URL + "remove-user-from-project/1001").func, remove_user_from_project)
 
     def test_reply_project_invitation_url(self):
         self.assertEqual(resolve(BASE_URL + "reply-project-invitation").func, reply_project_invitation)
@@ -65,7 +62,7 @@ class TestUrls(TestCase):
         self.assertEqual(resolve(BASE_URL + "create-link/10").func, create_link)
 
     def test_delete_link_url(self):
-        self.assertEqual(resolve(BASE_URL + "delete-link").func, delete_link)
+        self.assertEqual(resolve(BASE_URL + "delete-link/10").func, delete_link)
 
     def test_create_project_discussion_url(self):
         self.assertEqual(resolve(BASE_URL + "create-project-discussion/3").func, create_project_discussion)
