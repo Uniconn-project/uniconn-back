@@ -95,7 +95,7 @@ def create_project(request):
 
     ProjectMember.objects.create(profile=profile, project=project, role="admin")
 
-    return Response("success")
+    return Response(project.id)
 
 
 @api_view(["GET"])

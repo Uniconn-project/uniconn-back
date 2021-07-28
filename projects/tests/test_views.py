@@ -8,19 +8,19 @@ from ..models import (
     DiscussionReply,
     DiscussionStar,
     Link,
-    Market,
+    Field,
     Project,
     ProjectStar,
 )
-from ..serializers import MarketSerializer01, ProjectSerializer01, ProjectSerializer02
+from ..serializers import FieldSerializer01, ProjectSerializer01, ProjectSerializer02
 
 User = get_user_model()
 client = Client()
 BASE_URL = "/api/projects/"
 
 
-class TestGetMarketsNameList(TestCase):
-    url = BASE_URL + "get-markets-name-list"
+class TestGetFieldsNameList(TestCase):
+    url = BASE_URL + "get-fields-name-list"
 
     def test_req(self):
         response = client.get(self.url)
@@ -31,10 +31,10 @@ class TestGetMarketsNameList(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        market01 = Market.objects.create(name="beverages")
-        market02 = Market.objects.create(name="genetical engineering")
+        field01 = Field.objects.create(name="beverages")
+        field02 = Field.objects.create(name="genetical engineering")
 
-        serializer = MarketSerializer01([market01, market02], many=True)
+        serializer = FieldSerializer01([field01, field02], many=True)
 
         response = client.get(self.url)
         self.assertEqual(response.data, serializer.data)
@@ -65,7 +65,7 @@ class TestGetFilteredProjectsList(TestCase):
     url = BASE_URL + "get-filtered-projects-list"
 
     def test_req(self):
-        response = client.get(self.url + "?categories=&markets=")
+        response = client.get(self.url + "?categories=&fields=")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for method in ["delete", "put", "patch", "post"]:
@@ -77,44 +77,44 @@ class TestGetFilteredProjectsList(TestCase):
         category01 = categories[0]
         category02 = categories[1]
 
-        market01 = Market.objects.create(name="Innovation")
-        market02 = Market.objects.create(name="Finance")
-        market03 = Market.objects.create(name="Beverages")
+        field01 = Field.objects.create(name="Innovation")
+        field02 = Field.objects.create(name="Finance")
+        field03 = Field.objects.create(name="Beverages")
 
         project01 = Project.objects.create(category=category01)
-        project01.markets.add(market01)
+        project01.fields.add(field01)
         project01.save()
 
         project02 = Project.objects.create(category=category01)
-        project02.markets.add(market02)
+        project02.fields.add(field02)
         project02.save()
 
         project03 = Project.objects.create(category=category02)
-        project03.markets.add(market03)
+        project03.fields.add(field03)
         project03.save()
 
         project04 = Project.objects.create(category=category02)
-        project04.markets.add(market01, market02)
+        project04.fields.add(field01, field02)
         project04.save()
 
         # should return all projects
         response = client.get(
-            self.url + f"?categories={category01};{category02}&markets={market01.name};{market02.name};{market03.name}"
+            self.url + f"?categories={category01};{category02}&fields={field01.name};{field02.name};{field03.name}"
         )
         self.assertEqual(response.data, ProjectSerializer01(Project.objects.all(), many=True).data)
 
         # should return only projects 03 and 04
         response = client.get(
-            self.url + f"?categories={category02}&markets={market01.name}; {market02.name};{market03.name}"
+            self.url + f"?categories={category02}&fields={field01.name}; {field02.name};{field03.name}"
         )
         self.assertEqual(response.data, ProjectSerializer01([project04, project03], many=True).data)
 
         # shouldn't return any project
-        response = client.get(self.url + f"?categories={category01};{category02}&markets=")
+        response = client.get(self.url + f"?categories={category01};{category02}&fields=")
         self.assertEqual(response.data, ProjectSerializer01([], many=True).data)
 
         # shouldn't return any project
-        response = client.get(self.url + f"?categories=&markets={market01.name};{market02.name};{market03.name}")
+        response = client.get(self.url + f"?categories=&fields={field01.name};{field02.name};{field03.name}")
         self.assertEqual(response.data, ProjectSerializer01([], many=True).data)
 
 
@@ -165,14 +165,14 @@ class TestCreateProject(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, "Dados inválidos!")
 
-        market01 = Market.objects.create(name="energy")
-        market02 = Market.objects.create(name="tech")
+        field01 = Field.objects.create(name="energy")
+        field02 = Field.objects.create(name="tech")
 
         request_data = {
             "category": "startup",
             "name": "4Share",
             "slogan": "Providing energy for the future",
-            "markets": ["tech", "energy"],
+            "fields": ["tech", "energy"],
         }
 
         response = client.post(self.url, {**request_data, "name": ""}, content_type="application/json")
@@ -192,7 +192,7 @@ class TestCreateProject(TestCase):
         self.assertEqual(response.data, "Respeite os limites de caracteres de cada campo!")
 
         response = client.post(
-            self.url, {**request_data, "markets": ["unexistent market"]}, content_type="application/json"
+            self.url, {**request_data, "fields": ["unexistent field"]}, content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, "Selecione pelo menos um mercado válido!")
@@ -213,7 +213,7 @@ class TestCreateProject(TestCase):
         self.assertEqual(project.category, request_data["category"])
         self.assertEqual(project.name, request_data["name"])
         self.assertEqual(project.slogan, request_data["slogan"])
-        self.assertEqual(list(project.markets.all()), [market01, market02])
+        self.assertEqual(list(project.fields.all()), [field01, field02])
 
 
 class TestGetProject(TestCase):
@@ -295,15 +295,15 @@ class TestEditProject(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, "Dados inválidos!")
 
-        market01 = Market.objects.create(name="energy")
-        market02 = Market.objects.create(name="tech")
+        field01 = Field.objects.create(name="energy")
+        field02 = Field.objects.create(name="tech")
 
         request_data = {
             "image": None,
             "name": "4Share",
             "category": "startup",
             "slogan": "Providing energy for the future",
-            "markets": ["tech", "energy"],
+            "fields": ["tech", "energy"],
         }
 
         response = client.put(f"{self.url}1", {**request_data, "name": "a" * 51}, content_type="application/json")
@@ -330,7 +330,7 @@ class TestEditProject(TestCase):
         self.assertEqual(project.name, request_data["name"])
         self.assertEqual(project.category, request_data["category"])
         self.assertEqual(project.slogan, request_data["slogan"])
-        self.assertEqual(list(project.markets.all()), [market01, market02])
+        self.assertEqual(list(project.fields.all()), [field01, field02])
 
         # TODO project image upload test
 
@@ -431,7 +431,7 @@ class TestReplyProjectInvitation(TestCase):
     pass
 
 
-class TestReplyProjectEnteringRequest(TestCase):
+class TestReplyProjectRequest(TestCase):
     pass
 
 

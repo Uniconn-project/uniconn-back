@@ -5,13 +5,13 @@ from projects.models import (
     DiscussionReply,
     DiscussionStar,
     Project,
-    ProjectEnteringRequest,
+    ProjectRequest,
 )
 from projects.serializers import (
     DiscussionReplySerializer02,
     DiscussionStarSerializer02,
-    MarketSerializer01,
-    ProjectEnteringRequestSerializer01,
+    FieldSerializer01,
+    ProjectRequestSerializer01,
     ProjectSerializer01,
     ProjectSerializer03,
 )
@@ -159,8 +159,8 @@ class TestGetProfileProjects(TestCase):
         self.assertEqual(response.data, serializer_MENTOR.data)
 
 
-class TestGetMentorMarkets(TestCase):
-    url = BASE_URL + "get-mentor-markets/"
+class TestGetMentorFields(TestCase):
+    url = BASE_URL + "get-mentor-fields/"
 
     def test_req(self):
         response = client.get(self.url + "phil")
@@ -187,12 +187,12 @@ class TestGetMentorMarkets(TestCase):
         user = User.objects.create(username="phil")
 
         response = client.get(self.url + "phil")
-        self.assertEqual(response.data, "Only mentors have markets")
+        self.assertEqual(response.data, "Only mentors have fields")
 
         mentor = Mentor.objects.create(profile=user.profile)
 
         response = client.get(self.url + "phil")
-        self.assertEqual(response.data, MarketSerializer01(mentor.markets.all(), many=True).data)
+        self.assertEqual(response.data, FieldSerializer01(mentor.fields.all(), many=True).data)
 
 
 class TestGetFilteredProfiles(TestCase):
@@ -319,8 +319,8 @@ class TestGetNotifications(TestCase):
         discussion01 = Discussion.objects.create(profile=user.profile, project=project01)
         discussion02 = Discussion.objects.create(profile=user.profile, project=project02)
 
-        project_entering_request01 = ProjectEnteringRequest.objects.create(project=project01, profile=profile01)
-        project_entering_request02 = ProjectEnteringRequest.objects.create(project=project01, profile=profile02)
+        project_entering_request01 = ProjectRequest.objects.create(project=project01, profile=profile01)
+        project_entering_request02 = ProjectRequest.objects.create(project=project01, profile=profile02)
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -362,7 +362,7 @@ class TestGetNotifications(TestCase):
             response.data,
             {
                 "projects_invitations": ProjectSerializer03([project03, project02], many=True).data,
-                "projects_entering_requests": ProjectEnteringRequestSerializer01(
+                "projects_entering_requests": ProjectRequestSerializer01(
                     [project_entering_request02, project_entering_request01], many=True
                 ).data,
                 "discussions_stars": DiscussionStarSerializer02(
@@ -449,7 +449,7 @@ class TestGetNotificationsNumber(TestCase):
         project02.students.add(student)
         project02.save()
 
-        ProjectEnteringRequest.objects.create(project=project02)  # 2
+        ProjectRequest.objects.create(project=project02)  # 2
 
         discussion = Discussion.objects.create(profile=user.profile)
         DiscussionStar.objects.create(discussion=discussion)  # 3

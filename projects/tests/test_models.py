@@ -5,15 +5,15 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.test import TestCase
-from profiles.models import Mentor, Student
 from projects.models import (
     Discussion,
     DiscussionReply,
     DiscussionStar,
+    Field,
     Link,
-    Market,
     Project,
-    ProjectEnteringRequest,
+    ProjectMember,
+    ProjectRequest,
     ProjectStar,
     Tool,
     ToolCategory,
@@ -24,53 +24,34 @@ from projects.models import (
 User = get_user_model()
 
 
-class TestMarket(TestCase):
+class TestField(TestCase):
     def test_create_delete(self):
         # test create
-        market = Market.objects.create()
-        self.assertIsInstance(market, Market)
-        self.assertEqual(market.pk, 1)
+        field = Field.objects.create()
+        self.assertIsInstance(field, Field)
+        self.assertEqual(field.pk, 1)
 
         # test delete
-        market.delete()
-        self.assertFalse(Market.objects.exists())
+        field.delete()
+        self.assertFalse(Field.objects.exists())
 
     def test_fields(self):
-        market = Market.objects.create()
-
-        user01 = User.objects.create()
-        mentor01 = Mentor.objects.create(profile=user01.profile)
-
-        user02 = User.objects.create(username="john")
-        mentor02 = Mentor.objects.create(profile=user02.profile)
-
-        market.mentors.add(mentor01, mentor02)
+        field = Field.objects.create()
 
         name = "Education"
-        market.name = name
+        field.name = name
 
-        market.save()
+        field.save()
 
-        self.assertEqual(market.name, name.lower())
-        self.assertEqual(len(market.mentors.all()), 2)
-        self.assertIn(mentor01, market.mentors.all())
-        self.assertIn(mentor02, market.mentors.all())
+        self.assertEqual(field.name, name.lower())
 
         # testing name unique constrain
         with transaction.atomic():
-            self.assertRaises(IntegrityError, Market.objects.create, name=name)
-
-    def test_related_name(self):
-        user = User.objects.create()
-        mentor = Mentor.objects.create(profile=user.profile)
-        market = Market.objects.create()
-        market.mentors.add(mentor)
-
-        self.assertIn(market, mentor.markets.all())
+            self.assertRaises(IntegrityError, Field.objects.create, name=name)
 
     def test_str(self):
-        market = Market.objects.create(name="Innovation")
-        self.assertEqual(str(market), market.name)
+        field = Field.objects.create(name="Innovation")
+        self.assertEqual(str(field), field.name)
 
 
 class TestProject(TestCase):
@@ -104,25 +85,9 @@ class TestProject(TestCase):
         description = "Detailed description..."
         image = "4share_logo.jpeg"
 
-        user01 = User.objects.create()
-        user02 = User.objects.create(username="mark")
-
-        student01 = Student.objects.create(profile=user01.profile)
-        student02 = Student.objects.create(profile=user02.profile)
-        project.students.add(student01)
-        project.pending_invited_students.add(student02)
-
-        user03 = User.objects.create(username="jessica")
-        user04 = User.objects.create(username="simon")
-
-        mentor01 = Mentor.objects.create(profile=user03.profile)
-        mentor02 = Mentor.objects.create(profile=user04.profile)
-        project.mentors.add(mentor01)
-        project.pending_invited_mentors.add(mentor02)
-
-        market01 = Market.objects.create(name="agriculture")
-        market02 = Market.objects.create(name="computer-brain interface")
-        project.markets.add(market01, market02)
+        field01 = Field.objects.create(name="agriculture")
+        field02 = Field.objects.create(name="computer-brain interface")
+        project.fields.add(field01, field02)
 
         project.category = category
         project.name = name
@@ -137,49 +102,16 @@ class TestProject(TestCase):
         self.assertEqual(project.description, description)
         self.assertEqual(project.image, image)
 
-        self.assertEqual(list(project.students.all()), [student01])
-        self.assertEqual(list(project.pending_invited_students.all()), [student02])
-        self.assertEqual(list(project.mentors.all()), [mentor01])
-        self.assertEqual(list(project.pending_invited_mentors.all()), [mentor02])
-        self.assertEqual(list(project.markets.all()), [market01, market02])
+        self.assertEqual(list(project.fields.all()), [field01, field02])
 
     def test_related_name(self):
         project = Project.objects.create()
 
-        user01 = User.objects.create(username="nelson")
-        user02 = User.objects.create(username="john")
-        user03 = User.objects.create(username="marie")
-        user04 = User.objects.create(username="peter")
-
-        # students
-        student01 = Student.objects.create(profile=user01.profile)
-        project.students.add(student01)
+        # fields
+        field = Field.objects.create()
+        project.fields.add(field)
         project.save()
-        self.assertIn(project, student01.projects.all())
-
-        # pending_invited_students
-        student02 = Student.objects.create(profile=user02.profile)
-        project.pending_invited_students.add(student02)
-        project.save()
-        self.assertIn(project, student02.pending_projects_invitations.all())
-
-        # mentors
-        mentor01 = Mentor.objects.create(profile=user03.profile)
-        project.mentors.add(mentor01)
-        project.save()
-        self.assertIn(project, mentor01.projects.all())
-
-        # pending_invited_mentors
-        mentor02 = Mentor.objects.create(profile=user04.profile)
-        project.pending_invited_mentors.add(mentor02)
-        project.save()
-        self.assertIn(project, mentor02.pending_projects_invitations.all())
-
-        # markets
-        market = Market.objects.create()
-        project.markets.add(market)
-        project.save()
-        self.assertIn(project, market.projects.all())
+        self.assertIn(project, field.projects.all())
 
     def test_get_project_categories_choices_staticmethod(self):
         self.assertEqual(
@@ -201,84 +133,34 @@ class TestProject(TestCase):
         project = Project.objects.create(name="Uniconn")
         self.assertEqual(str(project), project.name)
 
+    def test_members_profiles_method(self):
+        project = Project.objects.create()
+
+        profile01 = User.objects.create(username="peter").profile
+        profile02 = User.objects.create(username="taylor").profile
+
+        ProjectMember.objects.create(project=project, profile=profile01)
+        ProjectMember.objects.create(project=project, profile=profile02)
+
+        self.assertEqual(project.members_profiles, [profile01, profile02])
+
+    def test_pending_invited_profiles_method(self):
+        project = Project.objects.create()
+
+        profile01 = User.objects.create(username="peter").profile
+        profile02 = User.objects.create(username="taylor").profile
+
+        ProjectRequest.objects.create(project=project, profile=profile01, type="invitation")
+        ProjectRequest.objects.create(project=project, profile=profile02, type="invitation")
+
+        self.assertEqual(project.pending_invited_profiles, [profile02, profile01])
+
     def test_category_value_and_readable_method(self):
         project = Project.objects.create(category=project_categories_choices[0][0])
         self.assertEqual(
             project.category_value_and_readable,
             {"value": project_categories_choices[0][0], "readable": project_categories_choices[0][1]},
         )
-
-    def test_students_profiles_method(self):
-        project = Project.objects.create()
-
-        user01 = User.objects.create(username="taylor")
-        student01 = Student.objects.create(profile=user01.profile)
-
-        user02 = User.objects.create(username="peter")
-        student02 = Student.objects.create(profile=user02.profile)
-
-        project.students.add(student01, student02)
-        project.save()
-
-        students_profiles = project.students_profiles
-
-        self.assertEqual(len(students_profiles), 2)
-        self.assertIn(user01.profile, students_profiles)
-        self.assertIn(user02.profile, students_profiles)
-
-    def test_mentors_profiles_method(self):
-        project = Project.objects.create()
-
-        user01 = User.objects.create(username="maicon")
-        mentor01 = Mentor.objects.create(profile=user01.profile)
-
-        user02 = User.objects.create(username="joanne")
-        mentor02 = Mentor.objects.create(profile=user02.profile)
-
-        project.mentors.add(mentor01, mentor02)
-        project.save()
-
-        mentors_profiles = project.mentors_profiles
-
-        self.assertEqual(len(mentors_profiles), 2)
-        self.assertIn(user01.profile, mentors_profiles)
-        self.assertIn(user02.profile, mentors_profiles)
-
-    def test_pending_invited_students_profiles_method(self):
-        project = Project.objects.create()
-
-        user01 = User.objects.create(username="taylor")
-        student01 = Student.objects.create(profile=user01.profile)
-
-        user02 = User.objects.create(username="peter")
-        student02 = Student.objects.create(profile=user02.profile)
-
-        project.pending_invited_students.add(student01, student02)
-        project.save()
-
-        pending_invited_students_profiles = project.pending_invited_students_profiles
-
-        self.assertEqual(len(pending_invited_students_profiles), 2)
-        self.assertIn(user01.profile, pending_invited_students_profiles)
-        self.assertIn(user02.profile, pending_invited_students_profiles)
-
-    def test_pending_invited_mentors_profiles_method(self):
-        project = Project.objects.create()
-
-        user01 = User.objects.create(username="maicon")
-        mentor01 = Mentor.objects.create(profile=user01.profile)
-
-        user02 = User.objects.create(username="joanne")
-        mentor02 = Mentor.objects.create(profile=user02.profile)
-
-        project.pending_invited_mentors.add(mentor01, mentor02)
-        project.save()
-
-        pending_invited_mentors_profiles = project.pending_invited_mentors_profiles
-
-        self.assertEqual(len(pending_invited_mentors_profiles), 2)
-        self.assertIn(user01.profile, pending_invited_mentors_profiles)
-        self.assertIn(user02.profile, pending_invited_mentors_profiles)
 
     def test_discussions_length_method(self):
         project = Project.objects.create()
@@ -288,6 +170,123 @@ class TestProject(TestCase):
         Discussion.objects.create(project=project)
 
         self.assertEqual(project.discussions_length, 3)
+
+
+class TestProjectMember(TestCase):
+    def test_create_delete(self):
+        # test create
+        project_member = ProjectMember.objects.create()
+        self.assertIsInstance(project_member, ProjectMember)
+        self.assertEqual(project_member.pk, 1)
+
+        # test delete
+        project_member.delete()
+        self.assertFalse(ProjectMember.objects.exists())
+
+    def test_fields(self):
+        project_member = ProjectMember.objects.create()
+
+        profile = User.objects.create().profile
+        project = Project.objects.create()
+        role = "admin"
+
+        project_member.profile = profile
+        project_member.project = project
+        project_member.role = role
+
+        project_member.save()
+
+        self.assertEqual(project_member.profile, profile)
+        self.assertEqual(project_member.project, project)
+        self.assertEqual(project_member.role, role)
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        project_member = ProjectMember.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(project_member, project.members.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(ProjectMember.objects.exists())
+
+    def test_profile_relation(self):
+        profile = User.objects.create().profile
+        project_member = ProjectMember.objects.create(profile=profile)
+
+        # testing related name
+        self.assertIn(project_member, profile.project_memberships.all())
+
+        # testing cascade
+        profile.delete()
+        self.assertFalse(ProjectMember.objects.exists())
+
+    def test_str(self):
+        project = Project.objects.create(name="Simulatomic")
+        profile = User.objects.create(username="john_p").profile
+        project_member = ProjectMember.objects.create(project=project, profile=profile)
+        self.assertEqual(str(project_member), f"{profile} [{project_member.role}] - {project}")
+
+
+class TestProjectRequest(TestCase):
+    def test_create_delete(self):
+        # test create
+        project_request = ProjectRequest.objects.create()
+        self.assertIsInstance(project_request, ProjectRequest)
+        self.assertEqual(project_request.pk, 1)
+
+        # test delete
+        project_request.delete()
+        self.assertFalse(ProjectRequest.objects.exists())
+
+    def test_fields(self):
+        project_request = ProjectRequest.objects.create()
+
+        type = "invitation"
+        message = "I would love to contribute to this project as a software developer."
+        project = Project.objects.create()
+        profile = User.objects.create().profile
+
+        project_request.type = type
+        project_request.message = message
+        project_request.project = project
+        project_request.profile = profile
+
+        project_request.save()
+
+        self.assertEqual(project_request.type, type)
+        self.assertEqual(project_request.message, message)
+        self.assertEqual(project_request.project, project)
+        self.assertEqual(project_request.profile, profile)
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        project_request = ProjectRequest.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(project_request, project.requests.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(ProjectRequest.objects.exists())
+
+    def test_profile_relation(self):
+        profile = User.objects.create().profile
+        project_request = ProjectRequest.objects.create(profile=profile)
+
+        # testing related name
+        self.assertIn(project_request, profile.projects_requests.all())
+
+        # testing cascade
+        profile.delete()
+        self.assertFalse(ProjectRequest.objects.exists())
+
+    def test_str(self):
+        project = Project.objects.create(name="Simulatomic")
+        profile = User.objects.create(username="john_p").profile
+        project_request = ProjectRequest.objects.create(project=project, profile=profile, type="entry_request")
+        self.assertEqual(str(project_request), f"{project.name} [{project_request.type}] {profile.user.username}")
 
 
 class TestLink(TestCase):
@@ -473,63 +472,6 @@ class TestProjectStar(TestCase):
 
         project_star = ProjectStar.objects.create(profile=profile, project=project)
         self.assertEqual(str(project_star), f"{profile.user.username} starred {project}")
-
-
-class TestProjectEnteringRequest(TestCase):
-    def test_create_delete(self):
-        # test create
-        project_entering_request = ProjectEnteringRequest.objects.create()
-        self.assertIsInstance(project_entering_request, ProjectEnteringRequest)
-        self.assertEqual(project_entering_request.pk, 1)
-
-        # test delete
-        project_entering_request.delete()
-        self.assertFalse(ProjectEnteringRequest.objects.exists())
-
-    def test_fields(self):
-        project_entering_request = ProjectEnteringRequest.objects.create()
-
-        message = "I would love to contribute to this project as a software developer."
-        project = Project.objects.create()
-        user = User.objects.create()
-
-        project_entering_request.message = message
-        project_entering_request.project = project
-        project_entering_request.profile = user.profile
-
-        project_entering_request.save()
-
-        self.assertEqual(project_entering_request.message, message)
-        self.assertEqual(project_entering_request.project, project)
-        self.assertEqual(project_entering_request.profile, user.profile)
-
-    def test_project_relation(self):
-        project = Project.objects.create()
-        project_entering_request = ProjectEnteringRequest.objects.create(project=project)
-
-        # testing related name
-        self.assertIn(project_entering_request, project.entering_requests.all())
-
-        # testing cascade
-        project.delete()
-        self.assertFalse(ProjectEnteringRequest.objects.exists())
-
-    def test_profile_relation(self):
-        profile = User.objects.create().profile
-        project_entering_request = ProjectEnteringRequest.objects.create(profile=profile)
-
-        # testing related name
-        self.assertIn(project_entering_request, profile.projects_entering_requests.all())
-
-        # testing cascade
-        profile.delete()
-        self.assertFalse(ProjectEnteringRequest.objects.exists())
-
-    def test_str(self):
-        project = Project.objects.create(name="Simutomic")
-        user = User.objects.create(username="john_p")
-        project_entering_request = ProjectEnteringRequest.objects.create(project=project, profile=user.profile)
-        self.assertEqual(str(project_entering_request), f"{user.username} to {project.name}")
 
 
 class TestDiscussion(TestCase):

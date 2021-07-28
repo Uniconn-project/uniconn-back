@@ -117,7 +117,7 @@ class ProjectRequest(models.Model):
         ordering = ["-id"]
 
     def __str__(self):
-        return f"{self.profile.user.username} to {self.project.name}"
+        return f"{self.project.name} [{self.type}] {self.profile.user.username}"
 
 
 class Link(models.Model):

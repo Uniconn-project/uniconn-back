@@ -51,7 +51,7 @@ Table Major {
 }
 
 
-Table Market {
+Table Field {
   id int pk
   name char
   mentors int
@@ -75,14 +75,14 @@ Table Project {
   mentors int
   pending_invited_students int
   pending_invited_mentors int
-  markets int
+  fields int
   links int
   created_at datetime
   updated_at datetime
 }
 
 
-Table ProjectEnteringRequest {
+Table ProjectRequest {
   id int pk
   message char
   project int
@@ -142,7 +142,7 @@ Ref {
 }
 
 Ref {
-  Market.mentors < Mentor.id
+  Field.mentors < Mentor.id
 }
 
 Ref {
@@ -162,7 +162,7 @@ Ref {
 }
 
 Ref {
-  Project.markets < Market.id
+  Project.fields < Field.id
 }
 
 Ref {
@@ -170,11 +170,11 @@ Ref {
 }
 
 Ref {
-  ProjectEnteringRequest.profile > Profile.id
+  ProjectRequest.profile > Profile.id
 }
 
 Ref {
-  ProjectEnteringRequest.project > Project.id
+  ProjectRequest.project > Project.id
 }
 
 Ref {
