@@ -63,7 +63,7 @@ class TestSkill(TestCase):
         skill.name = name
         skill.save()
 
-        self.assertEqual(skill.name, name.lower())
+        self.assertEqual(skill.name, name)
 
         # testing name unique constrain
         with transaction.atomic():

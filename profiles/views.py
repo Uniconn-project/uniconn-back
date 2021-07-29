@@ -10,10 +10,8 @@ from projects.models import DiscussionReply, DiscussionStar, Field, ProjectReque
 from projects.serializers import (
     DiscussionReplySerializer02,
     DiscussionStarSerializer02,
-    FieldSerializer01,
     ProjectRequestSerializer01,
     ProjectSerializer01,
-    ProjectSerializer03,
 )
 from rest_framework import status
 from rest_framework.decorators import api_view

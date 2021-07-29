@@ -26,10 +26,6 @@ class Skill(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        self.name = self.name.lower()
-        super().save(*args, **kwargs)
-
 
 class Profile(models.Model):
     """
