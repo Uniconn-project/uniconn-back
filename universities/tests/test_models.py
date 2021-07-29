@@ -75,7 +75,7 @@ class TestMajor(TestCase):
         major.name = name
         major.save()
 
-        self.assertEqual(major.name, name.lower())
+        self.assertEqual(major.name, name)
 
         # testing name unique constrain
         with transaction.atomic():

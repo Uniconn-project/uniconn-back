@@ -7,7 +7,7 @@ class Field(models.Model):
     Field table - relates with the Project table
     """
 
-    name = models.CharField(max_length=50, default="", unique=True)
+    name = models.CharField(max_length=50, blank=True, unique=True)
 
     class Meta:
         ordering = ["name"]
@@ -34,8 +34,8 @@ class Project(models.Model):
     """
 
     category = models.CharField(max_length=50, choices=project_categories_choices, blank=True, null=True)
-    name = models.CharField(max_length=50, default="")
-    slogan = models.CharField(help_text="Very quick description", max_length=125, default="", null=True)
+    name = models.CharField(max_length=50, blank=True)
+    slogan = models.CharField(help_text="Very quick description", max_length=125, blank=True, null=True)
     description = models.CharField(
         help_text="Detailed description",
         default='{"blocks": [{"key": "5v3ub", "text": "Sem descrição...", "type": "unstyled", "depth": 0, "inlineStyleRanges": [], "entityRanges": [], "data": {}}], "entityMap": {}}',
@@ -107,7 +107,7 @@ class ProjectRequest(models.Model):
     """
 
     type = models.CharField(max_length=50, choices=project_request_type_choices, blank=True, null=True)
-    message = models.CharField(max_length=500, default="")
+    message = models.CharField(max_length=500, blank=True)
     project = models.ForeignKey(Project, related_name="requests", on_delete=models.CASCADE, blank=True, null=True)
     profile = models.ForeignKey(
         Profile, related_name="projects_requests", on_delete=models.CASCADE, blank=True, null=True
@@ -125,8 +125,8 @@ class Link(models.Model):
     Link table
     """
 
-    name = models.CharField(max_length=100, default="")
-    href = models.CharField(max_length=300, default="")
+    name = models.CharField(max_length=100, blank=True)
+    href = models.CharField(max_length=300, blank=True)
     project = models.ForeignKey(Project, related_name="links", on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
@@ -138,7 +138,7 @@ class ToolCategory(models.Model):
     Tool category table
     """
 
-    name = models.CharField(max_length=100, default="")
+    name = models.CharField(max_length=100, blank=True)
     project = models.ForeignKey(
         Project, related_name="tools_categories", on_delete=models.CASCADE, blank=True, null=True
     )
@@ -153,8 +153,8 @@ class Tool(models.Model):
     """
 
     category = models.ForeignKey(ToolCategory, related_name="tools", on_delete=models.CASCADE, blank=True, null=True)
-    name = models.CharField(max_length=100, default="")
-    href = models.CharField(max_length=300, default="")
+    name = models.CharField(max_length=100, blank=True)
+    href = models.CharField(max_length=300, blank=True)
 
     def __str__(self):
         return self.name
@@ -192,8 +192,8 @@ class Discussion(models.Model):
     Discussion table
     """
 
-    title = models.CharField(max_length=125, default="")
-    body = models.CharField(max_length=1000, default="")
+    title = models.CharField(max_length=125, blank=True)
+    body = models.CharField(max_length=1000, blank=True)
     category = models.CharField(max_length=15, choices=discussion_categories_choices, blank=True, null=True)
     profile = models.ForeignKey(Profile, related_name="discussions", on_delete=models.CASCADE, blank=True, null=True)
     project = models.ForeignKey(Project, related_name="discussions", on_delete=models.CASCADE, blank=True, null=True)
@@ -243,7 +243,7 @@ class DiscussionReply(models.Model):
     Discussion reply table - replies are all in the same layer
     """
 
-    content = models.CharField(max_length=300, default="", null=True)
+    content = models.CharField(max_length=300, blank=True, null=True)
     profile = models.ForeignKey(
         Profile, related_name="discussions_replies", on_delete=models.CASCADE, blank=True, null=True
     )
