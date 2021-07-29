@@ -18,7 +18,7 @@ class User(AbstractUser):
 class Skill(models.Model):
     "Skill table - represents skills (e.g. programming, design, marketing)"
 
-    name = models.CharField(max_length=30, default="", unique=True)
+    name = models.CharField(max_length=30, blank=True, unique=True)
 
     class Meta:
         ordering = ["name"]
@@ -34,11 +34,11 @@ class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     photo = models.ImageField(default="profile_avatar.jpeg", upload_to="profile_photos", blank=True, null=True)
-    first_name = models.CharField(max_length=30, default="")
-    last_name = models.CharField(max_length=30, default="")
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
     bio = models.CharField(max_length=150, default="Sem bio...")
     birth_date = models.DateField(blank=True, null=True)
-    linkedIn = models.CharField(max_length=50, default="")
+    linkedIn = models.CharField(max_length=50, blank=True)
     skills = models.ManyToManyField(Skill, related_name="profiles", blank=True)
     is_attending_university = models.BooleanField(blank=True, null=True)
     university = models.ForeignKey(
