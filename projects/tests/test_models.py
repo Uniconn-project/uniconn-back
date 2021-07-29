@@ -39,19 +39,19 @@ class TestField(TestCase):
     def test_fields(self):
         field = Field.objects.create()
 
-        name = "Education"
+        name = "Educação"
         field.name = name
 
         field.save()
 
-        self.assertEqual(field.name, name.lower())
+        self.assertEqual(field.name, name)
 
         # testing name unique constrain
         with transaction.atomic():
             self.assertRaises(IntegrityError, Field.objects.create, name=name)
 
     def test_str(self):
-        field = Field.objects.create(name="Innovation")
+        field = Field.objects.create(name="Inovação")
         self.assertEqual(str(field), field.name)
 
 
