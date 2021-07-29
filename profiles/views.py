@@ -264,7 +264,7 @@ def get_notifications(request):
             discussions_stars.append(star)
             continue
 
-        if now - star.updated_at < datetime.timedelta(2):
+        if now - star.updated_at < datetime.timedelta(days=2):
             discussions_stars.append(star)
 
     discussions_replies = []
@@ -274,7 +274,7 @@ def get_notifications(request):
             discussions_replies.append(reply)
             continue
 
-        if now - reply.updated_at < datetime.timedelta(2):
+        if now - reply.updated_at < datetime.timedelta(days=2):
             discussions_replies.append(reply)
 
     projects_invitations_serializer = ProjectRequestSerializer01(projects_invitations, many=True)

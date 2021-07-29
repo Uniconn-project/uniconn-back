@@ -1,3 +1,7 @@
+import datetime
+
+import mock
+import pytz
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from projects.models import (
@@ -217,9 +221,6 @@ class TestGetSkillsNameList(TestCase):
         self.assertEqual(response.data, SkillSerializer01(skills, many=True).data)
 
 
-# ----- CONTINUE FROM HERE --------------------
-
-
 class TestGetNotifications(TestCase):
     url = BASE_URL + "get-notifications"
 
@@ -235,109 +236,87 @@ class TestGetNotifications(TestCase):
         user = User.objects.create(username="felipe")
         client.force_login(user)
 
-        profile01 = User.objects.create(username="peter").profile
-        profile02 = User.objects.create(username="jane").profile
-
-        project01 = Project.objects.create()
-        project02 = Project.objects.create()
-        project03 = Project.objects.create()
-
-        discussion01 = Discussion.objects.create(profile=user.profile, project=project01)
-        discussion02 = Discussion.objects.create(profile=user.profile, project=project02)
-
-        project_request01 = ProjectRequest.objects.create(project=project01, profile=profile01, type="invitation")
-        project_request02 = ProjectRequest.objects.create(project=project01, profile=profile02, type="entry_request")
-
-        response = client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data, "Dados inválidos!")
-
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             {
                 "projects_invitations": [],
-                "projects_entering_requests": [],
+                "projects_entry_requests": [],
                 "discussions_stars": [],
                 "discussions_replies": [],
             },
         )
 
-        project01.students.add(student)
-        project01.save()
+        profile01 = User.objects.create(username="peter").profile
+        profile02 = User.objects.create(username="john").profile
+        profile03 = User.objects.create(username="jane").profile
 
-        project02.pending_invited_students.add(student)
-        project02.save()
-        project03.pending_invited_students.add(student)
-        project03.save()
+        project01 = Project.objects.create(name="SpaceX", category="startup", slogan="Wait for us, red planet!")
+        ProjectMember.objects.create(profile=user.profile, project=project01, role="admin")
 
-        discussion_star01 = DiscussionStar.objects.create(discussion=discussion01, profile=profile01)
-        discussion_star02 = DiscussionStar.objects.create(discussion=discussion01, profile=profile02)
-        discussion_star03 = DiscussionStar.objects.create(discussion=discussion02, profile=profile01)
+        project02 = Project.objects.create(name="BlueOrigin", category="startup", slogan="Your favorite space company")
+        ProjectMember.objects.create(profile=user.profile, project=project02, role="member")
 
-        discussion_reply01 = DiscussionReply.objects.create(discussion=discussion01, profile=profile01)
-        discussion_reply02 = DiscussionReply.objects.create(discussion=discussion01, profile=profile02)
-        discussion_reply03 = DiscussionReply.objects.create(discussion=discussion02, profile=profile01)
+        project03 = Project.objects.create(name="VirginGalactic", category="startup", slogan="The space is ours!")
+        discussion = Discussion.objects.create(profile=user.profile, project=project03)
 
-        response = client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data,
-            {
-                "projects_invitations": ProjectSerializer03([project03, project02], many=True).data,
-                "projects_entering_requests": ProjectRequestSerializer01(
-                    [project_entering_request02, project_entering_request01], many=True
-                ).data,
-                "discussions_stars": DiscussionStarSerializer02(
-                    [discussion_star03, discussion_star02, discussion_star01], many=True
-                ).data,
-                "discussions_replies": DiscussionReplySerializer02(
-                    [discussion_reply03, discussion_reply02, discussion_reply01], many=True
-                ).data,
-            },
-        )
+        project_request01 = ProjectRequest.objects.create(project=project01, profile=profile01, type="entry_request")
+        # since the logged user is a 'member' in the project02, the project_request02 shouldn't be in their notifications
+        project_request02 = ProjectRequest.objects.create(project=project02, profile=profile01, type="entry_request")
+        project_request03 = ProjectRequest.objects.create(project=project03, profile=user.profile, type="invitation")
 
-        student.delete()
-        mentor = Mentor.objects.create(profile=user.profile)
+        # unvisualized
+        discussion_star01 = DiscussionStar.objects.create(discussion=discussion, profile=profile01)
+        discussion_reply01 = DiscussionReply.objects.create(discussion=discussion, profile=profile01)
 
-        response = client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data,
-            {
-                "projects_invitations": [],
-                "projects_entering_requests": [],
-                "discussions_stars": DiscussionStarSerializer02(
-                    [discussion_star03, discussion_star02, discussion_star01], many=True
-                ).data,
-                "discussions_replies": DiscussionReplySerializer02(
-                    [discussion_reply03, discussion_reply02, discussion_reply01], many=True
-                ).data,
-            },
-        )
+        # visualized 1.5 days ago
+        discussion_star02 = DiscussionStar.objects.create(discussion=discussion, profile=profile02)
+        discussion_reply02 = DiscussionReply.objects.create(discussion=discussion, profile=profile02)
 
-        project01.mentors.add(mentor)
-        project02.pending_invited_mentors.add(mentor)
-        project02.save()
-        project03.pending_invited_mentors.add(mentor)
-        project03.save()
+        # visualized 3 days ago (shouldn't be returned by the view)
+        discussion_star03 = DiscussionStar.objects.create(discussion=discussion, profile=profile03)
+        discussion_reply03 = DiscussionReply.objects.create(discussion=discussion, profile=profile03)
+
+        with mock.patch("django.utils.timezone.now") as mock_now:
+            # make "now" 1.5 days ago
+            testtime = datetime.datetime.now() - datetime.timedelta(days=1, hours=12)
+            testtime = pytz.utc.localize(testtime)
+            mock_now.return_value = testtime
+
+            discussion_star02.visualized = True
+            discussion_star02.save()
+            discussion_reply02.visualized = True
+            discussion_reply02.save()
+
+            # make "now" 3 days ago
+            testtime = datetime.datetime.now() - datetime.timedelta(days=3)
+            testtime = pytz.utc.localize(testtime)
+            mock_now.return_value = testtime
+
+            discussion_star03.visualized = True
+            discussion_star03.save()
+            discussion_reply03.visualized = True
+            discussion_reply03.save()
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             {
-                "projects_invitations": ProjectSerializer03([project03, project02], many=True).data,
-                "projects_entering_requests": [],
+                "projects_invitations": ProjectRequestSerializer01([project_request03], many=True).data,
+                "projects_entry_requests": ProjectRequestSerializer01([project_request01], many=True).data,
                 "discussions_stars": DiscussionStarSerializer02(
-                    [discussion_star03, discussion_star02, discussion_star01], many=True
+                    [discussion_star02, discussion_star01], many=True
                 ).data,
                 "discussions_replies": DiscussionReplySerializer02(
-                    [discussion_reply03, discussion_reply02, discussion_reply01], many=True
+                    [discussion_reply02, discussion_reply01], many=True
                 ).data,
             },
         )
+
+
+# ----- CONTINUE FROM HERE --------------------
 
 
 class TestGetNotificationsNumber(TestCase):
