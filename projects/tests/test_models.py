@@ -19,6 +19,7 @@ from projects.models import (
     ToolCategory,
     discussion_categories_choices,
     project_categories_choices,
+    project_member_role_choices,
 )
 
 User = get_user_model()
@@ -227,6 +228,13 @@ class TestProjectMember(TestCase):
         profile = User.objects.create(username="john_p").profile
         project_member = ProjectMember.objects.create(project=project, profile=profile)
         self.assertEqual(str(project_member), f"{profile} [{project_member.role}] - {project}")
+
+    def test_role_value_and_readable_method(self):
+        project_member = ProjectMember.objects.create(role=project_member_role_choices[0][0])
+        self.assertEqual(
+            project_member.role_value_and_readable,
+            {"value": project_member_role_choices[0][0], "readable": project_member_role_choices[0][1]},
+        )
 
 
 class TestProjectRequest(TestCase):

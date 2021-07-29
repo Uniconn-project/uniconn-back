@@ -10,10 +10,8 @@ from projects.models import DiscussionReply, DiscussionStar, Field, ProjectReque
 from projects.serializers import (
     DiscussionReplySerializer02,
     DiscussionStarSerializer02,
-    FieldSerializer01,
     ProjectRequestSerializer01,
     ProjectSerializer01,
-    ProjectSerializer03,
 )
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -264,7 +262,7 @@ def get_notifications(request):
             discussions_stars.append(star)
             continue
 
-        if now - star.updated_at < datetime.timedelta(2):
+        if now - star.updated_at < datetime.timedelta(days=2):
             discussions_stars.append(star)
 
     discussions_replies = []
@@ -274,7 +272,7 @@ def get_notifications(request):
             discussions_replies.append(reply)
             continue
 
-        if now - reply.updated_at < datetime.timedelta(2):
+        if now - reply.updated_at < datetime.timedelta(days=2):
             discussions_replies.append(reply)
 
     projects_invitations_serializer = ProjectRequestSerializer01(projects_invitations, many=True)
