@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.test import TestCase
+from projects.models import Project, ProjectMember
 from universities.models import Major, University
 
 from ..models import Profile, Skill
@@ -152,3 +153,13 @@ class TestProfile(TestCase):
         user = User.objects.create()
         profile = user.profile
         self.assertEqual(str(profile), profile.user.username)
+
+    def test_projects_method(self):
+        profile = User.objects.create().profile
+        project01 = Project.objects.create()
+        project02 = Project.objects.create()
+
+        ProjectMember.objects.create(profile=profile, project=project01)
+        ProjectMember.objects.create(profile=profile, project=project02)
+
+        self.assertEqual(profile.projects, [project01, project02])

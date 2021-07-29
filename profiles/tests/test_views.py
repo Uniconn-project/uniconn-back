@@ -5,6 +5,7 @@ from projects.models import (
     DiscussionReply,
     DiscussionStar,
     Project,
+    ProjectMember,
     ProjectRequest,
 )
 from projects.serializers import (
@@ -17,12 +18,12 @@ from projects.serializers import (
 )
 from rest_framework import status
 
-from ..models import Mentor, Profile, Student, StudentSkill
+from ..models import Profile, Skill
 from ..serializers import (
     ProfileSerializer01,
     ProfileSerializer02,
     ProfileSerializer03,
-    StudentSkillSerializer01,
+    SkillSerializer01,
 )
 
 User = get_user_model()
@@ -42,22 +43,13 @@ class TestGetMyProfile(TestCase):
     url = BASE_URL + "get-my-profile"
 
     def setUp(self):
-        self.user01_STUDENT = User.objects.create(username="jeff")
-        Student.objects.create(profile=self.user01_STUDENT.profile)
-
-        self.user02_MENTOR = User.objects.create(username="larry")
-        Mentor.objects.create(profile=self.user02_MENTOR.profile)
+        self.user = User.objects.create(username="jeff")
 
     def test_req(self):
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data, "Você precisa logar para acessar essa rota")
 
-        client.force_login(self.user01_STUDENT)
-        response = client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        client.force_login(self.user02_MENTOR)
+        client.force_login(self.user)
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -66,133 +58,66 @@ class TestGetMyProfile(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        student_serializer = ProfileSerializer01(self.user01_STUDENT.profile)
-        mentor_serializer = ProfileSerializer02(self.user02_MENTOR.profile)
+        serializer = ProfileSerializer01(self.user.profile)
 
-        client.force_login(self.user01_STUDENT)
+        client.force_login(self.user)
         response = client.get(self.url)
-        self.assertEqual(response.data, student_serializer.data)
-
-        client.force_login(self.user02_MENTOR)
-        response = client.get(self.url)
-        self.assertEqual(response.data, mentor_serializer.data)
+        self.assertEqual(response.data, serializer.data)
 
 
 class TestGetProfile(TestCase):
     url = BASE_URL + "get-profile/"
 
     def setUp(self):
-        self.user01_STUDENT = User.objects.create(username="jeff")
-        Student.objects.create(profile=self.user01_STUDENT.profile)
-
-        self.user02_MENTOR = User.objects.create(username="larry")
-        Mentor.objects.create(profile=self.user02_MENTOR.profile)
+        self.user = User.objects.create(username="jeff")
 
     def test_req(self):
-        response = client.get(self.url + "unexistent-username")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data, "There isn't any user with such username")
-
-        response = client.get(self.url + self.user01_STUDENT.username)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        response = client.get(self.url + self.user02_MENTOR.username)
+        response = client.get(f"{self.url}{self.user.username}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for method in ["delete", "put", "patch", "post"]:
-            response = getattr(client, method)(self.url + self.user01_STUDENT.username)
+            response = getattr(client, method)(self.url + self.user.username)
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        student_serializer = ProfileSerializer01(self.user01_STUDENT.profile)
-        mentor_serializer = ProfileSerializer02(self.user02_MENTOR.profile)
+        serializer = ProfileSerializer01(self.user.profile)
 
-        response = client.get(self.url + self.user01_STUDENT.username)
-        self.assertEqual(response.data, student_serializer.data)
+        response = client.get(self.url + "unexistent-username")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Usuário não encontrado")
 
-        response = client.get(self.url + self.user02_MENTOR.username)
-        self.assertEqual(response.data, mentor_serializer.data)
+        response = client.get(self.url + self.user.username)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, serializer.data)
 
 
 class TestGetProfileProjects(TestCase):
     url = BASE_URL + "get-profile-projects/"
 
     def setUp(self):
-        self.user01_STUDENT = User.objects.create(username="jeff")
-        Student.objects.create(profile=self.user01_STUDENT.profile)
-
-        self.user02_MENTOR = User.objects.create(username="larry")
-        Mentor.objects.create(profile=self.user02_MENTOR.profile)
+        self.user = User.objects.create(username="jeff")
 
     def test_req(self):
-        response = client.get(self.url + self.user01_STUDENT.username)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        response = client.get(self.url + self.user02_MENTOR.username)
+        response = client.get(self.url + self.user.username)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for method in ["delete", "put", "patch", "post"]:
-            response = getattr(client, method)(self.url + self.user02_MENTOR.username)
+            response = getattr(client, method)(self.url + self.user.username)
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
         response = client.get(self.url + "unexistent-username")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data, "There isn't any user with such username")
+        self.assertEqual(response.data, "Usuário não encontrado")
 
-        project01 = Project.objects.create()
-        project02 = Project.objects.create()
-        project01.students.add(self.user01_STUDENT.profile.student)
-        project02.students.add(self.user01_STUDENT.profile.student)
-        serializer_STUDENT = ProjectSerializer01([project02, project01], many=True)
+        project01 = Project.objects.create(name="SpaceX", category="startup", slogan="Wait for us, red planet!")
+        project02 = Project.objects.create(name="BlueOrigin", category="startup", slogan="Your favorite space company")
+        ProjectMember.objects.create(profile=self.user.profile, project=project01, role="admin")
+        ProjectMember.objects.create(profile=self.user.profile, project=project02, role="member")
+        serializer = ProjectSerializer01([project01, project02], many=True)
 
-        project03 = Project.objects.create()
-        project04 = Project.objects.create()
-        project03.mentors.add(self.user02_MENTOR.profile.mentor)
-        project04.mentors.add(self.user02_MENTOR.profile.mentor)
-        serializer_MENTOR = ProjectSerializer01([project04, project03], many=True)
-
-        response = client.get(self.url + self.user01_STUDENT.username)
-        self.assertEqual(response.data, serializer_STUDENT.data)
-
-        response = client.get(self.url + self.user02_MENTOR.username)
-        self.assertEqual(response.data, serializer_MENTOR.data)
-
-
-class TestGetMentorFields(TestCase):
-    url = BASE_URL + "get-mentor-fields/"
-
-    def test_req(self):
-        response = client.get(self.url + "phil")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-        user = User.objects.create(username="phil")
-
-        response = client.get(self.url + "phil")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        Mentor.objects.create(profile=user.profile)
-
-        response = client.get(self.url + "phil")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        for method in ["delete", "put", "patch", "post"]:
-            response = getattr(client, method)(self.url + "phil")
-            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def test_res(self):
-        response = client.get(self.url + "phil")
-        self.assertEqual(response.data, "There isn't any user with such username")
-
-        user = User.objects.create(username="phil")
-
-        response = client.get(self.url + "phil")
-        self.assertEqual(response.data, "Only mentors have fields")
-
-        mentor = Mentor.objects.create(profile=user.profile)
-
-        response = client.get(self.url + "phil")
-        self.assertEqual(response.data, FieldSerializer01(mentor.fields.all(), many=True).data)
+        response = client.get(self.url + self.user.username)
+        self.assertEqual(response.data, serializer.data)
 
 
 class TestGetFilteredProfiles(TestCase):
@@ -266,7 +191,7 @@ class TestGetProfileList(TestCase):
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, ProfileSerializer03(profiles[1:16], many=True).data)
+        self.assertEqual(response.data, ProfileSerializer03(profiles[1:21], many=True).data)
 
 
 class TestGetSkillsNameList(TestCase):
@@ -281,15 +206,18 @@ class TestGetSkillsNameList(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        skill01 = StudentSkill.objects.create(name="design")
-        skill02 = StudentSkill.objects.create(name="physics")
-        skill03 = StudentSkill.objects.create(name="programming")
+        skill01 = Skill.objects.create(name="design")
+        skill02 = Skill.objects.create(name="physics")
+        skill03 = Skill.objects.create(name="programming")
 
         skills = [skill01, skill02, skill03]
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, StudentSkillSerializer01(skills, many=True).data)
+        self.assertEqual(response.data, SkillSerializer01(skills, many=True).data)
+
+
+# ----- CONTINUE FROM HERE --------------------
 
 
 class TestGetNotifications(TestCase):
@@ -308,9 +236,7 @@ class TestGetNotifications(TestCase):
         client.force_login(user)
 
         profile01 = User.objects.create(username="peter").profile
-        Student.objects.create(profile=profile01)
         profile02 = User.objects.create(username="jane").profile
-        Mentor.objects.create(profile=profile02)
 
         project01 = Project.objects.create()
         project02 = Project.objects.create()
@@ -319,14 +245,12 @@ class TestGetNotifications(TestCase):
         discussion01 = Discussion.objects.create(profile=user.profile, project=project01)
         discussion02 = Discussion.objects.create(profile=user.profile, project=project02)
 
-        project_entering_request01 = ProjectRequest.objects.create(project=project01, profile=profile01)
-        project_entering_request02 = ProjectRequest.objects.create(project=project01, profile=profile02)
+        project_request01 = ProjectRequest.objects.create(project=project01, profile=profile01, type="invitation")
+        project_request02 = ProjectRequest.objects.create(project=project01, profile=profile02, type="entry_request")
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, "Dados inválidos!")
-
-        student = Student.objects.create(profile=user.profile)
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

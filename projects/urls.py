@@ -12,7 +12,7 @@ urlpatterns = [
     path("get-project/<int:project_id>", get_project),
     path("edit-project/<int:project_id>", edit_project),
     path("invite-users-to-project/<int:project_id>", invite_users_to_project),
-    path("uninvite-users-from-project/<int:project_id>", uninvite_user_from_project),
+    path("uninvite-user-from-project/<int:project_id>", uninvite_user_from_project),
     path("ask-to-join-project/<int:project_id>", ask_to_join_project),
     path("remove-user-from-project/<int:project_id>", remove_user_from_project),
     path("reply-project-invitation", reply_project_invitation),
