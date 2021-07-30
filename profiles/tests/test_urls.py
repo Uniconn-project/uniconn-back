@@ -39,3 +39,6 @@ class TestUrls(TestCase):
 
     def test_visualize_notifications_url(self):
         self.assertEqual(resolve(BASE_URL + "visualize-notifications").func, visualize_notifications)
+
+    def test_create_link_url(self):
+        self.assertEqual(resolve(BASE_URL + "create-link").func, create_link)

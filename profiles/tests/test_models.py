@@ -8,7 +8,7 @@ from django.test import TestCase
 from projects.models import Project, ProjectMember
 from universities.models import Major, University
 
-from ..models import Profile, Skill
+from ..models import Link, Profile, Skill
 
 User = get_user_model()
 
@@ -163,3 +163,48 @@ class TestProfile(TestCase):
         ProjectMember.objects.create(profile=profile, project=project02)
 
         self.assertEqual(profile.projects, [project01, project02])
+
+
+class TestLink(TestCase):
+    def test_create_delete(self):
+        # test create
+        link = Link.objects.create()
+        self.assertIsInstance(link, Link)
+        self.assertEqual(link.pk, 1)
+
+        # test delete
+        link.delete()
+        self.assertFalse(Link.objects.exists())
+
+    def test_fields(self):
+        link = Link.objects.create()
+
+        name = "Github"
+        href = "https://github.com/userx"
+        profile = User.objects.create().profile
+
+        link.name = name
+        link.href = href
+        link.profile = profile
+
+        link.save()
+
+        self.assertEqual(link.name, name)
+        self.assertEqual(link.href, href)
+        self.assertEqual(link.profile, profile)
+
+    def test_str(self):
+        profile = User.objects.create().profile
+        link = Link.objects.create(name="Figma Mockup", profile=profile)
+        self.assertEqual(str(link), f"{link.name} - {link.profile}")
+
+    def test_profile_relation(self):
+        profile = User.objects.create().profile
+        link = Link.objects.create(profile=profile)
+
+        # testing related name
+        self.assertIn(link, profile.links.all())
+
+        # testing cascade
+        profile.delete()
+        self.assertFalse(Link.objects.exists())

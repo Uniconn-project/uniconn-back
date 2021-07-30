@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from universities.serializers import MajorSerializer01, UniversitySerializer01
 
-from .models import Profile, Skill
+from .models import Link, Profile, Skill
 
 User = get_user_model()
 
@@ -19,6 +19,12 @@ class SkillSerializer01(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
+class LinkSerializer01(serializers.ModelSerializer):
+    class Meta:
+        model = Link
+        fields = ["id", "name", "href"]
+
+
 class ProfileSerializer01(serializers.ModelSerializer):
     """
     Heavy Profile serializer - useful for profile pages
@@ -26,6 +32,7 @@ class ProfileSerializer01(serializers.ModelSerializer):
 
     user = UserSerializer()
     skills = SkillSerializer01(many=True)
+    links = LinkSerializer01(many=True)
     university = UniversitySerializer01()
     major = MajorSerializer01()
 
@@ -41,6 +48,7 @@ class ProfileSerializer01(serializers.ModelSerializer):
             "birth_date",
             "linkedIn",
             "skills",
+            "links",
             "is_attending_university",
             "university",
             "major",

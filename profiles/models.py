@@ -54,3 +54,16 @@ class Profile(models.Model):
     @property
     def projects(self):
         return [membership.project for membership in self.project_memberships.all()]
+
+
+class Link(models.Model):
+    """
+    Link table
+    """
+
+    name = models.CharField(max_length=100, blank=True)
+    href = models.CharField(max_length=300, blank=True)
+    profile = models.ForeignKey(Profile, related_name="links", on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.profile}"
