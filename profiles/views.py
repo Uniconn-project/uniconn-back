@@ -345,3 +345,19 @@ def create_link(request):
     Link.objects.create(name=name, href=href, profile=request.user.profile)
 
     return Response("success")
+
+
+@api_view(["DELETE"])
+@login_required
+def delete_link(request, link_id):
+    try:
+        link = Link.objects.get(pk=link_id)
+    except:
+        return Response("Link não encontrado!", status=status.HTTP_404_NOT_FOUND)
+
+    if not link in request.user.profile.links.all():
+        return Response("O link não é seu!", status=status.HTTP_401_UNAUTHORIZED)
+
+    link.delete()
+
+    return Response("success")
