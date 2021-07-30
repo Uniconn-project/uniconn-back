@@ -6,6 +6,7 @@ from .views import *
 urlpatterns = [
     path("get-fields-name-list", get_fields_name_list),
     path("get-projects-list", get_projects_list),
+    path("get-category-projects-list/<str:category>", get_category_projects_list),
     path("get-filtered-projects-list", get_filtered_projects_list),
     path("get-projects-categories-list", get_projects_categories_list),
     path("create-project", create_project),

@@ -316,9 +316,6 @@ class TestGetNotifications(TestCase):
         )
 
 
-# ----- CONTINUE FROM HERE --------------------
-
-
 class TestGetNotificationsNumber(TestCase):
     url = BASE_URL + "get-notifications-number"
 
@@ -331,52 +328,45 @@ class TestGetNotificationsNumber(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        user = User.objects.create()
+        user = User.objects.create(username="felipe")
         client.force_login(user)
-
-        response = client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data, "Dados inválidos!")
-
-        student = Student.objects.create(profile=user.profile)
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, 0)
 
-        project01 = Project.objects.create()
-        project01.pending_invited_students.add(student)  # 1
-        project01.save()
+        profile01 = User.objects.create(username="peter").profile
+        profile02 = User.objects.create(username="john").profile
+        profile03 = User.objects.create(username="jane").profile
 
-        project02 = Project.objects.create()
-        project02.students.add(student)
-        project02.save()
+        project01 = Project.objects.create(name="SpaceX", category="startup", slogan="Wait for us, red planet!")
+        ProjectMember.objects.create(profile=user.profile, project=project01, role="admin")
 
-        ProjectRequest.objects.create(project=project02)  # 2
+        project02 = Project.objects.create(name="BlueOrigin", category="startup", slogan="Your favorite space company")
+        ProjectMember.objects.create(profile=user.profile, project=project02, role="member")
 
-        discussion = Discussion.objects.create(profile=user.profile)
-        DiscussionStar.objects.create(discussion=discussion)  # 3
-        DiscussionStar.objects.create(discussion=discussion)  # 4
-        DiscussionReply.objects.create(discussion=discussion)  # 5
-        DiscussionReply.objects.create(discussion=discussion)  # 6
+        project03 = Project.objects.create(name="VirginGalactic", category="startup", slogan="The space is ours!")
+        discussion = Discussion.objects.create(profile=user.profile, project=project03)
 
-        response = client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, 6)
+        ProjectRequest.objects.create(project=project01, profile=profile01, type="entry_request")
+        # since the logged user is a 'member' in the project02, the project_request02 shouldn't be in their notifications
+        ProjectRequest.objects.create(project=project02, profile=profile01, type="entry_request")
+        ProjectRequest.objects.create(project=project03, profile=user.profile, type="invitation")
 
-        student.delete()
+        # unvisualized
+        DiscussionStar.objects.create(discussion=discussion, profile=profile01)
+        DiscussionReply.objects.create(discussion=discussion, profile=profile01)
 
-        mentor = Mentor.objects.create(profile=user.profile)
-
-        project01.pending_invited_mentors.add(mentor)
-        project01.save()
-
-        project02.mentors.add(mentor)
-        project02.save()
+        # visualized
+        discussion_star02 = DiscussionStar.objects.create(discussion=discussion, profile=profile02, visualized=True)
+        discussion_reply02 = DiscussionReply.objects.create(discussion=discussion, profile=profile02, visualized=True)
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, 5)
+        self.assertEqual(response.data, 4)
+
+
+# ----- CONTINUE FROM HERE --------------------
 
 
 class TestVisualizeNotifications(TestCase):

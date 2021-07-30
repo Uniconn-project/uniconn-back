@@ -18,7 +18,6 @@ class Field(models.Model):
 
 project_categories_choices = [
     ("startup", "startup"),
-    ("junior_enterprise", "empresa júnior"),
     ("academic", "projeto acadêmico"),
     ("social_project", "projeto social"),
 ]

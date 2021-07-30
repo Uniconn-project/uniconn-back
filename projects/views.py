@@ -45,6 +45,14 @@ def get_projects_list(request):
 
 
 @api_view(["GET"])
+def get_category_projects_list(request, category):
+    projects = Project.objects.filter(category=category)[:30]
+    serializer = ProjectSerializer01(projects, many=True)
+
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
 def get_filtered_projects_list(request):
     categories = request.query_params["categories"].split(";")
     fields = request.query_params["fields"].split(";")
