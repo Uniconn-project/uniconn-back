@@ -15,5 +15,6 @@ urlpatterns = [
     path("get-notifications", get_notifications),
     path("get-notifications-number", get_notifications_number),
     path("visualize-notifications", visualize_notifications),
+    path("create-link", create_link),
     re_path(r".*", http_404_not_found),
 ]

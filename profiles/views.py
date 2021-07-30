@@ -18,7 +18,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from universities.models import Major, University
 
-from .models import Profile, Skill
+from .models import Link, Profile, Skill
 from .serializers import ProfileSerializer01, ProfileSerializer03, SkillSerializer01
 
 User = get_user_model()
@@ -323,5 +323,25 @@ def visualize_notifications(request):
     for reply in DiscussionReply.objects.filter(discussion__profile=request.user.profile, visualized=False):
         reply.visualized = True
         reply.save()
+
+    return Response("success")
+
+
+@api_view(["POST"])
+@login_required
+def create_link(request):
+    try:
+        name = request.data["name"].strip()
+        href = request.data["href"].strip()
+    except:
+        return Response("Dados inválidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if name == "" or href == "":
+        return Response("Todos os campos devem ser preenchidos!", status=status.HTTP_400_BAD_REQUEST)
+
+    if len(name) > 100 or len(href) > 1000:
+        return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
+
+    Link.objects.create(name=name, href=href, profile=request.user.profile)
 
     return Response("success")
