@@ -109,7 +109,6 @@ class TestProfile(TestCase):
         last_name = "Musk"
         bio = "Space-X, Tesla and Neuralink"
         birth_date = "1971-06-28"
-        linkedIn = "elon-musk28061971"
         skills = [Skill.objects.create(name="business"), Skill.objects.create(name="design")]
         is_attending_university = True
         university = University.objects.create()
@@ -120,7 +119,6 @@ class TestProfile(TestCase):
         profile.last_name = last_name
         profile.bio = bio
         profile.birth_date = birth_date
-        profile.linkedIn = linkedIn
         profile.skills.set(skills)
         profile.is_attending_university = is_attending_university
         profile.university = university
@@ -132,7 +130,6 @@ class TestProfile(TestCase):
         self.assertEqual(profile.last_name, last_name)
         self.assertEqual(profile.bio, bio)
         self.assertEqual(profile.birth_date, birth_date)
-        self.assertEqual(profile.linkedIn, linkedIn)
         self.assertEqual(list(profile.skills.all()), skills)
         self.assertEqual(profile.is_attending_university, is_attending_university)
         self.assertEqual(profile.university, university)

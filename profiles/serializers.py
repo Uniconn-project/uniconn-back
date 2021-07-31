@@ -46,7 +46,6 @@ class ProfileSerializer01(serializers.ModelSerializer):
             "last_name",
             "bio",
             "birth_date",
-            "linkedIn",
             "skills",
             "links",
             "is_attending_university",
