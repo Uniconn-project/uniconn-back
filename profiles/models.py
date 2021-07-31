@@ -38,7 +38,6 @@ class Profile(models.Model):
     last_name = models.CharField(max_length=30, blank=True)
     bio = models.CharField(max_length=150, default="Sem bio...")
     birth_date = models.DateField(blank=True, null=True)
-    linkedIn = models.CharField(max_length=50, blank=True)
     skills = models.ManyToManyField(Skill, related_name="profiles", blank=True)
     is_attending_university = models.BooleanField(blank=True, null=True)
     university = models.ForeignKey(

@@ -123,7 +123,6 @@ def edit_my_profile(request):
         first_name = request.data["first_name"].strip()
         last_name = request.data["last_name"].strip()
         bio = request.data["bio"].strip()
-        linkedIn = request.data["linkedIn"].strip()
         is_attending_university = request.data["is_attending_university"]
         if is_attending_university:
             university_name = request.data["university_name"]
@@ -149,7 +148,6 @@ def edit_my_profile(request):
         or (first_name and len(first_name) > 30)
         or (last_name and len(last_name) > 30)
         or (bio and len(bio) > 150)
-        or (linkedIn and len(linkedIn) > 50)
     ):
         return Response("Respeite os limites de caracteres de cada campo!", status=status.HTTP_400_BAD_REQUEST)
 
@@ -177,7 +175,6 @@ def edit_my_profile(request):
     profile.first_name = first_name
     profile.last_name = last_name
     profile.bio = bio
-    profile.linkedIn = linkedIn
     profile.skills.set(skills)
 
     profile.user.save()
