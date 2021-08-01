@@ -15,20 +15,13 @@ from projects.models import (
 from projects.serializers import (
     DiscussionReplySerializer02,
     DiscussionStarSerializer02,
-    FieldSerializer01,
     ProjectRequestSerializer01,
     ProjectSerializer01,
-    ProjectSerializer03,
 )
 from rest_framework import status
 
-from ..models import Profile, Skill
-from ..serializers import (
-    ProfileSerializer01,
-    ProfileSerializer02,
-    ProfileSerializer03,
-    SkillSerializer01,
-)
+from ..models import Link, Profile, Skill
+from ..serializers import ProfileSerializer01, ProfileSerializer03, SkillSerializer01
 
 User = get_user_model()
 client = Client()
@@ -349,7 +342,7 @@ class TestGetNotificationsNumber(TestCase):
         discussion = Discussion.objects.create(profile=user.profile, project=project03)
 
         ProjectRequest.objects.create(project=project01, profile=profile01, type="entry_request")
-        # since the logged user is a 'member' in the project02, the project_request02 shouldn't be in their notifications
+        # since the logged user is a 'member' in the project02, the entry request below shouldn't be in their notifications
         ProjectRequest.objects.create(project=project02, profile=profile01, type="entry_request")
         ProjectRequest.objects.create(project=project03, profile=user.profile, type="invitation")
 
@@ -358,15 +351,12 @@ class TestGetNotificationsNumber(TestCase):
         DiscussionReply.objects.create(discussion=discussion, profile=profile01)
 
         # visualized
-        discussion_star02 = DiscussionStar.objects.create(discussion=discussion, profile=profile02, visualized=True)
-        discussion_reply02 = DiscussionReply.objects.create(discussion=discussion, profile=profile02, visualized=True)
+        DiscussionStar.objects.create(discussion=discussion, profile=profile02, visualized=True)
+        DiscussionReply.objects.create(discussion=discussion, profile=profile02, visualized=True)
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, 4)
-
-
-# ----- CONTINUE FROM HERE --------------------
 
 
 class TestVisualizeNotifications(TestCase):
@@ -416,3 +406,80 @@ class TestVisualizeNotifications(TestCase):
 
         self.assertTrue(discussion_reply01.visualized)
         self.assertTrue(discussion_reply02.visualized)
+
+
+class TestCreateLink(TestCase):
+    url = BASE_URL + "create-link"
+
+    def test_req(self):
+        response = client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "delete", "patch", "put"]:
+            response = getattr(client, method)(self.url)
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create()
+        client.force_login(user)
+
+        response = client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Dados inválidos!")
+
+        post_data = {"name": "GitHub", "href": "https://github.com/felipe-carvalho12"}
+
+        response = client.post(self.url, {**post_data, "name": ""})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Todos os campos devem ser preenchidos!")
+
+        response = client.post(self.url, {**post_data, "href": ""})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Todos os campos devem ser preenchidos!")
+
+        response = client.post(self.url, {**post_data, "name": "." * 101})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Respeite os limites de caracteres de cada campo!")
+
+        response = client.post(self.url, {**post_data, "href": "." * 1001})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Respeite os limites de caracteres de cada campo!")
+
+        response = client.post(self.url, post_data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(len(Link.objects.all()), 1)
+        self.assertEqual(Link.objects.first().name, post_data["name"])
+        self.assertEqual(Link.objects.first().href, post_data["href"])
+
+
+class TestDeleteLink(TestCase):
+    url = BASE_URL + "delete-link/"
+
+    def test_req(self):
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        for method in ["get", "post", "patch", "put"]:
+            response = getattr(client, method)(f"{self.url}1")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        user = User.objects.create()
+        client.force_login(user)
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, "Link não encontrado!")
+
+        other_user_link = Link.objects.create(profile=User.objects.create(username="peter").profile)
+        my_link = Link.objects.create(profile=user.profile)
+
+        response = client.delete(f"{self.url}1")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data, "O link não é seu!")
+
+        response = client.delete(f"{self.url}2")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(list(Link.objects.all()), [other_user_link])
