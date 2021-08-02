@@ -14,8 +14,9 @@ from .models import (
     Field,
     Link,
     Project,
+    ProjectEntryRequest,
+    ProjectInvitation,
     ProjectMember,
-    ProjectRequest,
     ProjectStar,
     Tool,
     ToolCategory,
@@ -195,11 +196,13 @@ def invite_users_to_project(request, project_id):
     if not profiles.exists():
         return Response("Nenhum usuário foi encontrado!", status=status.HTTP_400_BAD_REQUEST)
 
-    if ProjectRequest.objects.filter(type="invitation", project=project, profile__in=profiles).exists():
+    if ProjectInvitation.objects.filter(project=project, receiver__in=profiles).exists():
         return Response("Usuário já convidado!", status=status.HTTP_400_BAD_REQUEST)
 
     for profile in profiles:
-        ProjectRequest.objects.create(type="invitation", message=message, project=project, profile=profile)
+        ProjectInvitation.objects.create(
+            message=message, project=project, sender=request.user.profile, receiver=profile
+        )
 
     return Response("success")
 
@@ -231,7 +234,7 @@ def uninvite_user_from_project(request, project_id):
         return Response("Usuário não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
     try:
-        invitation = ProjectRequest.objects.get(project=project, profile=profile, type="invitation")
+        invitation = ProjectInvitation.objects.get(project=project, receiver=profile)
     except:
         return Response("Convite não encontrado!", status=status.HTTP_404_NOT_FOUND)
 
@@ -261,10 +264,10 @@ def ask_to_join_project(request, project_id):
     if profile in project.pending_invited_profiles:
         return Response("O projeto já te convidou!", status=status.HTTP_400_BAD_REQUEST)
 
-    if ProjectRequest.objects.filter(type="entry_request", project=project, profile=profile).exists():
+    if ProjectEntryRequest.objects.filter(project=project, profile=profile).exists():
         return Response("Você já pediu para entrar no projeto!", status=status.HTTP_400_BAD_REQUEST)
 
-    ProjectRequest.objects.create(type="entry_request", message=message, project=project, profile=profile)
+    ProjectEntryRequest.objects.create(message=message, project=project, profile=profile)
 
     return Response("success")
 
@@ -317,7 +320,7 @@ def reply_project_invitation(request):
     if not profile in project.pending_invited_profiles:
         return Response("O projeto não te convidou!", status=status.HTTP_400_BAD_REQUEST)
 
-    ProjectRequest.objects.get(type="invitation", profile=profile, project=project).delete()
+    ProjectInvitation.objects.get(receiver=profile, project=project).delete()
 
     if reply == "accept":
         ProjectMember.objects.create(profile=profile, project=project, role="member")
@@ -329,12 +332,12 @@ def reply_project_invitation(request):
 
 @api_view(["DELETE"])
 @login_required
-def reply_project_entering_request(request):
+def reply_project_entry_request(request):
     try:
         reply = request.data["reply"]
         request_id = request.data["request_id"]
 
-        project_request = ProjectRequest.objects.get(pk=request_id)
+        project_request = ProjectEntryRequest.objects.get(pk=request_id)
         project = project_request.project
         profile = project_request.profile
     except:
@@ -346,7 +349,9 @@ def reply_project_entering_request(request):
         return Response("Você não faz parte do projeto!", status=status.HTTP_401_UNAUTHORIZED)
 
     if project_membership.role != "admin":
-        return Response("Somente admins podem retirar convite para o projeto!", status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            "Somente admins podem responder pedidos de entrada para o projeto!", status=status.HTTP_401_UNAUTHORIZED
+        )
 
     project_request.delete()
 

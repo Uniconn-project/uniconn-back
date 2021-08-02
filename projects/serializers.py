@@ -8,8 +8,9 @@ from .models import (
     Field,
     Link,
     Project,
+    ProjectEntryRequest,
+    ProjectInvitation,
     ProjectMember,
-    ProjectRequest,
     Tool,
     ToolCategory,
 )
@@ -129,13 +130,22 @@ class ProjectSerializer03(serializers.ModelSerializer):
         fields = ["id", "name", "image"]
 
 
-class ProjectRequestSerializer01(serializers.ModelSerializer):
+class ProjectEntryRequestSerializer01(serializers.ModelSerializer):
     project = ProjectSerializer03()
     profile = ProfileSerializer02()
 
     class Meta:
-        model = ProjectRequest
+        model = ProjectEntryRequest
         fields = ["id", "message", "project", "profile"]
+
+
+class ProjectInvitationSerializer01(serializers.ModelSerializer):
+    project = ProjectSerializer03()
+    sender = ProfileSerializer02()
+
+    class Meta:
+        model = ProjectInvitation
+        fields = ["id", "message", "project", "sender"]
 
 
 class DiscussionStarSerializer01(serializers.ModelSerializer):

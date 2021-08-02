@@ -61,7 +61,7 @@ class Project(models.Model):
 
     @property
     def pending_invited_profiles(self):
-        return [request.profile for request in self.requests.filter(type="invitation")]
+        return [invitation.profile for invitation in self.invitations.all()]
 
     @property
     def category_value_and_readable(self):
@@ -93,26 +93,45 @@ class ProjectMember(models.Model):
         return {"value": self.role, "readable": self.get_role_display()}
 
 
-project_request_type_choices = [("invitation", "invitation"), ("entry_request", "entry_request")]
-
-
-class ProjectRequest(models.Model):
+class ProjectEntryRequest(models.Model):
     """
-    Project request table
+    Project entry request table
     """
 
-    type = models.CharField(max_length=50, choices=project_request_type_choices, blank=True, null=True)
     message = models.CharField(max_length=500, blank=True)
-    project = models.ForeignKey(Project, related_name="requests", on_delete=models.CASCADE, blank=True, null=True)
+    project = models.ForeignKey(
+        Project, related_name="entry_requests", on_delete=models.CASCADE, blank=True, null=True
+    )
     profile = models.ForeignKey(
-        Profile, related_name="projects_requests", on_delete=models.CASCADE, blank=True, null=True
+        Profile, related_name="projects_entry_requests", on_delete=models.CASCADE, blank=True, null=True
     )
 
     class Meta:
         ordering = ["-id"]
 
     def __str__(self):
-        return f"{self.project.name} [{self.type}] {self.profile.user.username}"
+        return f"{self.project.name} [entry request] {self.profile.user.username}"
+
+
+class ProjectInvitation(models.Model):
+    """
+    Project invitation table
+    """
+
+    message = models.CharField(max_length=500, blank=True)
+    project = models.ForeignKey(Project, related_name="invitations", on_delete=models.CASCADE, blank=True, null=True)
+    sender = models.ForeignKey(
+        Profile, related_name="sent_projects_invitations", on_delete=models.CASCADE, blank=True, null=True
+    )
+    receiver = models.ForeignKey(
+        Profile, related_name="received_projects_invitations", on_delete=models.CASCADE, blank=True, null=True
+    )
+
+    class Meta:
+        ordering = ["-id"]
+
+    def __str__(self):
+        return f"{self.project.name} [invitation] {self.profile.user.username}"
 
 
 class Link(models.Model):
