@@ -7,8 +7,9 @@ from .models import (
     Field,
     Link,
     Project,
+    ProjectEntryRequest,
+    ProjectInvitation,
     ProjectMember,
-    ProjectRequest,
     ProjectStar,
     Tool,
     ToolCategory,
@@ -21,7 +22,8 @@ admin.site.register(Tool)
 admin.site.register(Project)
 admin.site.register(ProjectMember)
 admin.site.register(ProjectStar)
-admin.site.register(ProjectRequest)
+admin.site.register(ProjectEntryRequest)
+admin.site.register(ProjectInvitation)
 admin.site.register(Discussion)
 admin.site.register(DiscussionStar)
 admin.site.register(DiscussionReply)

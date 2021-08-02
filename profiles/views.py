@@ -6,11 +6,17 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from jwt_auth.decorators import login_required
-from projects.models import DiscussionReply, DiscussionStar, Field, ProjectRequest
+from projects.models import (
+    DiscussionReply,
+    DiscussionStar,
+    ProjectEntryRequest,
+    ProjectInvitation,
+)
 from projects.serializers import (
     DiscussionReplySerializer02,
     DiscussionStarSerializer02,
-    ProjectRequestSerializer01,
+    ProjectEntryRequestSerializer01,
+    ProjectInvitationSerializer01,
     ProjectSerializer01,
 )
 from rest_framework import status
@@ -245,10 +251,10 @@ def get_notifications(request):
     now = datetime.datetime.now()
     now = pytz.utc.localize(now)
 
-    projects_invitations = ProjectRequest.objects.filter(profile=profile, type="invitation")
+    projects_invitations = ProjectInvitation.objects.filter(receiver=profile)
     projects_entry_requests = [
         request
-        for request in ProjectRequest.objects.filter(project__members__profile=profile, type="entry_request")
+        for request in ProjectEntryRequest.objects.filter(project__members__profile=profile)
         if request.project.members.get(profile=profile).role == "admin"
     ]
 
@@ -272,8 +278,8 @@ def get_notifications(request):
         if now - reply.updated_at < datetime.timedelta(days=2):
             discussions_replies.append(reply)
 
-    projects_invitations_serializer = ProjectRequestSerializer01(projects_invitations, many=True)
-    projects_entry_requests_serializer = ProjectRequestSerializer01(projects_entry_requests, many=True)
+    projects_invitations_serializer = ProjectInvitationSerializer01(projects_invitations, many=True)
+    projects_entry_requests_serializer = ProjectEntryRequestSerializer01(projects_entry_requests, many=True)
     discussions_stars_serializer = DiscussionStarSerializer02(discussions_stars, many=True)
     discussions_replies_serializer = DiscussionReplySerializer02(discussions_replies, many=True)
 
@@ -292,10 +298,10 @@ def get_notifications(request):
 def get_notifications_number(request):
     profile = request.user.profile
 
-    projects_invitations = ProjectRequest.objects.filter(profile=profile, type="invitation")
+    projects_invitations = ProjectInvitation.objects.filter(receiver=profile)
     projects_entry_requests = [
         request
-        for request in ProjectRequest.objects.filter(project__members__profile=profile, type="entry_request")
+        for request in ProjectEntryRequest.objects.filter(project__members__profile=profile)
         if request.project.members.get(profile=profile).role == "admin"
     ]
 
