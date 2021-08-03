@@ -61,7 +61,7 @@ class Project(models.Model):
 
     @property
     def pending_invited_profiles(self):
-        return [invitation.profile for invitation in self.invitations.all()]
+        return [invitation.receiver for invitation in self.invitations.all()]
 
     @property
     def category_value_and_readable(self):
