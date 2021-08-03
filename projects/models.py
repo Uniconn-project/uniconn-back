@@ -131,7 +131,7 @@ class ProjectInvitation(models.Model):
         ordering = ["-id"]
 
     def __str__(self):
-        return f"{self.project.name} [invitation] {self.profile.user.username}"
+        return f"{self.project.name} [invitation] {self.receiver.user.username}"
 
 
 class Link(models.Model):
