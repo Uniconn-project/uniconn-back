@@ -12,8 +12,9 @@ from projects.models import (
     Field,
     Link,
     Project,
+    ProjectEntryRequest,
+    ProjectInvitation,
     ProjectMember,
-    ProjectRequest,
     ProjectStar,
     Tool,
     ToolCategory,
@@ -151,8 +152,8 @@ class TestProject(TestCase):
         profile01 = User.objects.create(username="peter").profile
         profile02 = User.objects.create(username="taylor").profile
 
-        ProjectRequest.objects.create(project=project, profile=profile01, type="invitation")
-        ProjectRequest.objects.create(project=project, profile=profile02, type="invitation")
+        ProjectInvitation.objects.create(project=project, receiver=profile01)
+        ProjectInvitation.objects.create(project=project, receiver=profile02)
 
         self.assertEqual(project.pending_invited_profiles, [profile02, profile01])
 
@@ -237,64 +238,126 @@ class TestProjectMember(TestCase):
         )
 
 
-class TestProjectRequest(TestCase):
+class TestProjectEntryRequest(TestCase):
     def test_create_delete(self):
         # test create
-        project_request = ProjectRequest.objects.create()
-        self.assertIsInstance(project_request, ProjectRequest)
-        self.assertEqual(project_request.pk, 1)
+        project_entry_request = ProjectEntryRequest.objects.create()
+        self.assertIsInstance(project_entry_request, ProjectEntryRequest)
+        self.assertEqual(project_entry_request.pk, 1)
 
         # test delete
-        project_request.delete()
-        self.assertFalse(ProjectRequest.objects.exists())
+        project_entry_request.delete()
+        self.assertFalse(ProjectEntryRequest.objects.exists())
 
     def test_fields(self):
-        project_request = ProjectRequest.objects.create()
+        project_entry_request = ProjectEntryRequest.objects.create()
 
-        type = "invitation"
         message = "I would love to contribute to this project as a software developer."
         project = Project.objects.create()
         profile = User.objects.create().profile
 
-        project_request.type = type
-        project_request.message = message
-        project_request.project = project
-        project_request.profile = profile
+        project_entry_request.message = message
+        project_entry_request.project = project
+        project_entry_request.profile = profile
 
-        project_request.save()
+        project_entry_request.save()
 
-        self.assertEqual(project_request.type, type)
-        self.assertEqual(project_request.message, message)
-        self.assertEqual(project_request.project, project)
-        self.assertEqual(project_request.profile, profile)
+        self.assertEqual(project_entry_request.message, message)
+        self.assertEqual(project_entry_request.project, project)
+        self.assertEqual(project_entry_request.profile, profile)
 
     def test_project_relation(self):
         project = Project.objects.create()
-        project_request = ProjectRequest.objects.create(project=project)
+        project_entry_request = ProjectEntryRequest.objects.create(project=project)
 
         # testing related name
-        self.assertIn(project_request, project.requests.all())
+        self.assertIn(project_entry_request, project.entry_requests.all())
 
         # testing cascade
         project.delete()
-        self.assertFalse(ProjectRequest.objects.exists())
+        self.assertFalse(ProjectEntryRequest.objects.exists())
 
     def test_profile_relation(self):
         profile = User.objects.create().profile
-        project_request = ProjectRequest.objects.create(profile=profile)
+        project_entry_request = ProjectEntryRequest.objects.create(profile=profile)
 
         # testing related name
-        self.assertIn(project_request, profile.projects_requests.all())
+        self.assertIn(project_entry_request, profile.projects_entry_requests.all())
 
         # testing cascade
         profile.delete()
-        self.assertFalse(ProjectRequest.objects.exists())
+        self.assertFalse(ProjectEntryRequest.objects.exists())
 
     def test_str(self):
         project = Project.objects.create(name="Simulatomic")
         profile = User.objects.create(username="john_p").profile
-        project_request = ProjectRequest.objects.create(project=project, profile=profile, type="entry_request")
-        self.assertEqual(str(project_request), f"{project.name} [{project_request.type}] {profile.user.username}")
+        project_entry_request = ProjectEntryRequest.objects.create(project=project, profile=profile)
+        self.assertEqual(str(project_entry_request), f"{project.name} [entry request] {profile.user.username}")
+
+
+class TestProjectInvitation(TestCase):
+    def test_create_delete(self):
+        # test create
+        project_invitation = ProjectInvitation.objects.create()
+        self.assertIsInstance(project_invitation, ProjectInvitation)
+        self.assertEqual(project_invitation.pk, 1)
+
+        # test delete
+        project_invitation.delete()
+        self.assertFalse(ProjectInvitation.objects.exists())
+
+    def test_fields(self):
+        project_invitation = ProjectInvitation.objects.create()
+
+        message = "I would love to contribute to this project as a software developer."
+        project = Project.objects.create()
+        sender = User.objects.create(username="peter").profile
+        receiver = User.objects.create(username="jake").profile
+
+        project_invitation.message = message
+        project_invitation.project = project
+        project_invitation.sender = sender
+        project_invitation.receiver = receiver
+
+        project_invitation.save()
+
+        self.assertEqual(project_invitation.message, message)
+        self.assertEqual(project_invitation.project, project)
+        self.assertEqual(project_invitation.sender, sender)
+        self.assertEqual(project_invitation.receiver, receiver)
+
+    def test_project_relation(self):
+        project = Project.objects.create()
+        project_invitation = ProjectInvitation.objects.create(project=project)
+
+        # testing related name
+        self.assertIn(project_invitation, project.invitations.all())
+
+        # testing cascade
+        project.delete()
+        self.assertFalse(ProjectInvitation.objects.exists())
+
+    def test_profile_relation(self):
+        sender = User.objects.create(username="peter").profile
+        receiver = User.objects.create(username="jake").profile
+        project_invitation = ProjectInvitation.objects.create(sender=sender, receiver=receiver)
+
+        # testing related name
+        self.assertIn(project_invitation, sender.sent_projects_invitations.all())
+        self.assertIn(project_invitation, receiver.received_projects_invitations.all())
+
+        # testing cascade
+        sender.delete()
+        self.assertFalse(ProjectInvitation.objects.exists())
+        ProjectInvitation.objects.create(receiver=receiver)
+        receiver.delete()
+        self.assertFalse(ProjectInvitation.objects.exists())
+
+    def test_str(self):
+        project = Project.objects.create(name="Simulatomic")
+        receiver = User.objects.create(username="john_p").profile
+        project_invitation = ProjectInvitation.objects.create(project=project, receiver=receiver)
+        self.assertEqual(str(project_invitation), f"{project.name} [invitation] {receiver.user.username}")
 
 
 class TestLink(TestCase):
