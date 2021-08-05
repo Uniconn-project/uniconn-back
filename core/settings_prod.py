@@ -30,7 +30,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = ["uniconn-api.herokuapp.com"]
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = ["https://uniconn.io", "https://www.uniconn.io"]
+CORS_ALLOWED_ORIGINS = ["https://uniconn.io", "https://www.uniconn.io", "https://uniconn-git-main-uniconn.vercel.app"]
 
 # Application definition
 
