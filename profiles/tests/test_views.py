@@ -9,13 +9,15 @@ from projects.models import (
     DiscussionReply,
     DiscussionStar,
     Project,
+    ProjectEntryRequest,
+    ProjectInvitation,
     ProjectMember,
-    ProjectRequest,
 )
 from projects.serializers import (
     DiscussionReplySerializer02,
     DiscussionStarSerializer02,
-    ProjectRequestSerializer01,
+    ProjectEntryRequestSerializer01,
+    ProjectInvitationSerializer01,
     ProjectSerializer01,
 )
 from rest_framework import status
@@ -178,17 +180,30 @@ class TestGetProfileList(TestCase):
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_res(self):
-        # asserting that the superuser's profile won't be returned by the view
-        superuser = User.objects.create(username="superuser", is_superuser=True)
-        profiles = [superuser.profile]
+        profiles = []
 
-        for i in range(20):
+        for i in range(30):
             user = User.objects.create(username=f"user0{i}")
-            profiles.append(user.profile)
+            profiles.insert(0, user.profile)
+
+        # asserting that the superuser's profile won't be returned by the view
+        profiles.insert(0, User.objects.create(username="superuser", is_superuser=True))
 
         response = client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, ProfileSerializer03(profiles[1:21], many=True).data)
+        self.assertEqual(
+            response.data, {"isall": False, "profiles": ProfileSerializer03(profiles[1:21], many=True).data}
+        )
+
+        response = client.get(f"{self.url}?length=25")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data, {"isall": False, "profiles": ProfileSerializer03(profiles[1:26], many=True).data}
+        )
+
+        response = client.get(f"{self.url}?length=50")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {"isall": True, "profiles": ProfileSerializer03(profiles[1:], many=True).data})
 
 
 class TestGetSkillsNameList(TestCase):
@@ -254,10 +269,10 @@ class TestGetNotifications(TestCase):
         project03 = Project.objects.create(name="VirginGalactic", category="startup", slogan="The space is ours!")
         discussion = Discussion.objects.create(profile=user.profile, project=project03)
 
-        project_request01 = ProjectRequest.objects.create(project=project01, profile=profile01, type="entry_request")
+        project_request01 = ProjectEntryRequest.objects.create(project=project01, profile=profile01)
         # since the logged user is a 'member' in the project02, the project_request02 shouldn't be in their notifications
-        project_request02 = ProjectRequest.objects.create(project=project02, profile=profile01, type="entry_request")
-        project_request03 = ProjectRequest.objects.create(project=project03, profile=user.profile, type="invitation")
+        project_request02 = ProjectEntryRequest.objects.create(project=project02, profile=profile01)
+        project_request03 = ProjectInvitation.objects.create(project=project03, receiver=user.profile)
 
         # unvisualized
         discussion_star01 = DiscussionStar.objects.create(discussion=discussion, profile=profile01)
@@ -297,8 +312,8 @@ class TestGetNotifications(TestCase):
         self.assertEqual(
             response.data,
             {
-                "projects_invitations": ProjectRequestSerializer01([project_request03], many=True).data,
-                "projects_entry_requests": ProjectRequestSerializer01([project_request01], many=True).data,
+                "projects_invitations": ProjectInvitationSerializer01([project_request03], many=True).data,
+                "projects_entry_requests": ProjectEntryRequestSerializer01([project_request01], many=True).data,
                 "discussions_stars": DiscussionStarSerializer02(
                     [discussion_star02, discussion_star01], many=True
                 ).data,
@@ -341,10 +356,10 @@ class TestGetNotificationsNumber(TestCase):
         project03 = Project.objects.create(name="VirginGalactic", category="startup", slogan="The space is ours!")
         discussion = Discussion.objects.create(profile=user.profile, project=project03)
 
-        ProjectRequest.objects.create(project=project01, profile=profile01, type="entry_request")
+        ProjectEntryRequest.objects.create(project=project01, profile=profile01)
         # since the logged user is a 'member' in the project02, the entry request below shouldn't be in their notifications
-        ProjectRequest.objects.create(project=project02, profile=profile01, type="entry_request")
-        ProjectRequest.objects.create(project=project03, profile=user.profile, type="invitation")
+        ProjectEntryRequest.objects.create(project=project02, profile=profile01)
+        ProjectInvitation.objects.create(project=project03, receiver=user.profile)
 
         # unvisualized
         DiscussionStar.objects.create(discussion=discussion, profile=profile01)
