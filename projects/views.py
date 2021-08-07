@@ -65,18 +65,10 @@ def get_projects_list(request):
 
     return Response(
         {
-            "isall": len(serializer.data) == len(Project.objects.all()),
+            "isall": len(serializer.data) == len(Project.objects.filter(**filter).distinct()),
             "projects": serializer.data,
         }
     )
-
-
-@api_view(["GET"])
-def get_category_projects_list(request, category):
-    projects = Project.objects.filter(category=category)[:30]
-    serializer = ProjectSerializer01(projects, many=True)
-
-    return Response(serializer.data)
 
 
 @api_view(["GET"])

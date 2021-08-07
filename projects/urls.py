@@ -7,7 +7,6 @@ urlpatterns = [
     path("get-fields-name-list", get_fields_name_list),
     path("get-filtered-projects/<str:query>", get_filtered_projects),
     path("get-projects-list", get_projects_list),
-    path("get-category-projects-list/<str:category>", get_category_projects_list),
     path("get-projects-categories-list", get_projects_categories_list),
     path("create-project", create_project),
     path("get-project/<int:project_id>", get_project),
