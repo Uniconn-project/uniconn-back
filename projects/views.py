@@ -20,6 +20,7 @@ from .models import (
     ProjectStar,
     Tool,
     ToolCategory,
+    project_categories_choices,
 )
 from .serializers import (
     DiscussionSerializer01,
@@ -38,27 +39,41 @@ def get_fields_name_list(request):
 
 
 @api_view(["GET"])
-def get_projects_list(request):
-    projects = Project.objects.all()[:30]
-    serializer = ProjectSerializer01(projects, many=True)
+def get_filtered_projects(request, query):
+    profiles = Project.objects.filter(name__icontains=query)[:5]
+    serializer = ProjectSerializer01(profiles, many=True)
 
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+def get_projects_list(request):
+    length = request.query_params.get("length", 10)
+    categories = request.query_params.get("categories", None)
+    fields = request.query_params.get("fields", None)
+
+    filter = {}
+
+    if categories is not None:
+        filter["category__in"] = categories.split(";")
+
+    if fields is not None:
+        filter["fields__name__in"] = fields.split(";")
+
+    projects = Project.objects.filter(**filter).distinct()[: int(length)]
+    serializer = ProjectSerializer01(projects, many=True)
+
+    return Response(
+        {
+            "isall": len(serializer.data) == len(Project.objects.all()),
+            "projects": serializer.data,
+        }
+    )
 
 
 @api_view(["GET"])
 def get_category_projects_list(request, category):
     projects = Project.objects.filter(category=category)[:30]
-    serializer = ProjectSerializer01(projects, many=True)
-
-    return Response(serializer.data)
-
-
-@api_view(["GET"])
-def get_filtered_projects_list(request):
-    categories = request.query_params["categories"].split(";")
-    fields = request.query_params["fields"].split(";")
-
-    projects = Project.objects.filter(category__in=categories, fields__name__in=fields).distinct()
     serializer = ProjectSerializer01(projects, many=True)
 
     return Response(serializer.data)
