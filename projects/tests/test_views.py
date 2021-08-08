@@ -1,14 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
-from profiles.models import Mentor, Student
+from profiles.models import Profile
 from rest_framework import status
 
 from ..models import (
     Discussion,
     DiscussionReply,
     DiscussionStar,
-    Link,
     Field,
+    Link,
     Project,
     ProjectStar,
 )
@@ -38,6 +38,72 @@ class TestGetFieldsNameList(TestCase):
 
         response = client.get(self.url)
         self.assertEqual(response.data, serializer.data)
+
+
+class TestGetFilteredProjects(TestCase):
+    url = BASE_URL + "get-filtered-projects/"
+
+    def test_req(self):
+        response = client.get(self.url + "")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        response = client.get(self.url + "unic")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for method in ["delete", "put", "patch", "post"]:
+            response = getattr(client, method)(self.url + "unic")
+            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_res(self):
+        Project.objects.create(name="Uniconn")
+        Project.objects.create(name="UniCorn")
+        Project.objects.create(name="Connectuni")
+        Project.objects.create(name="SpaceX")
+        Project.objects.create(name="BlueOrigin")
+
+        query = "Uni"
+        response = client.get(self.url + query)
+        self.assertEqual(len(response.data), 3)
+        self.assertEqual(
+            response.data, ProjectSerializer01(Project.objects.filter(name__icontains=query), many=True).data
+        )
+
+        query = "UNI"
+        response = client.get(self.url + query)
+        self.assertEqual(len(response.data), 3)
+        self.assertEqual(
+            response.data, ProjectSerializer01(Project.objects.filter(name__icontains=query), many=True).data
+        )
+
+        query = "uniconn"
+        response = client.get(self.url + query)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(
+            response.data, ProjectSerializer01(Project.objects.filter(name__icontains=query), many=True).data
+        )
+
+        query = "unexistent-name"
+        response = client.get(self.url + query)
+        self.assertEqual(len(response.data), 0)
+        self.assertEqual(
+            response.data, ProjectSerializer01(Project.objects.filter(name__icontains=query), many=True).data
+        )
+
+        # asserting view only return 5 projects
+        for i in range(20):
+            Project.objects.create(name=f"SpaceDiggers{i}")
+
+        query = "SpaceDiggers"
+        response = client.get(self.url + query)
+        self.assertEqual(len(response.data), 5)
+        self.assertEqual(
+            response.data, ProjectSerializer01(Project.objects.filter(name__icontains=query)[:5], many=True).data
+        )
+
+
+#-------------------------------------------------------------
+# ---------- CONTINUE FROM HERE ------------------------------
+#-------------------------------------------------------------
 
 
 class TestGetProjectsList(TestCase):

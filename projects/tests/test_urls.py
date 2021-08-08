@@ -10,11 +10,11 @@ class TestUrls(TestCase):
     def test_get_fields_name_list_url(self):
         self.assertEqual(resolve(BASE_URL + "get-fields-name-list").func, get_fields_name_list)
 
+    def test_get_filtered_projects_url(self):
+        self.assertEqual(resolve(BASE_URL + "get-filtered-projects/unic").func, get_filtered_projects)
+
     def test_get_projects_list_url(self):
         self.assertEqual(resolve(BASE_URL + "get-projects-list").func, get_projects_list)
-
-    def test_get_filtered_projects_list_url(self):
-        self.assertEqual(resolve(BASE_URL + "get-filtered-projects-list").func, get_filtered_projects_list)
 
     def test_get_projects_categories_list_url(self):
         self.assertEqual(resolve(BASE_URL + "get-projects-categories-list").func, get_projects_categories_list)
@@ -43,8 +43,8 @@ class TestUrls(TestCase):
     def test_reply_project_invitation_url(self):
         self.assertEqual(resolve(BASE_URL + "reply-project-invitation").func, reply_project_invitation)
 
-    def test_reply_project_entering_request_url(self):
-        self.assertEqual(resolve(BASE_URL + "reply-project-entering-request").func, reply_project_entering_request)
+    def test_reply_project_entry_request_url(self):
+        self.assertEqual(resolve(BASE_URL + "reply-project-entry-request").func, reply_project_entry_request)
 
     def test_edit_project_description_url(self):
         self.assertEqual(resolve(BASE_URL + "edit-project-description/918").func, edit_project_description)
