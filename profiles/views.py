@@ -5,6 +5,7 @@ import pytz
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
+from django.db.models import Q
 from jwt_auth.decorators import login_required
 from projects.models import (
     DiscussionReply,
@@ -231,7 +232,31 @@ def get_filtered_profiles(request, query):
 @api_view(["GET"])
 def get_profile_list(request):
     length = request.query_params.get("length", 20)
-    profiles = Profile.objects.exclude(user__is_superuser=True)[: int(length)]
+    university_students_only = request.query_params.get("university_students_only", False)
+    universities = request.query_params.get("universities", None)
+    majors = request.query_params.get("majors", None)
+    skills = request.query_params.get("skills", None)
+
+    print(skills)
+
+    filter = [Q(user__is_superuser=False)]
+
+    if universities is not None:
+        if university_students_only:
+            filter.append(Q(university__name__in=universities.split(";")))
+        else:
+            filter.append((Q(university__name__in=universities.split(";")) | Q(university=None)))
+
+    if majors is not None:
+        if university_students_only:
+            filter.append(Q(major__name__in=majors.split(";")))
+        else:
+            filter.append((Q(major__name__in=majors.split(";")) | Q(major=None)))
+
+    if skills is not None:
+        filter.append(Q(skills__name__in=skills.split(";")))
+
+    profiles = Profile.objects.filter(*filter).distinct()[: int(length)]
     serializer = ProfileSerializer03(profiles, many=True)
 
     return Response(
