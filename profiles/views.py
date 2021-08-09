@@ -232,26 +232,21 @@ def get_filtered_profiles(request, query):
 @api_view(["GET"])
 def get_profile_list(request):
     length = request.query_params.get("length", 20)
-    university_students_only = request.query_params.get("university_students_only", False)
+    is_attending_university = request.query_params.get("is_attending_university", None)
     universities = request.query_params.get("universities", None)
     majors = request.query_params.get("majors", None)
     skills = request.query_params.get("skills", None)
 
-    print(skills)
-
     filter = [Q(user__is_superuser=False)]
 
+    if is_attending_university is not None:
+        filter.append(Q(is_attending_university=is_attending_university == "yes"))
+
     if universities is not None:
-        if university_students_only:
-            filter.append(Q(university__name__in=universities.split(";")))
-        else:
-            filter.append((Q(university__name__in=universities.split(";")) | Q(university=None)))
+        filter.append((Q(university__name__in=universities.split(";")) | Q(university=None)))
 
     if majors is not None:
-        if university_students_only:
-            filter.append(Q(major__name__in=majors.split(";")))
-        else:
-            filter.append((Q(major__name__in=majors.split(";")) | Q(major=None)))
+        filter.append((Q(major__name__in=majors.split(";")) | Q(major=None)))
 
     if skills is not None:
         filter.append(Q(skills__name__in=skills.split(";")))
@@ -261,7 +256,7 @@ def get_profile_list(request):
 
     return Response(
         {
-            "isall": len(serializer.data) == len(Profile.objects.exclude(user__is_superuser=True)),
+            "isall": len(serializer.data) == len(Profile.objects.filter(*filter).distinct()),
             "profiles": serializer.data,
         }
     )
