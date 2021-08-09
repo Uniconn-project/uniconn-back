@@ -167,6 +167,17 @@ class TestGetFilteredProfiles(TestCase):
             response.data, ProfileSerializer03(Profile.objects.filter(user__username__icontains=query), many=True).data
         )
 
+        # asserting view only return 15 profiles
+        for i in range(20):
+            User.objects.create(username=f"kevin{i}")
+
+        query = "kevin"
+        response = client.get(self.url + query)
+        self.assertEqual(len(response.data), 15)
+        self.assertEqual(
+            response.data, ProfileSerializer03(Profile.objects.filter(user__username__icontains=query), many=True).data
+        )
+
 
 class TestGetProfileList(TestCase):
     url = BASE_URL + "get-profile-list"
