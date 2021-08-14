@@ -1,0 +1,8 @@
+env
+venv
+
+htmlcov
+.coverage
+
+.dockerignore
+Dockerfile
