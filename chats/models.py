@@ -12,6 +12,10 @@ class Chat(models.Model):
     def __str__(self):
         return ", ".join([member.user.username for member in self.members.all()[:5]])
 
+    @property
+    def last_message(self):
+        return self.messages.last().content
+
 
 class Message(models.Model):
     """
