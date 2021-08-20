@@ -223,7 +223,7 @@ def get_profile_projects(request, slug):
 
 @api_view(["GET"])
 def get_filtered_profiles(request, query):
-    profiles = Profile.objects.filter(user__username__icontains=query)[:15]
+    profiles = Profile.objects.filter(user__username__icontains=query, user__is_superuser=False)[:15]
     serializer = ProfileSerializer03(profiles, many=True)
 
     return Response(serializer.data)
