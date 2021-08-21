@@ -1,1 +1,39 @@
-[]
+[
+  {
+    "model": "projects.project",
+    "pk": 1,
+    "fields": {
+      "category": "startup",
+      "name": "ProTube",
+      "slogan": "Plataforma de vídeos de influenciadores digitais",
+      "fields": [1, 2],
+      "created_at": "2021-07-12T17:41:28+00:00",
+      "updated_at": "2021-07-13T17:41:28+00:00"
+    }
+  },
+
+  {
+    "model": "projects.projectmember",
+    "pk": 1,
+    "fields": {
+      "profile": 1,
+      "project": 1,
+      "role": "admin"
+    }
+  },
+
+  {
+    "model": "projects.field",
+    "pk": 1,
+    "fields": {
+      "name": "Tecnologia"
+    }
+  },
+  {
+    "model": "projects.field",
+    "pk": 2,
+    "fields": {
+      "name": "Audiovisual"
+    }
+  }
+]
