@@ -18,8 +18,13 @@ def get_chats_list(request):
     ordered_chats.reverse()
 
     serializer = ChatSerializer01(ordered_chats, many=True)
+    response_data = serializer.data
 
-    return Response(serializer.data)
+    for serialized_chat in response_data:
+        chat = Chat.objects.get(id=serialized_chat["id"])
+        serialized_chat["unvisualized_messages_number"] = chat.get_unvisualized_messages_number(request.user.profile)
+
+    return Response(response_data)
 
 
 @api_view(["GET"])
@@ -33,7 +38,13 @@ def get_chat_messages(request, chat_id):
     if request.user.profile not in chat.members.all():
         return Response("Você não está na conversa!", status=status.HTTP_400_BAD_REQUEST)
 
-    serializer = MessageSerializer01(chat.messages.all(), many=True)
+    messages = chat.messages.all()
+
+    for message in messages.exclude(visualized_by=request.user.profile):
+        message.visualized_by.add(request.user.profile)
+        message.save()
+
+    serializer = MessageSerializer01(messages, many=True)
 
     return Response(serializer.data)
 
