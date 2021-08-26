@@ -13,8 +13,8 @@ class Chat(models.Model):
         return ", ".join([member.user.username for member in self.members.all()[:5]])
 
     @property
-    def last_message(self):
-        return self.messages.last().content
+    def last_messages(self):
+        return self.messages.all()[-20:]
 
     def get_unvisualized_messages_number(self, profile):
         return len(self.messages.exclude(visualized_by=profile))
