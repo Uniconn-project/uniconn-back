@@ -25,7 +25,6 @@ def get_chats_list(request):
 
     for serialized_chat in response_data:
         chat = Chat.objects.get(id=serialized_chat["id"])
-        print(len(chat.last_messages))
         serialized_chat["unvisualized_messages_number"] = chat.get_unvisualized_messages_number(request.user.profile)
 
     return Response(response_data)
@@ -34,9 +33,9 @@ def get_chats_list(request):
 @api_view(["GET"])
 @login_required
 def get_chat_messages(request, chat_id):
-    scroll_index = request.query_params.get("scroll-index", 0)
-    batch_length = request.query_params.get("batch-length", 20)
-    unvizualized_only = request.query_params.get("unvizualized-only", False)
+    scroll_index = int(request.query_params.get("scroll-index", 0))
+    batch_length = int(request.query_params.get("batch-length", 20))
+    unvisualized_only = request.query_params.get("unvisualized-only", "false") == "true"
 
     try:
         chat = Chat.objects.get(id=chat_id)
@@ -47,15 +46,32 @@ def get_chat_messages(request, chat_id):
         return Response("Você não está na conversa!", status=status.HTTP_400_BAD_REQUEST)
 
     messages = (
-        chat.messages.all() if not unvizualized_only else chat.messages.exclude(visualized_by=request.user.profile)
+        chat.messages.all() if not unvisualized_only else chat.messages.exclude(visualized_by=request.user.profile)
     )
 
     messages = sorted(messages, key=lambda message: -message.created_at.timestamp())
-    messages = list(messages[scroll_index * batch_length : (scroll_index + 1) * batch_length])
+    messages = list(
+        messages if unvisualized_only else messages[scroll_index * batch_length : (scroll_index + 1) * batch_length]
+    )
 
     serializer = MessageSerializer01(messages, many=True)
 
-    return Response(serializer.data)
+    return Response(
+        {
+            "fully_rendered": (scroll_index + 1) * batch_length > len(messages),
+            "messages": serializer.data,
+        }
+    )
+
+
+@api_view(["GET"])
+@login_required
+def get_unvisualized_messages_number(request):
+    profile = request.user.profile
+    chats = Chat.objects.filter(members=profile)
+    unvisualized_messages_number = sum([chat.get_unvisualized_messages_number(profile) for chat in chats])
+
+    return Response(unvisualized_messages_number)
 
 
 @api_view(["PATCH"])

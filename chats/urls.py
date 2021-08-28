@@ -6,6 +6,7 @@ from .views import *
 urlpatterns = [
     path("get-chats-list", get_chats_list),
     path("get-chat-messages/<int:chat_id>", get_chat_messages),
+    path("get-unvisualized-messages-number", get_unvisualized_messages_number),
     path("visualize-chat-messages/<int:chat_id>", visualize_chat_messages),
     path("create-message/<int:chat_id>", create_message),
     path("create-chat", create_chat),
