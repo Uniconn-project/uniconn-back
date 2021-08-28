@@ -15,7 +15,7 @@ class MessageSerializer01(serializers.ModelSerializer):
 
 class ChatSerializer01(serializers.ModelSerializer):
     members = ProfileSerializer03(many=True)
-    messages = MessageSerializer01(many=True)
+    messages = MessageSerializer01(many=True, source="last_messages")
 
     class Meta:
         model = Chat

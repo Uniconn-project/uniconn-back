@@ -14,7 +14,7 @@ class Chat(models.Model):
 
     @property
     def last_messages(self):
-        return self.messages.all()[-20:]
+        return list(self.messages.all())[-20:]
 
     def get_unvisualized_messages_number(self, profile):
         return len(self.messages.exclude(visualized_by=profile))

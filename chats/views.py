@@ -25,6 +25,7 @@ def get_chats_list(request):
 
     for serialized_chat in response_data:
         chat = Chat.objects.get(id=serialized_chat["id"])
+        print(len(chat.last_messages))
         serialized_chat["unvisualized_messages_number"] = chat.get_unvisualized_messages_number(request.user.profile)
 
     return Response(response_data)
@@ -91,9 +92,13 @@ def create_message(request, chat_id):
     if request.user.profile not in chat.members.all():
         return Response("Você não está na conversa!", status=status.HTTP_400_BAD_REQUEST)
 
-    Message.objects.create(chat=chat, sender=request.user.profile, content=content)
+    message = Message.objects.create(chat=chat, sender=request.user.profile, content=content)
+    message.visualized_by.add(request.user.profile)
+    message.save()
 
-    return Response("success")
+    serializer = MessageSerializer01(message)
+
+    return Response(serializer.data)
 
 
 @api_view(["POST"])
