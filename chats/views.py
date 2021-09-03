@@ -58,7 +58,7 @@ def get_chat_messages(request, chat_id):
 
     return Response(
         {
-            "fully_rendered": (scroll_index + 1) * batch_length > len(messages),
+            "fully_rendered": (scroll_index + 1) * batch_length > len(chat.messages.all()),
             "messages": serializer.data,
         }
     )
