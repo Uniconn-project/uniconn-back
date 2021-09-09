@@ -6,7 +6,6 @@ from .models import Chat, Message
 
 class MessageSerializer01(serializers.ModelSerializer):
     sender = ProfileSerializer02()
-    visualized_by = ProfileSerializer02(many=True)
 
     class Meta:
         model = Message
