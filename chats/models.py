@@ -32,5 +32,8 @@ class Message(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ["id"]
+
     def __str__(self):
         return f"{self.sender.user.username} - {self.content[:100]}"
