@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "profiles",
     "universities",
     "projects",
+    "chats",
 ]
 
 # JWTAuthentication => Authentication class that is actually used in the app
