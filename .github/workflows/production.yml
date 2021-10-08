@@ -31,7 +31,7 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/backend:prod-${{ github.events.payload.push_id }}
+          tags: uniconn/backend:prod-${{ github.events.payload.push_id }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
