@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-$kd0=-)y+em-3v&9kwaak4u5tuuoehj)q^6_!#mib7wx=z*&gj"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -175,7 +175,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media_root")
 
 # AWS S3 Buckets
 AWS_ACCESS_KEY_ID = "AKIAYFS3Y2EHTGPLMFOH"
-AWS_SECRET_ACCESS_KEY = "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"
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = "uniconn-bucket"
 
 AWS_S3_REGION_NAME = "us-east-2"
